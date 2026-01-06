@@ -1,0 +1,31 @@
+name: ETL Diario EPL CAS
+
+on:
+  schedule:
+    # 12:00 UTC = 6:00 AM México (todos los días)
+    - cron: '0 12 * * *'
+  
+  # Permite ejecución manual desde GitHub
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      
+      - name: Ejecutar ETL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ZENPUT_TOKEN: ${{ secrets.ZENPUT_TOKEN }}
+        run: python etl_sync.py
