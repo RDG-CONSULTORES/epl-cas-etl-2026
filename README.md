@@ -1,52 +1,119 @@
-# EPL CAS ETL 2026
+# EPL CAS 2026 - Dashboard de Supervisiones
 
-ETL diario para sincronizar supervisiones de Zenput a PostgreSQL.
+Dashboard móvil para El Pollo Loco México - Sistema CAS (Calificación, Auditoría y Seguimiento).
 
-## 📊 Datos que procesa
+## 🚀 Features
 
-- **Supervisiones Operativas**: 29 áreas de evaluación
-- **Supervisiones Seguridad**: 11 KPIs
+- **Dashboard Principal**: KPIs, rankings de grupos y sucursales
+- **Mapa Interactivo**: Visualización geográfica de sucursales
+- **Histórico**: Tendencias por periodo
+- **Alertas**: Sucursales críticas y sin supervisar
+- **Drill-down**: Detalle de áreas/KPIs por sucursal
+- **Panel Admin**: Configuración de periodos activos
 
-## 🚀 Deploy en Railway
+## 📱 Mobile-First Design
 
-1. Conectar este repo a Railway
-2. El cron se ejecuta automáticamente a las 12:00 UTC (6:00 AM México)
+Diseño optimizado para iOS con:
+- Tab bar fijo inferior
+- Header fijo superior
+- Gestos táctiles
+- Transiciones fluidas
+- Tema oscuro
 
-## ⚙️ Variables de Entorno
+## 🛠 Tech Stack
 
+- **Backend**: Flask + SQLAlchemy
+- **Frontend**: Vanilla JS + CSS (no frameworks)
+- **Database**: PostgreSQL (Railway)
+- **Maps**: Leaflet.js
+- **Deployment**: Railway (Docker)
+
+## 📦 Deployment en Railway
+
+### Opción 1: Deploy desde GitHub
+
+1. Fork o sube este código a tu repositorio GitHub
+2. En Railway, crea nuevo proyecto "Deploy from GitHub repo"
+3. Selecciona el repositorio
+4. Railway detectará el Dockerfile automáticamente
+5. Configura las variables de entorno:
+
+```env
+DATABASE_URL=postgresql://postgres:PASSWORD@host:port/railway
+SECRET_KEY=tu-secret-key-aqui
+ADMIN_PASSWORD=tu-password-admin
 ```
-DATABASE_URL = postgresql://...
-ZENPUT_TOKEN = cb908e0d4e0f5501c635325c611db314
-```
 
-## 🔄 Ejecución Manual
+6. Deploy!
+
+### Opción 2: Railway CLI
 
 ```bash
-pip install -r requirements.txt
-python etl_sync.py
+# Instalar Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Crear proyecto
+railway init
+
+# Deploy
+railway up
 ```
 
-## 📅 Cron Schedule
+### Variables de Entorno
 
-- `0 12 * * *` = 12:00 UTC = 6:00 AM México (todos los días)
+| Variable | Descripción | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | (requerido) |
+| `SECRET_KEY` | Flask secret key | `epl-cas-2026-secret-key` |
+| `ADMIN_PASSWORD` | Password del panel admin | `epl2026admin` |
+| `PORT` | Puerto del servidor | `5000` |
 
-## 📁 Base de Datos
+## 🗄 Base de Datos
 
-| Tabla | Descripción |
-|-------|-------------|
-| grupos_operativos | 20 grupos |
-| sucursales | 86 sucursales |
-| supervisiones_operativas | Supervisiones CAS operativas |
-| supervision_areas | 29 áreas por supervisión |
-| supervisiones_seguridad | Supervisiones CAS seguridad |
-| seguridad_kpis | 11 KPIs por supervisión |
-| sync_log | Log de ejecuciones |
-| sync_checkpoints | Última fecha sincronizada |
+El dashboard se conecta a la BD existente con estas tablas:
 
-## 🔗 APIs
+- `periodos_cas` - Configuración de periodos
+- `grupos_operativos` - 20 grupos operativos
+- `sucursales` - 86 sucursales con coordenadas
+- `supervisiones_operativas` - Supervisiones operativas
+- `supervisiones_seguridad` - Supervisiones de seguridad
+- `supervision_areas` - Detalle de 29 áreas operativas
+- `seguridad_kpis` - Detalle de 10 KPIs seguridad
 
-- **Zenput API**: Form 877138 (operativas), Form 877139 (seguridad)
-- **PostgreSQL**: Railway hosted
+## 📋 Endpoints API
 
----
-Creado para El Pollo Loco México - RDG Consultores 2026
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /api/periodos` | Lista de periodos |
+| `GET /api/dashboard/{tipo}/{periodo_id}` | KPIs principales |
+| `GET /api/ranking/grupos/{tipo}/{periodo_id}` | Ranking de grupos |
+| `GET /api/ranking/sucursales/{tipo}/{periodo_id}` | Ranking de sucursales |
+| `GET /api/mapa/{tipo}/{periodo_id}` | Datos para mapa |
+| `GET /api/detalle/grupo/{id}/{tipo}/{periodo_id}` | Detalle de grupo |
+| `GET /api/detalle/sucursal/{id}/{tipo}/{periodo_id}` | Detalle de sucursal |
+| `GET /api/alertas/{tipo}/{periodo_id}` | Alertas |
+| `GET /api/historico/{tipo}` | Histórico completo |
+
+## 🔐 Admin Panel
+
+Accede a `/admin` con la contraseña configurada para:
+
+- Ver estadísticas generales
+- Configurar periodo activo
+- Ver periodos configurados
+
+## 🎨 Colores de Calificación
+
+| Rango | Color |
+|-------|-------|
+| ≥90% | 🟢 Verde |
+| 80-89% | 🟡 Amarillo |
+| 70-79% | 🟠 Naranja |
+| <70% | 🔴 Rojo |
+
+## 📄 License
+
+© 2026 El Pollo Loco México / RDG Consultores
