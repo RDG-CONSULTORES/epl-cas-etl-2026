@@ -2,185 +2,112 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
     <title>EPL CAS 2026 - Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=SF+Pro+Text:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Header Fijo -->
-    <header class="app-header">
-        <div class="header-content">
-            <div class="logo">
-                <img src="https://www.elpolloloco.com.mx/img/logo.png" alt="EPL" onerror="this.style.display='none'">
-                <span class="logo-text">CAS 2026</span>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">EPL CAS 2026</h1>
+                <p class="header-subtitle">Dashboard de Supervisiones</p>
             </div>
-            <div class="header-controls">
-                <select id="periodoSelect" class="periodo-select">
-                    {% for p in periodos %}
-                    <option value="{{ p.id }}" {% if periodo_activo and p.id == periodo_activo.id %}selected{% endif %}>
-                        {{ p.codigo }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-    </header>
+            <a href="/admin/login" class="admin-btn">Admin</a>
+        </header>
 
-    <!-- Main Content Area -->
-    <main class="app-content">
-        <!-- Tab: Dashboard -->
-        <section id="tab-dashboard" class="tab-content active">
-            <!-- Toggle Operativas/Seguridad -->
-            <div class="tipo-toggle">
-                <button class="toggle-btn active" data-tipo="operativas">Operativas</button>
-                <button class="toggle-btn" data-tipo="seguridad">Seguridad</button>
-            </div>
-
-            <!-- KPIs Cards -->
-            <div class="kpis-container">
-                <div class="kpi-card main-kpi">
-                    <div class="kpi-value" id="kpi-promedio">--</div>
-                    <div class="kpi-label">Promedio</div>
-                    <div class="kpi-trend" id="kpi-trend"></div>
+        <!-- Stats Cards -->
+        <section class="stats-section">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <span class="stat-value" id="totalPeriodos">-</span>
+                    <span class="stat-label">Periodos</span>
                 </div>
-                <div class="kpi-row">
-                    <div class="kpi-card small">
-                        <div class="kpi-value" id="kpi-supervisiones">--</div>
-                        <div class="kpi-label">Supervisiones</div>
-                    </div>
-                    <div class="kpi-card small">
-                        <div class="kpi-value" id="kpi-cobertura">--%</div>
-                        <div class="kpi-label">Cobertura</div>
-                    </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="totalGrupos">-</span>
+                    <span class="stat-label">Grupos</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="totalSucursales">-</span>
+                    <span class="stat-label">Sucursales</span>
+                </div>
+                <div class="stat-card accent">
+                    <span class="stat-value" id="promedioOperativo">-</span>
+                    <span class="stat-label">Prom. Operativo</span>
                 </div>
             </div>
-
-            <!-- View Toggle -->
-            <div class="view-toggle">
-                <button class="view-btn active" data-view="grupos">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                    </svg>
-                    Grupos
-                </button>
-                <button class="view-btn" data-view="sucursales">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="8" y1="6" x2="21" y2="6"></line>
-                        <line x1="8" y1="12" x2="21" y2="12"></line>
-                        <line x1="8" y1="18" x2="21" y2="18"></line>
-                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                    </svg>
-                    Sucursales
-                </button>
-            </div>
-
-            <!-- Ranking List -->
-            <div class="ranking-container" id="ranking-container">
-                <div class="loading">Cargando...</div>
-            </div>
         </section>
 
-        <!-- Tab: Mapa -->
-        <section id="tab-mapa" class="tab-content">
-            <div class="tipo-toggle">
-                <button class="toggle-btn active" data-tipo="operativas">Operativas</button>
-                <button class="toggle-btn" data-tipo="seguridad">Seguridad</button>
-            </div>
-            <div id="map" class="map-container"></div>
-            <div class="map-legend">
-                <span class="legend-item"><span class="dot green"></span>≥90%</span>
-                <span class="legend-item"><span class="dot yellow"></span>80-89%</span>
-                <span class="legend-item"><span class="dot orange"></span>70-79%</span>
-                <span class="legend-item"><span class="dot red"></span>&lt;70%</span>
-                <span class="legend-item"><span class="dot gray"></span>Sin datos</span>
-            </div>
-        </section>
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="periodos">Periodos</button>
+            <button class="tab-btn" data-tab="grupos">Grupos</button>
+            <button class="tab-btn" data-tab="sucursales">Sucursales</button>
+            <button class="tab-btn" data-tab="ranking">Ranking</button>
+        </nav>
 
-        <!-- Tab: Histórico -->
-        <section id="tab-historico" class="tab-content">
-            <div class="tipo-toggle">
-                <button class="toggle-btn active" data-tipo="operativas">Operativas</button>
-                <button class="toggle-btn" data-tipo="seguridad">Seguridad</button>
-            </div>
-            <div class="historico-container" id="historico-container">
-                <div class="loading">Cargando...</div>
-            </div>
-        </section>
-
-        <!-- Tab: Alertas -->
-        <section id="tab-alertas" class="tab-content">
-            <div class="tipo-toggle">
-                <button class="toggle-btn active" data-tipo="operativas">Operativas</button>
-                <button class="toggle-btn" data-tipo="seguridad">Seguridad</button>
-            </div>
-            <div class="alertas-container" id="alertas-container">
-                <div class="loading">Cargando...</div>
-            </div>
-        </section>
-
-        <!-- Detail Modal -->
-        <div id="detail-modal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modal-title">Detalle</h2>
-                    <button class="modal-close" onclick="closeModal()">&times;</button>
+        <!-- Tab Content -->
+        <main class="tab-content">
+            <!-- Periodos Tab -->
+            <section class="tab-panel active" id="periodos">
+                <div class="section-header">
+                    <h2>Periodos CAS</h2>
                 </div>
-                <div class="modal-body" id="modal-body">
+                <div class="list-container" id="periodosList">
                     <div class="loading">Cargando...</div>
                 </div>
-            </div>
-        </div>
-    </main>
+            </section>
 
-    <!-- Tab Bar Fijo -->
-    <nav class="tab-bar">
-        <button class="tab-btn active" data-tab="dashboard">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="9"></rect>
-                <rect x="14" y="3" width="7" height="5"></rect>
-                <rect x="14" y="12" width="7" height="9"></rect>
-                <rect x="3" y="16" width="7" height="5"></rect>
-            </svg>
-            <span>Dashboard</span>
-        </button>
-        <button class="tab-btn" data-tab="mapa">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                <line x1="8" y1="2" x2="8" y2="18"></line>
-                <line x1="16" y1="6" x2="16" y2="22"></line>
-            </svg>
-            <span>Mapa</span>
-        </button>
-        <button class="tab-btn" data-tab="historico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-            </svg>
-            <span>Histórico</span>
-        </button>
-        <button class="tab-btn" data-tab="alertas">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <span>Alertas</span>
-            <span class="badge" id="alertas-badge" style="display:none">0</span>
-        </button>
-    </nav>
+            <!-- Grupos Tab -->
+            <section class="tab-panel" id="grupos">
+                <div class="section-header">
+                    <h2>Grupos Operativos</h2>
+                </div>
+                <div class="list-container" id="gruposList">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </section>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <!-- Sucursales Tab -->
+            <section class="tab-panel" id="sucursales">
+                <div class="section-header">
+                    <h2>Sucursales</h2>
+                </div>
+                <div class="filter-bar">
+                    <select id="grupoFilter" class="filter-select">
+                        <option value="">Todos los grupos</option>
+                    </select>
+                </div>
+                <div class="list-container" id="sucursalesList">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </section>
+
+            <!-- Ranking Tab -->
+            <section class="tab-panel" id="ranking">
+                <div class="section-header">
+                    <h2>Ranking</h2>
+                </div>
+                <div class="ranking-toggle">
+                    <button class="ranking-btn active" data-ranking="grupos">Por Grupos</button>
+                    <button class="ranking-btn" data-ranking="sucursales">Por Sucursales</button>
+                </div>
+                <div class="list-container" id="rankingList">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>RDG Consultores 2026</p>
+        </footer>
+    </div>
+
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
