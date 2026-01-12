@@ -696,18 +696,32 @@ body {
 }
 
 /* ========== MODALS ========== */
+/* Fix para iOS: cuando modal está activo, bloquear body */
+body.modal-open {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.8);
     z-index: 1000;
     display: none;
     align-items: flex-end;
     justify-content: center;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    /* iOS fix: forzar nueva capa de composición */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 /* Segundo modal debe estar encima del primero */
@@ -720,19 +734,25 @@ body {
 }
 
 .modal-container {
+    position: relative;
     width: 100%;
     max-width: 600px;
     max-height: 85vh;
+    max-height: 85dvh; /* Dynamic viewport height para iOS */
     background: var(--bg-secondary);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     animation: slideUp 0.3s ease;
+    /* iOS fix */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .modal-large {
     max-height: 90vh;
+    max-height: 90dvh;
 }
 
 @keyframes slideUp {

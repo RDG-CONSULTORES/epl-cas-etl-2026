@@ -4,11 +4,42 @@
  */
 
 // State
-let currentTipo = 'operativas';
-let currentView = 'grupos';
-let currentTerritorio = 'todas';
-let map = null;
-let markers = [];
+var currentTipo = 'operativas';
+var currentView = 'grupos';
+var currentTerritorio = 'todas';
+var map = null;
+var markers = [];
+var scrollPosition = 0; // Para guardar posición de scroll en iOS
+var openModalsCount = 0; // Contador de modales abiertos
+
+// ========== iOS MODAL FIX ==========
+function lockBodyScroll() {
+    if (openModalsCount === 0) {
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        document.body.classList.add('modal-open');
+        document.body.style.top = -scrollPosition + 'px';
+    }
+    openModalsCount++;
+}
+
+function unlockBodyScroll() {
+    openModalsCount--;
+    if (openModalsCount <= 0) {
+        openModalsCount = 0;
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        window.scrollTo(0, scrollPosition);
+    }
+}
+
+function forceRepaint(element) {
+    // Forzar repaint en iOS
+    if (element) {
+        element.style.display = 'none';
+        element.offsetHeight; // Trigger reflow
+        element.style.display = '';
+    }
+}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -217,13 +248,19 @@ function openGrupoModal(grupoId) {
     var overlay = document.getElementById('modalOverlay');
     var body = document.getElementById('modalBody');
     var title = document.getElementById('modalTitle');
+    var container = overlay ? overlay.querySelector('.modal-container') : null;
 
     if (!overlay || !body) return;
 
+    // iOS fix: bloquear scroll del body
+    lockBodyScroll();
+
     body.innerHTML = '<div class="loading">Cargando...</div>';
-    body.scrollTop = 0; // Reset scroll position
+    body.scrollTop = 0;
     overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+
+    // Forzar repaint para iOS
+    forceRepaint(container);
 
     fetch('/api/grupo/' + grupoId + '/' + currentTipo)
         .then(function(res) { return res.json(); })
@@ -257,10 +294,10 @@ function openGrupoModal(grupoId) {
                     '<h4 class="modal-section-title">Sucursales del Grupo</h4>' +
                     '<div class="modal-list">' + sucursalesHtml + '</div>';
 
-                // IMPORTANTE: Resetear scroll DESPUÉS de cargar contenido
+                // Resetear scroll DESPUÉS de cargar contenido
                 setTimeout(function() {
                     body.scrollTop = 0;
-                    body.scrollTo && body.scrollTo(0, 0);
+                    if (body.scrollTo) body.scrollTo(0, 0);
                 }, 50);
             }
         })
@@ -273,13 +310,13 @@ function openGrupoModal(grupoId) {
     if (closeBtn) {
         closeBtn.onclick = function() {
             overlay.classList.remove('active');
-            document.body.style.overflow = '';
+            unlockBodyScroll();
         };
     }
     overlay.onclick = function(e) {
         if (e.target === overlay) {
             overlay.classList.remove('active');
-            document.body.style.overflow = '';
+            unlockBodyScroll();
         }
     };
 }
@@ -288,14 +325,22 @@ function openSucursalModal(sucursalId) {
     var overlay = document.getElementById('sucursalModalOverlay');
     var body = document.getElementById('sucursalModalBody');
     var title = document.getElementById('sucursalModalTitle');
+    var container = overlay ? overlay.querySelector('.modal-container') : null;
 
     if (!overlay || !body) return;
 
-    // Resetear scroll ANTES de mostrar
+    // iOS fix: bloquear scroll (solo incrementa contador si ya hay modal abierto)
+    lockBodyScroll();
+
     body.innerHTML = '<div class="loading">Cargando...</div>';
     body.scrollTop = 0;
     overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+
+    // Forzar repaint para iOS - CRÍTICO
+    forceRepaint(container);
+    setTimeout(function() {
+        forceRepaint(overlay);
+    }, 10);
 
     // Cargar datos de sucursal y tendencia en paralelo
     Promise.all([
@@ -391,27 +436,20 @@ function openSucursalModal(sucursalId) {
     if (closeBtn) {
         closeBtn.onclick = function() {
             overlay.classList.remove('active');
-            // Solo restaurar overflow si no hay otro modal activo
-            var grupoModal = document.getElementById('modalOverlay');
-            if (!grupoModal || !grupoModal.classList.contains('active')) {
-                document.body.style.overflow = '';
-            }
+            unlockBodyScroll(); // Decrementa contador, solo desbloquea si es el último
         };
     }
     var backBtn = document.getElementById('modalBack');
     if (backBtn) {
         backBtn.onclick = function() {
             overlay.classList.remove('active');
-            // Al dar back, el modal de grupo sigue activo, no restaurar overflow
+            unlockBodyScroll(); // Decrementa contador, el modal de grupo sigue activo
         };
     }
     overlay.onclick = function(e) {
         if (e.target === overlay) {
             overlay.classList.remove('active');
-            var grupoModal = document.getElementById('modalOverlay');
-            if (!grupoModal || !grupoModal.classList.contains('active')) {
-                document.body.style.overflow = '';
-            }
+            unlockBodyScroll();
         }
     };
 }
