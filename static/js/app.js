@@ -256,6 +256,12 @@ function openGrupoModal(grupoId) {
                     '</div>' +
                     '<h4 class="modal-section-title">Sucursales del Grupo</h4>' +
                     '<div class="modal-list">' + sucursalesHtml + '</div>';
+
+                // IMPORTANTE: Resetear scroll DESPUÉS de cargar contenido
+                setTimeout(function() {
+                    body.scrollTop = 0;
+                    body.scrollTo && body.scrollTo(0, 0);
+                }, 50);
             }
         })
         .catch(function(e) {
@@ -285,8 +291,9 @@ function openSucursalModal(sucursalId) {
 
     if (!overlay || !body) return;
 
+    // Resetear scroll ANTES de mostrar
     body.innerHTML = '<div class="loading">Cargando...</div>';
-    body.scrollTop = 0; // Reset scroll position
+    body.scrollTop = 0;
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
 
@@ -365,6 +372,12 @@ function openSucursalModal(sucursalId) {
                 '</div>' +
                 tendenciaHtml +
                 areasHtml;
+
+            // IMPORTANTE: Resetear scroll DESPUÉS de cargar contenido
+            setTimeout(function() {
+                body.scrollTop = 0;
+                body.scrollTo && body.scrollTo(0, 0);
+            }, 50);
         } else {
             body.innerHTML = '<div class="error-state">No se encontraron datos</div>';
         }

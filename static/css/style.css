@@ -707,6 +707,12 @@ body {
     display: none;
     align-items: flex-end;
     justify-content: center;
+    overscroll-behavior: contain;
+}
+
+/* Segundo modal debe estar encima del primero */
+#sucursalModalOverlay {
+    z-index: 1100;
 }
 
 .modal-overlay.active {
@@ -781,9 +787,12 @@ body {
 .modal-body {
     padding: 20px;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
     min-height: 0;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: auto;
 }
 
 .modal-kpi {
