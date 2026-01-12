@@ -221,6 +221,7 @@ function openGrupoModal(grupoId) {
     if (!overlay || !body) return;
 
     body.innerHTML = '<div class="loading">Cargando...</div>';
+    body.scrollTop = 0; // Reset scroll position
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
 
@@ -285,7 +286,9 @@ function openSucursalModal(sucursalId) {
     if (!overlay || !body) return;
 
     body.innerHTML = '<div class="loading">Cargando...</div>';
+    body.scrollTop = 0; // Reset scroll position
     overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
 
     // Cargar datos de sucursal y tendencia en paralelo
     Promise.all([
@@ -375,17 +378,27 @@ function openSucursalModal(sucursalId) {
     if (closeBtn) {
         closeBtn.onclick = function() {
             overlay.classList.remove('active');
+            // Solo restaurar overflow si no hay otro modal activo
+            var grupoModal = document.getElementById('modalOverlay');
+            if (!grupoModal || !grupoModal.classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
         };
     }
     var backBtn = document.getElementById('modalBack');
     if (backBtn) {
         backBtn.onclick = function() {
             overlay.classList.remove('active');
+            // Al dar back, el modal de grupo sigue activo, no restaurar overflow
         };
     }
     overlay.onclick = function(e) {
         if (e.target === overlay) {
             overlay.classList.remove('active');
+            var grupoModal = document.getElementById('modalOverlay');
+            if (!grupoModal || !grupoModal.classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
         }
     };
 }
