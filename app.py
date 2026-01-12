@@ -122,19 +122,19 @@ def admin():
 def api_periodos():
     """Obtener todos los periodos CAS"""
     try:
-        result = db.session.execute(text("""
-            SELECT id, nombre, fecha_inicio, fecha_fin, activo
-            FROM periodos_cas ORDER BY fecha_inicio DESC
-        """))
+        result = db.session.execute(text("SELECT * FROM periodos_cas ORDER BY id DESC LIMIT 10"))
+        columns = result.keys()
         periodos = []
         for row in result:
-            periodos.append({
-                'id': row[0], 'nombre': row[1],
-                'fecha_inicio': str(row[2]) if row[2] else None,
-                'fecha_fin': str(row[3]) if row[3] else None,
-                'activo': row[4]
-            })
-        return jsonify({'success': True, 'data': periodos})
+            periodo = {}
+            for i, col in enumerate(columns):
+                val = row[i]
+                if val is not None:
+                    periodo[col] = str(val) if hasattr(val, 'isoformat') else val
+                else:
+                    periodo[col] = None
+            periodos.append(periodo)
+        return jsonify({'success': True, 'data': periodos, 'columns': list(columns)})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -213,14 +213,19 @@ def api_kpis(tipo):
         return jsonify({
             'success': True,
             'data': {
-                'promedio': round(promedio, 2),
+                'promedio': float(round(promedio, 2)),
                 'color': get_color_class(promedio),
-                'total_supervisiones': total_supervisiones,
-                'sucursales_supervisadas': sucursales_supervisadas,
-                'total_sucursales': total_sucursales,
-                'total_grupos': total_grupos,
-                'cobertura': cobertura,
-                'distribucion': distribucion
+                'total_supervisiones': int(total_supervisiones),
+                'sucursales_supervisadas': int(sucursales_supervisadas),
+                'total_sucursales': int(total_sucursales),
+                'total_grupos': int(total_grupos),
+                'cobertura': float(cobertura),
+                'distribucion': {
+                    'excelente': int(distribucion['excelente']),
+                    'bueno': int(distribucion['bueno']),
+                    'regular': int(distribucion['regular']),
+                    'critico': int(distribucion['critico'])
+                }
             }
         })
     except Exception as e:
