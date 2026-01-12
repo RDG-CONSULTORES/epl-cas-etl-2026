@@ -97,12 +97,12 @@ def admin():
         total_grupos = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
 
         result = db.session.execute(text("""
-            SELECT id, codigo, nombre, fecha_inicio, fecha_fin
+            SELECT id, nombre, fecha_inicio, fecha_fin
             FROM periodos_cas ORDER BY fecha_inicio DESC
         """))
-        periodos = [{'id': r[0], 'codigo': r[1], 'nombre': r[2],
-                     'fecha_inicio': str(r[3]) if r[3] else '',
-                     'fecha_fin': str(r[4]) if r[4] else ''} for r in result]
+        periodos = [{'id': r[0], 'nombre': r[1],
+                     'fecha_inicio': str(r[2]) if r[2] else '',
+                     'fecha_fin': str(r[3]) if r[3] else ''} for r in result]
 
         periodo_activo_id = None
         result = db.session.execute(text("SELECT id FROM periodos_cas WHERE activo = true ORDER BY fecha_inicio DESC LIMIT 1"))
@@ -123,16 +123,16 @@ def api_periodos():
     """Obtener todos los periodos CAS"""
     try:
         result = db.session.execute(text("""
-            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, activo
+            SELECT id, nombre, fecha_inicio, fecha_fin, activo
             FROM periodos_cas ORDER BY fecha_inicio DESC
         """))
         periodos = []
         for row in result:
             periodos.append({
-                'id': row[0], 'codigo': row[1], 'nombre': row[2],
-                'fecha_inicio': str(row[3]) if row[3] else None,
-                'fecha_fin': str(row[4]) if row[4] else None,
-                'activo': row[5]
+                'id': row[0], 'nombre': row[1],
+                'fecha_inicio': str(row[2]) if row[2] else None,
+                'fecha_fin': str(row[3]) if row[3] else None,
+                'activo': row[4]
             })
         return jsonify({'success': True, 'data': periodos})
     except Exception as e:
@@ -606,19 +606,19 @@ def api_historico(tipo):
 
         # Obtener todos los períodos
         periodos = db.session.execute(text("""
-            SELECT id, codigo, nombre FROM periodos_cas ORDER BY fecha_inicio
+            SELECT id, nombre FROM periodos_cas ORDER BY fecha_inicio
         """)).fetchall()
 
         # Obtener datos por grupo y período
         result = db.session.execute(text(f"""
-            SELECT g.id, g.nombre, p.codigo, AVG(sup.calificacion_general) as promedio,
+            SELECT g.id, g.nombre, p.nombre as periodo_nombre, AVG(sup.calificacion_general) as promedio,
                    COUNT(sup.id) as evaluaciones
             FROM grupos_operativos g
             CROSS JOIN periodos_cas p
             LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
             LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = p.id
             WHERE g.activo = true
-            GROUP BY g.id, g.nombre, p.codigo, p.fecha_inicio
+            GROUP BY g.id, g.nombre, p.nombre, p.fecha_inicio
             ORDER BY g.nombre, p.fecha_inicio
         """))
 
@@ -627,7 +627,7 @@ def api_historico(tipo):
         for row in result:
             grupo_id = row[0]
             grupo_nombre = row[1]
-            periodo_codigo = row[2]
+            periodo_nombre = row[2]
             promedio = round(float(row[3]), 2) if row[3] else None
             evaluaciones = row[4]
 
@@ -649,7 +649,7 @@ def api_historico(tipo):
                     'promedio_general': 0
                 }
 
-            grupos_data[grupo_id]['periodos'][periodo_codigo] = {
+            grupos_data[grupo_id]['periodos'][periodo_nombre] = {
                 'promedio': promedio,
                 'evaluaciones': evaluaciones,
                 'color': get_color_class(promedio) if promedio else 'gray'
@@ -666,17 +666,17 @@ def api_historico(tipo):
         # Calcular promedio EPL CAS por período
         epl_cas = {'nombre': 'EPL CAS', 'periodos': {}}
         for periodo in periodos:
-            codigo = periodo[1]
-            promedios = [g['periodos'].get(codigo, {}).get('promedio') for g in grupos_list
-                        if g['periodos'].get(codigo, {}).get('promedio') is not None]
+            nombre = periodo[1]
+            promedios = [g['periodos'].get(nombre, {}).get('promedio') for g in grupos_list
+                        if g['periodos'].get(nombre, {}).get('promedio') is not None]
             if promedios:
                 prom = round(sum(promedios) / len(promedios), 2)
-                epl_cas['periodos'][codigo] = {'promedio': prom, 'color': get_color_class(prom)}
+                epl_cas['periodos'][nombre] = {'promedio': prom, 'color': get_color_class(prom)}
 
         return jsonify({
             'success': True,
             'data': {
-                'periodos': [{'codigo': p[1], 'nombre': p[2]} for p in periodos],
+                'periodos': [{'nombre': p[1]} for p in periodos],
                 'grupos': grupos_list,
                 'epl_cas': epl_cas
             }

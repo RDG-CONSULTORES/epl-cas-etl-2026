@@ -498,14 +498,14 @@ async function loadHistorico() {
                 <div class="heatmap-table">
                     <div class="heatmap-header">
                         <div class="heatmap-corner">Grupo</div>
-                        ${periodos.map(p => `<div class="heatmap-period">${p.codigo || ''}</div>`).join('')}
+                        ${periodos.map(p => `<div class="heatmap-period">${(p.nombre || '').substring(0, 12)}</div>`).join('')}
                     </div>
                     <div class="heatmap-body">
                         ${grupos.slice(0, 15).map(g => `
                             <div class="heatmap-row">
                                 <div class="heatmap-entity">${g.nombre}</div>
                                 ${periodos.map(p => {
-                                    const periodoData = g.periodos[p.codigo] || {};
+                                    const periodoData = g.periodos[p.nombre] || {};
                                     const val = periodoData.promedio;
                                     const colorClass = periodoData.color || getColorClass(val);
                                     return `<div class="heatmap-cell ${colorClass}">${val !== null && val !== undefined ? val : '-'}</div>`;
