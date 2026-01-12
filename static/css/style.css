@@ -741,6 +741,10 @@ body {
     padding: 16px 20px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     background: var(--bg-card);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .modal-title {
@@ -753,6 +757,7 @@ body {
 .modal-close, .modal-back {
     width: 36px;
     height: 36px;
+    min-width: 36px;
     background: var(--bg-secondary);
     border: none;
     border-radius: 50%;
@@ -762,12 +767,25 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.modal-close:hover, .modal-back:hover {
+    background: var(--accent);
+    color: white;
+}
+
+.modal-close:active, .modal-back:active {
+    transform: scale(0.95);
 }
 
 .modal-body {
     padding: 20px;
     overflow-y: auto;
     flex: 1;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-kpi {
