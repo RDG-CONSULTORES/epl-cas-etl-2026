@@ -138,11 +138,11 @@ async function loadKPIs() {
         const data = await res.json();
         if (data.success) {
             const d = data.data;
-            document.getElementById('kpiPromedio').textContent = d.promedio_general || '-';
-            document.getElementById('kpiPromedio').className = `kpi-value ${getColorClass(d.promedio_general)}`;
+            document.getElementById('kpiPromedio').textContent = d.promedio || '-';
+            document.getElementById('kpiPromedio').className = `kpi-value ${d.color || 'gray'}`;
             document.getElementById('kpiTotal').textContent = d.total_supervisiones || 0;
-            document.getElementById('kpiGrupos').textContent = d.grupos_evaluados || 0;
-            document.getElementById('kpiSucursales').textContent = d.sucursales_evaluadas || 0;
+            document.getElementById('kpiGrupos').textContent = d.total_grupos || 0;
+            document.getElementById('kpiSucursales').textContent = d.sucursales_supervisadas || 0;
 
             // Distribution bars
             renderDistribution(d.distribucion || {});
@@ -211,8 +211,8 @@ async function loadRanking() {
             }
 
             container.innerHTML = items.map((item, i) => {
-                const calificacion = currentView === 'grupos' ? item.promedio : item.calificacion;
-                const colorClass = getColorClass(calificacion);
+                const calificacion = item.promedio;
+                const colorClass = item.color || getColorClass(calificacion);
 
                 if (currentView === 'grupos') {
                     return `
@@ -259,9 +259,9 @@ async function openGrupoModal(grupoId) {
 
         if (data.success) {
             const g = data.data;
-            document.getElementById('modalTitle').textContent = g.nombre;
+            document.getElementById('modalTitle').textContent = g.grupo ? g.grupo.nombre : 'Grupo';
 
-            const colorClass = getColorClass(g.promedio);
+            const colorClass = g.color || getColorClass(g.promedio);
 
             modalBody.innerHTML = `
                 <div class="modal-kpi">
@@ -270,26 +270,26 @@ async function openGrupoModal(grupoId) {
                 </div>
                 <div class="modal-stats">
                     <div class="modal-stat">
-                        <span class="stat-value">${g.total_supervisiones}</span>
+                        <span class="stat-value">${g.total_supervisiones || 0}</span>
                         <span class="stat-label">Supervisiones</span>
                     </div>
                     <div class="modal-stat">
-                        <span class="stat-value">${g.sucursales_evaluadas}</span>
+                        <span class="stat-value">${g.total_sucursales || 0}</span>
                         <span class="stat-label">Sucursales</span>
                     </div>
                 </div>
                 <h4 class="modal-section-title">Sucursales del Grupo</h4>
                 <div class="modal-list">
-                    ${g.sucursales.map((s, i) => {
-                        const sColorClass = getColorClass(s.calificacion);
+                    ${(g.sucursales || []).map((s, i) => {
+                        const sColorClass = s.color || getColorClass(s.promedio);
                         return `
                             <div class="modal-list-item" onclick="openSucursalDetailModal(${s.id})">
                                 <span class="ranking-pos pos-${i + 1}">${i + 1}</span>
                                 <div class="ranking-info">
                                     <span class="ranking-name">${s.nombre}</span>
-                                    <span class="ranking-meta">${s.supervisiones} supervisiones</span>
+                                    <span class="ranking-meta">${s.supervisiones || 0} supervisiones</span>
                                 </div>
-                                <span class="ranking-score ${sColorClass}">${s.calificacion}</span>
+                                <span class="ranking-score ${sColorClass}">${s.promedio}</span>
                             </div>
                         `;
                     }).join('')}
@@ -319,37 +319,24 @@ async function openSucursalDetailModal(sucursalId) {
 
         if (detailData.success) {
             const s = detailData.data;
-            document.getElementById('sucursalModalTitle').textContent = s.nombre;
+            const sucInfo = s.sucursal || {};
+            document.getElementById('sucursalModalTitle').textContent = sucInfo.nombre || 'Sucursal';
 
-            const colorClass = getColorClass(s.calificacion);
+            const colorClass = s.color || getColorClass(s.promedio);
 
             // Build areas/KPIs section
             let areasHtml = '';
-            if (currentTipo === 'operativas' && s.areas && s.areas.length > 0) {
+            if (s.areas && s.areas.length > 0) {
+                const areaTitle = currentTipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
                 areasHtml = `
-                    <h4 class="modal-section-title">Areas Evaluadas</h4>
+                    <h4 class="modal-section-title">${areaTitle}</h4>
                     <div class="areas-grid">
                         ${s.areas.map(a => {
-                            const aColorClass = getColorClass(a.calificacion);
+                            const aColorClass = a.color || getColorClass(a.porcentaje);
                             return `
                                 <div class="area-card ${aColorClass}">
                                     <span class="area-name">${a.nombre}</span>
-                                    <span class="area-score">${a.calificacion}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-            } else if (currentTipo === 'seguridad' && s.kpis && s.kpis.length > 0) {
-                areasHtml = `
-                    <h4 class="modal-section-title">KPIs de Seguridad</h4>
-                    <div class="kpis-list">
-                        ${s.kpis.map(k => {
-                            const kColorClass = getColorClass(k.calificacion);
-                            return `
-                                <div class="kpi-item">
-                                    <span class="kpi-name">${k.nombre}</span>
-                                    <span class="kpi-score ${kColorClass}">${k.calificacion}</span>
+                                    <span class="area-score">${a.porcentaje}</span>
                                 </div>
                             `;
                         }).join('')}
@@ -364,14 +351,14 @@ async function openSucursalDetailModal(sucursalId) {
                     <h4 class="modal-section-title">Tendencia por Periodo</h4>
                     <div class="trend-chart">
                         ${trendData.data.map(t => {
-                            const tColorClass = getColorClass(t.promedio);
+                            const tColorClass = t.color || getColorClass(t.promedio);
                             const height = Math.max(20, (t.promedio / 100) * 80);
                             return `
                                 <div class="trend-bar">
                                     <div class="trend-fill ${tColorClass}" style="height: ${height}%">
                                         <span class="trend-value">${t.promedio}</span>
                                     </div>
-                                    <span class="trend-label">${t.periodo.substring(0, 10)}</span>
+                                    <span class="trend-label">${(t.periodo || '').substring(0, 10)}</span>
                                 </div>
                             `;
                         }).join('')}
@@ -381,16 +368,16 @@ async function openSucursalDetailModal(sucursalId) {
 
             modalBody.innerHTML = `
                 <div class="modal-kpi">
-                    <span class="modal-kpi-value ${colorClass}">${s.calificacion}</span>
+                    <span class="modal-kpi-value ${colorClass}">${s.promedio}</span>
                     <span class="modal-kpi-label">${currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad'}</span>
                 </div>
                 <div class="modal-stats">
                     <div class="modal-stat">
-                        <span class="stat-value">${s.total_supervisiones}</span>
-                        <span class="stat-label">Supervisiones</span>
+                        <span class="stat-value">${s.supervisor || '-'}</span>
+                        <span class="stat-label">Supervisor</span>
                     </div>
                     <div class="modal-stat">
-                        <span class="stat-value">${s.grupo_nombre || '-'}</span>
+                        <span class="stat-value">${sucInfo.grupo_nombre || '-'}</span>
                         <span class="stat-label">Grupo</span>
                     </div>
                 </div>
@@ -436,7 +423,7 @@ async function loadMapData() {
             data.data.forEach(item => {
                 if (!item.lat || !item.lng) return;
 
-                const colorClass = getColorClass(item.calificacion);
+                const colorClass = item.color || getColorClass(item.promedio);
                 const color = getMarkerColor(colorClass);
 
                 const marker = L.circleMarker([item.lat, item.lng], {
@@ -451,8 +438,8 @@ async function loadMapData() {
                 marker.bindPopup(`
                     <div class="map-popup">
                         <strong>${item.nombre}</strong><br>
-                        <span>${item.grupo_nombre || '-'}</span><br>
-                        <span class="${colorClass}">${item.calificacion}%</span>
+                        <span>${item.grupo || '-'}</span><br>
+                        <span class="${colorClass}">${item.promedio}%</span>
                     </div>
                 `);
 
@@ -468,7 +455,7 @@ async function loadMapData() {
 
             // Populate filter
             const filter = document.getElementById('mapFilter');
-            const grupos = [...new Set(data.data.map(d => d.grupo_nombre).filter(Boolean))];
+            const grupos = [...new Set(data.data.map(d => d.grupo).filter(Boolean))];
             filter.innerHTML = '<option value="todas">Todas las sucursales</option>' +
                 grupos.map(g => `<option value="${g}">${g}</option>`).join('');
         }
@@ -494,26 +481,34 @@ async function loadHistorico() {
     container.innerHTML = '<div class="loading">Cargando...</div>';
 
     try {
-        const res = await fetch(`/api/historico/${currentTipo}?view=${currentHistView}`);
+        const res = await fetch(`/api/historico/${currentTipo}?territorio=all`);
         const data = await res.json();
 
-        if (data.success && data.data.length > 0) {
-            const { periodos, entidades } = processHistoricoData(data.data);
+        if (data.success && data.data) {
+            const periodos = data.data.periodos || [];
+            const grupos = data.data.grupos || [];
+            const eplCas = data.data.epl_cas || {};
+
+            if (grupos.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
+                return;
+            }
 
             container.innerHTML = `
                 <div class="heatmap-table">
                     <div class="heatmap-header">
-                        <div class="heatmap-corner">${currentHistView === 'grupos' ? 'Grupo' : 'Sucursal'}</div>
-                        ${periodos.map(p => `<div class="heatmap-period">${formatPeriodo(p)}</div>`).join('')}
+                        <div class="heatmap-corner">Grupo</div>
+                        ${periodos.map(p => `<div class="heatmap-period">${p.codigo || ''}</div>`).join('')}
                     </div>
                     <div class="heatmap-body">
-                        ${entidades.map(ent => `
+                        ${grupos.slice(0, 15).map(g => `
                             <div class="heatmap-row">
-                                <div class="heatmap-entity">${ent.nombre}</div>
+                                <div class="heatmap-entity">${g.nombre}</div>
                                 ${periodos.map(p => {
-                                    const val = ent.valores[p];
-                                    const colorClass = getColorClass(val);
-                                    return `<div class="heatmap-cell ${colorClass}">${val || '-'}</div>`;
+                                    const periodoData = g.periodos[p.codigo] || {};
+                                    const val = periodoData.promedio;
+                                    const colorClass = periodoData.color || getColorClass(val);
+                                    return `<div class="heatmap-cell ${colorClass}">${val !== null && val !== undefined ? val : '-'}</div>`;
                                 }).join('')}
                             </div>
                         `).join('')}
@@ -526,27 +521,6 @@ async function loadHistorico() {
     } catch (e) {
         container.innerHTML = '<div class="error-state">Error al cargar historico</div>';
     }
-}
-
-function processHistoricoData(data) {
-    const periodosSet = new Set();
-    const entidadesMap = {};
-
-    data.forEach(item => {
-        periodosSet.add(item.periodo);
-        if (!entidadesMap[item.entidad]) {
-            entidadesMap[item.entidad] = { nombre: item.entidad, valores: {} };
-        }
-        entidadesMap[item.entidad].valores[item.periodo] = item.promedio;
-    });
-
-    const periodos = Array.from(periodosSet).sort();
-    const entidades = Object.values(entidadesMap).sort((a, b) => {
-        const lastPeriodo = periodos[periodos.length - 1];
-        return (b.valores[lastPeriodo] || 0) - (a.valores[lastPeriodo] || 0);
-    });
-
-    return { periodos, entidades };
 }
 
 function formatPeriodo(periodo) {
@@ -571,17 +545,19 @@ async function loadAlertas() {
         const res = await fetch(`/api/alertas/${currentTipo}`);
         const data = await res.json();
 
-        if (data.success) {
-            const { criticos, warning } = data.data;
+        if (data.success && data.data) {
+            const alertas = data.data.alertas || [];
+            const criticos = alertas.filter(a => a.tipo === 'critical');
+            const warning = alertas.filter(a => a.tipo === 'warning');
 
             // Summary
             summaryContainer.innerHTML = `
                 <div class="alert-summary-card critical">
-                    <span class="alert-count">${criticos.length}</span>
+                    <span class="alert-count">${data.data.total_criticos || 0}</span>
                     <span class="alert-label">Criticos</span>
                 </div>
                 <div class="alert-summary-card warning">
-                    <span class="alert-count">${warning.length}</span>
+                    <span class="alert-count">${data.data.total_warnings || 0}</span>
                     <span class="alert-label">En Riesgo</span>
                 </div>
             `;
@@ -589,12 +565,12 @@ async function loadAlertas() {
             // Critical list
             if (criticos.length > 0) {
                 critContainer.innerHTML = criticos.map(item => `
-                    <div class="alerta-item critical" onclick="openSucursalDetailModal(${item.id})">
+                    <div class="alerta-item critical" onclick="openSucursalDetailModal(${item.sucursal_id})">
                         <div class="alerta-info">
-                            <span class="alerta-name">${item.nombre}</span>
-                            <span class="alerta-meta">${item.grupo_nombre || '-'}</span>
+                            <span class="alerta-name">${item.titulo}</span>
+                            <span class="alerta-meta">${item.descripcion}</span>
                         </div>
-                        <span class="alerta-score">${item.calificacion}</span>
+                        <span class="alerta-score">${item.promedio}%</span>
                     </div>
                 `).join('');
             } else {
@@ -604,16 +580,16 @@ async function loadAlertas() {
             // Warning list
             if (warning.length > 0) {
                 warnContainer.innerHTML = warning.map(item => `
-                    <div class="alerta-item warning" onclick="openSucursalDetailModal(${item.id})">
+                    <div class="alerta-item warning">
                         <div class="alerta-info">
-                            <span class="alerta-name">${item.nombre}</span>
-                            <span class="alerta-meta">${item.grupo_nombre || '-'}</span>
+                            <span class="alerta-name">${item.titulo}</span>
+                            <span class="alerta-meta">${item.descripcion}</span>
                         </div>
-                        <span class="alerta-score">${item.calificacion}</span>
+                        <span class="alerta-score">${item.promedio}%</span>
                     </div>
                 `).join('');
             } else {
-                warnContainer.innerHTML = '<div class="empty-state success-msg">Sin sucursales en riesgo</div>';
+                warnContainer.innerHTML = '<div class="empty-state success-msg">Sin grupos en riesgo</div>';
             }
         }
     } catch (e) {
