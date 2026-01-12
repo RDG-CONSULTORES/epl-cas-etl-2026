@@ -287,44 +287,88 @@ function openSucursalModal(sucursalId) {
     body.innerHTML = '<div class="loading">Cargando...</div>';
     overlay.classList.add('active');
 
-    fetch('/api/sucursal/' + sucursalId + '/' + currentTipo)
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (data.success && data.data) {
-                var s = data.data;
-                var sucInfo = s.sucursal || {};
-                if (title) title.textContent = sucInfo.nombre || 'Sucursal';
+    // Cargar datos de sucursal y tendencia en paralelo
+    Promise.all([
+        fetch('/api/sucursal/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); }),
+        fetch('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        var sucData = results[0];
+        var tendData = results[1];
 
-                var colorClass = s.color || getColorClass(s.promedio);
+        if (sucData.success && sucData.data) {
+            var s = sucData.data;
+            var sucInfo = s.sucursal || {};
+            if (title) title.textContent = sucInfo.nombre || 'Sucursal';
 
-                var areasHtml = '';
-                if (s.areas && s.areas.length > 0) {
-                    areasHtml = '<h4 class="modal-section-title">' + (currentTipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad') + '</h4>' +
-                        '<div class="areas-grid">' +
-                        s.areas.map(function(a) {
-                            var aColorClass = a.color || getColorClass(a.porcentaje);
-                            return '<div class="area-card ' + aColorClass + '">' +
-                                '<span class="area-name">' + a.nombre + '</span>' +
-                                '<span class="area-score">' + a.porcentaje + '</span>' +
-                                '</div>';
-                        }).join('') +
+            var colorClass = s.color || getColorClass(s.promedio);
+
+            // Construir HTML de tendencia (últimas 4 supervisiones)
+            var tendenciaHtml = '';
+            if (tendData.success && tendData.data && tendData.data.length > 0) {
+                var maxVal = 100;
+                var barsHtml = tendData.data.map(function(t) {
+                    var height = Math.max((t.calificacion / maxVal) * 100, 5);
+                    var tColor = t.color || getColorClass(t.calificacion);
+                    return '<div class="trend-bar">' +
+                        '<div class="trend-fill ' + tColor + '" style="height: ' + height + '%">' +
+                        '<span class="trend-value">' + t.calificacion + '</span>' +
+                        '</div>' +
+                        '<span class="trend-label">' + t.fecha + '</span>' +
                         '</div>';
-                }
+                }).join('');
 
-                body.innerHTML = '<div class="modal-kpi">' +
-                    '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '</span>' +
-                    '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
-                    '</div>' +
-                    '<div class="modal-stats">' +
-                    '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '-') + '</span><span class="stat-label">Supervisor</span></div>' +
-                    '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '-') + '</span><span class="stat-label">Grupo</span></div>' +
-                    '</div>' +
-                    areasHtml;
+                tendenciaHtml = '<div class="tendencia-section">' +
+                    '<h4 class="modal-section-title">Ultimas ' + tendData.data.length + ' Supervisiones</h4>' +
+                    '<div class="trend-chart">' + barsHtml + '</div>' +
+                    '</div>';
             }
-        })
-        .catch(function(e) {
-            body.innerHTML = '<div class="error-state">Error al cargar datos</div>';
-        });
+
+            // Construir HTML de áreas/KPIs
+            var areasHtml = '';
+            var areasTitle = currentTipo === 'operativas' ? 'Areas Evaluadas (' + (s.areas ? s.areas.length : 0) + ')' : 'KPIs de Seguridad (' + (s.areas ? s.areas.length : 0) + ')';
+            if (s.areas && s.areas.length > 0) {
+                areasHtml = '<h4 class="modal-section-title">' + areasTitle + '</h4>' +
+                    '<div class="areas-grid">' +
+                    s.areas.map(function(a) {
+                        var aColorClass = a.color || getColorClass(a.porcentaje);
+                        return '<div class="area-card ' + aColorClass + '">' +
+                            '<span class="area-name">' + a.nombre + '</span>' +
+                            '<span class="area-score">' + a.porcentaje + '%</span>' +
+                            '</div>';
+                    }).join('') +
+                    '</div>';
+            } else {
+                areasHtml = '<div class="empty-state">Sin datos de areas</div>';
+            }
+
+            // Info adicional
+            var infoHtml = '';
+            if (sucInfo.ciudad || sucInfo.estado) {
+                infoHtml = '<div class="sucursal-location">' +
+                    '<span class="location-icon">📍</span>' +
+                    '<span>' + (sucInfo.ciudad || '') + (sucInfo.ciudad && sucInfo.estado ? ', ' : '') + (sucInfo.estado || '') + '</span>' +
+                    '</div>';
+            }
+
+            body.innerHTML = '<div class="modal-kpi">' +
+                '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '%</span>' +
+                '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
+                (s.fecha_supervision ? '<span class="modal-kpi-date">Ultima: ' + s.fecha_supervision.split(' ')[0] + '</span>' : '') +
+                '</div>' +
+                infoHtml +
+                '<div class="modal-stats">' +
+                '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '-') + '</span><span class="stat-label">Supervisor</span></div>' +
+                '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '-') + '</span><span class="stat-label">Grupo</span></div>' +
+                '</div>' +
+                tendenciaHtml +
+                areasHtml;
+        } else {
+            body.innerHTML = '<div class="error-state">No se encontraron datos</div>';
+        }
+    }).catch(function(e) {
+        console.error('Error loading sucursal:', e);
+        body.innerHTML = '<div class="error-state">Error al cargar datos</div>';
+    });
 
     // Close handlers
     var closeBtn = document.getElementById('sucursalModalClose');
@@ -382,17 +426,28 @@ function loadMapData() {
                     var color = getMarkerColor(colorClass);
 
                     var marker = L.circleMarker([item.lat, item.lng], {
-                        radius: 8,
+                        radius: 10,
                         fillColor: color,
                         color: '#fff',
                         weight: 2,
                         opacity: 1,
-                        fillOpacity: 0.8
+                        fillOpacity: 0.9
                     }).addTo(map);
 
-                    marker.bindPopup('<strong>' + item.nombre + '</strong><br>' +
-                        (item.grupo || '-') + '<br>' +
-                        '<span class="' + colorClass + '">' + item.promedio + '%</span>');
+                    // Popup con botón para ver detalle
+                    var popupContent = '<div class="map-popup">' +
+                        '<strong>' + item.nombre + '</strong><br>' +
+                        '<span class="popup-grupo">' + (item.grupo || '-') + '</span><br>' +
+                        '<span class="popup-score ' + colorClass + '">' + item.promedio + '%</span><br>' +
+                        '<button class="popup-btn" onclick="openSucursalModal(' + item.id + ')">Ver Detalle</button>' +
+                        '</div>';
+
+                    marker.bindPopup(popupContent);
+
+                    // También abrir modal al hacer click directamente en el marker
+                    marker.on('dblclick', function() {
+                        openSucursalModal(item.id);
+                    });
 
                     markers.push(marker);
                     bounds.push([item.lat, item.lng]);

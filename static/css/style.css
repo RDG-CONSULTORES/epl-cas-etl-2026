@@ -952,15 +952,97 @@ body {
 }
 
 .trend-label {
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
-    margin-top: 6px;
+    margin-top: 8px;
     text-align: center;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    transform: rotate(180deg);
-    max-height: 60px;
-    overflow: hidden;
+}
+
+.tendencia-section {
+    margin-bottom: 20px;
+}
+
+/* ========== MAP POPUP ========== */
+.map-popup {
+    text-align: center;
+    min-width: 150px;
+}
+
+.map-popup strong {
+    font-size: 0.9375rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.popup-grupo {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.popup-score {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: block;
+    margin: 8px 0;
+}
+
+.popup-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.popup-btn:hover {
+    background: var(--accent-light);
+}
+
+/* Leaflet popup dark theme */
+.leaflet-popup-content-wrapper {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--bg-card) !important;
+}
+
+.leaflet-popup-content {
+    margin: 12px 16px !important;
+}
+
+/* ========== SUCURSAL LOCATION ========== */
+.sucursal-location {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.location-icon {
+    font-size: 1rem;
+}
+
+/* ========== MODAL KPI DATE ========== */
+.modal-kpi-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 8px;
 }
 
 /* ========== LOADING & EMPTY STATES ========== */

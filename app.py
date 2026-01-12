@@ -411,9 +411,9 @@ def api_sucursal_detalle(sucursal_id, tipo):
     try:
         periodo_id = request.args.get('periodo_id')
 
-        # Info de la sucursal
+        # Info de la sucursal (usando columnas correctas)
         suc = db.session.execute(text("""
-            SELECT s.id, s.nombre, s.codigo, s.estado, s.municipio,
+            SELECT s.id, s.nombre, s.numero, s.estado, s.ciudad,
                    g.nombre as grupo_nombre, g.id as grupo_id
             FROM sucursales s
             LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
@@ -422,6 +422,10 @@ def api_sucursal_detalle(sucursal_id, tipo):
 
         if not suc:
             return jsonify({'success': False, 'error': 'Sucursal no encontrada'}), 404
+
+        areas = []
+        promedio = 0
+        sup = None
 
         if tipo == 'operativas':
             # Supervisiones operativas con áreas
@@ -438,8 +442,6 @@ def api_sucursal_detalle(sucursal_id, tipo):
 
             sup = db.session.execute(text(query), params).fetchone()
 
-            areas = []
-            promedio = 0
             if sup:
                 promedio = float(sup[1]) if sup[1] else 0
                 # Obtener áreas de la supervisión
@@ -448,7 +450,7 @@ def api_sucursal_detalle(sucursal_id, tipo):
                     FROM supervision_areas sa
                     JOIN catalogo_areas ca ON sa.area_id = ca.id
                     WHERE sa.supervision_id = :sup_id
-                    ORDER BY sa.porcentaje DESC
+                    ORDER BY ca.numero ASC
                 """), {'sup_id': sup[0]})
 
                 for row in areas_result:
@@ -472,8 +474,6 @@ def api_sucursal_detalle(sucursal_id, tipo):
 
             sup = db.session.execute(text(query), params).fetchone()
 
-            areas = []
-            promedio = 0
             if sup:
                 promedio = float(sup[1]) if sup[1] else 0
                 # Obtener KPIs de la supervisión
@@ -482,7 +482,7 @@ def api_sucursal_detalle(sucursal_id, tipo):
                     FROM seguridad_kpis sk
                     JOIN catalogo_kpis_seguridad ck ON sk.kpi_id = ck.id
                     WHERE sk.supervision_id = :sup_id
-                    ORDER BY sk.porcentaje DESC
+                    ORDER BY ck.numero ASC
                 """), {'sup_id': sup[0]})
 
                 for row in kpis_result:
@@ -496,9 +496,13 @@ def api_sucursal_detalle(sucursal_id, tipo):
             'success': True,
             'data': {
                 'sucursal': {
-                    'id': suc[0], 'nombre': suc[1], 'codigo': suc[2],
-                    'estado': suc[3], 'municipio': suc[4],
-                    'grupo_nombre': suc[5], 'grupo_id': suc[6]
+                    'id': suc[0],
+                    'nombre': suc[1],
+                    'numero': suc[2],
+                    'estado': suc[3],
+                    'ciudad': suc[4],
+                    'grupo_nombre': suc[5],
+                    'grupo_id': suc[6]
                 },
                 'promedio': round(promedio, 2),
                 'color': get_color_class(promedio),
@@ -512,27 +516,34 @@ def api_sucursal_detalle(sucursal_id, tipo):
 
 @app.route('/api/sucursal-tendencia/<int:sucursal_id>/<tipo>')
 def api_sucursal_tendencia(sucursal_id, tipo):
-    """Tendencia histórica de una sucursal por período CAS"""
+    """Últimas 4 supervisiones individuales de una sucursal"""
     try:
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
+        # Obtener últimas 4 supervisiones individuales
         result = db.session.execute(text(f"""
-            SELECT p.codigo, p.nombre, AVG(sup.calificacion_general) as promedio
+            SELECT sup.id, sup.calificacion_general, sup.fecha_supervision, sup.supervisor
             FROM {tabla} sup
-            JOIN periodos_cas p ON sup.periodo_id = p.id
             WHERE sup.sucursal_id = :sucursal_id
-            GROUP BY p.id, p.codigo, p.nombre, p.fecha_inicio
-            ORDER BY p.fecha_inicio
+            ORDER BY sup.fecha_supervision DESC
+            LIMIT 4
         """), {'sucursal_id': sucursal_id})
 
         tendencia = []
         for row in result:
+            fecha = row[2]
+            fecha_str = fecha.strftime('%d/%m') if fecha else '-'
             tendencia.append({
-                'periodo': row[0],
-                'nombre': row[1],
-                'promedio': round(float(row[2]), 2) if row[2] else 0,
-                'color': get_color_class(float(row[2]) if row[2] else 0)
+                'id': row[0],
+                'calificacion': round(float(row[1]), 2) if row[1] else 0,
+                'fecha': fecha_str,
+                'fecha_completa': str(fecha) if fecha else None,
+                'supervisor': row[3],
+                'color': get_color_class(float(row[1]) if row[1] else 0)
             })
+
+        # Invertir para mostrar de más antigua a más reciente
+        tendencia.reverse()
 
         return jsonify({'success': True, 'data': tendencia})
     except Exception as e:
@@ -796,46 +807,6 @@ def admin_table_data(table_name):
         columns = result.keys()
         data = [dict(zip(columns, [str(v) if v is not None else None for v in row])) for row in result]
         return jsonify({'success': True, 'data': data, 'columns': list(columns)})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ============ DEBUG ENDPOINT (TEMPORAL) ============
-@app.route('/api/debug/explore')
-def debug_explore():
-    """Endpoint temporal para explorar estructura de BD"""
-    try:
-        result = {}
-
-        # Listar todas las tablas
-        tables = db.session.execute(text("""
-            SELECT table_name FROM information_schema.tables
-            WHERE table_schema = 'public' ORDER BY table_name
-        """))
-        result['tables'] = [row[0] for row in tables]
-
-        # Estructura de cada tabla relevante
-        for table in ['catalogo_areas', 'catalogo_kpis_seguridad', 'supervision_areas',
-                      'seguridad_kpis', 'sucursales', 'supervisiones_operativas']:
-            try:
-                cols = db.session.execute(text(f"""
-                    SELECT column_name, data_type
-                    FROM information_schema.columns
-                    WHERE table_name = '{table}' ORDER BY ordinal_position
-                """))
-                result[f'{table}_columns'] = [{'name': r[0], 'type': r[1]} for r in cols]
-
-                # Contar registros
-                count = db.session.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
-                result[f'{table}_count'] = count
-
-                # Muestra de datos
-                sample = db.session.execute(text(f"SELECT * FROM {table} LIMIT 3"))
-                columns = sample.keys()
-                result[f'{table}_sample'] = [dict(zip(columns, [str(v) if v else None for v in row])) for row in sample]
-            except Exception as e:
-                result[f'{table}_error'] = str(e)
-
-        return jsonify({'success': True, 'data': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
