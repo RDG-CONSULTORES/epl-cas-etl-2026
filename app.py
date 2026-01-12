@@ -63,7 +63,55 @@ def admin_logout():
 @login_required
 def admin():
     """Panel de administración"""
-    return render_template('admin.html')
+    try:
+        # Obtener estadísticas
+        total_op = db.session.execute(text("SELECT COUNT(*) FROM supervisiones_operativas")).scalar() or 0
+        total_seg = db.session.execute(text("SELECT COUNT(*) FROM supervisiones_seguridad")).scalar() or 0
+        total_sucursales = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true")).scalar() or 0
+        total_grupos = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
+
+        # Obtener periodos
+        result = db.session.execute(text("""
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, aplica_a
+            FROM periodos_cas
+            ORDER BY fecha_inicio DESC
+        """))
+        periodos = []
+        for row in result:
+            periodos.append({
+                'id': row[0],
+                'codigo': row[1],
+                'nombre': row[2],
+                'fecha_inicio': str(row[3]) if row[3] else '',
+                'fecha_fin': str(row[4]) if row[4] else '',
+                'aplica_a': row[5] or 'Todos'
+            })
+
+        # Obtener periodo activo (el más reciente activo)
+        periodo_activo_id = None
+        result = db.session.execute(text("SELECT id FROM periodos_cas WHERE activo = true ORDER BY fecha_inicio DESC LIMIT 1"))
+        row = result.fetchone()
+        if row:
+            periodo_activo_id = row[0]
+
+        return render_template('admin.html',
+            total_op=total_op,
+            total_seg=total_seg,
+            total_sucursales=total_sucursales,
+            total_grupos=total_grupos,
+            periodos=periodos,
+            periodo_activo_id=periodo_activo_id
+        )
+    except Exception as e:
+        return render_template('admin.html',
+            total_op=0,
+            total_seg=0,
+            total_sucursales=0,
+            total_grupos=0,
+            periodos=[],
+            periodo_activo_id=None,
+            error=str(e)
+        )
 
 # ============ API ENDPOINTS ============
 @app.route('/api/periodos')
@@ -138,25 +186,25 @@ def api_dashboard(tipo, periodo_id):
     try:
         if tipo == 'operativo':
             result = db.session.execute(text("""
-                SELECT so.id, so.periodo_id, so.sucursal_id, so.calificacion,
-                       so.observaciones, s.nombre as sucursal_nombre,
+                SELECT so.id, so.periodo_id, so.sucursal_id, so.calificacion_general,
+                       so.supervisor, so.fecha_supervision, s.nombre as sucursal_nombre,
                        g.nombre as grupo_nombre
                 FROM supervisiones_operativas so
                 LEFT JOIN sucursales s ON so.sucursal_id = s.id
                 LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
                 WHERE so.periodo_id = :periodo_id
-                ORDER BY so.calificacion DESC
+                ORDER BY so.calificacion_general DESC
             """), {'periodo_id': periodo_id})
         elif tipo == 'seguridad':
             result = db.session.execute(text("""
-                SELECT ss.id, ss.periodo_id, ss.sucursal_id, ss.calificacion,
-                       ss.observaciones, s.nombre as sucursal_nombre,
+                SELECT ss.id, ss.periodo_id, ss.sucursal_id, ss.calificacion_general,
+                       ss.supervisor, ss.fecha_supervision, s.nombre as sucursal_nombre,
                        g.nombre as grupo_nombre
                 FROM supervisiones_seguridad ss
                 LEFT JOIN sucursales s ON ss.sucursal_id = s.id
                 LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
                 WHERE ss.periodo_id = :periodo_id
-                ORDER BY ss.calificacion DESC
+                ORDER BY ss.calificacion_general DESC
             """), {'periodo_id': periodo_id})
         else:
             return jsonify({'success': False, 'error': 'Tipo no válido'}), 400
@@ -168,9 +216,10 @@ def api_dashboard(tipo, periodo_id):
                 'periodo_id': row[1],
                 'sucursal_id': row[2],
                 'calificacion': float(row[3]) if row[3] else 0,
-                'observaciones': row[4],
-                'sucursal_nombre': row[5],
-                'grupo_nombre': row[6]
+                'supervisor': row[4],
+                'fecha_supervision': str(row[5]) if row[5] else None,
+                'sucursal_nombre': row[6],
+                'grupo_nombre': row[7]
             })
         return jsonify({'success': True, 'data': data, 'tipo': tipo})
     except Exception as e:
@@ -183,8 +232,8 @@ def api_ranking_grupos():
         periodo_id = request.args.get('periodo_id')
         query = """
             SELECT g.id, g.nombre, g.codigo,
-                   COALESCE(AVG(so.calificacion), 0) as promedio_operativo,
-                   COALESCE(AVG(ss.calificacion), 0) as promedio_seguridad,
+                   COALESCE(AVG(so.calificacion_general), 0) as promedio_operativo,
+                   COALESCE(AVG(ss.calificacion_general), 0) as promedio_seguridad,
                    COUNT(DISTINCT s.id) as total_sucursales
             FROM grupos_operativos g
             LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id
@@ -224,8 +273,8 @@ def api_ranking_sucursales():
 
         query = """
             SELECT s.id, s.nombre, s.codigo, g.nombre as grupo_nombre,
-                   COALESCE(so.calificacion, 0) as calificacion_operativa,
-                   COALESCE(ss.calificacion, 0) as calificacion_seguridad
+                   COALESCE(so.calificacion_general, 0) as calificacion_operativa,
+                   COALESCE(ss.calificacion_general, 0) as calificacion_seguridad
             FROM sucursales s
             LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
             LEFT JOIN supervisiones_operativas so ON s.id = so.sucursal_id
@@ -320,11 +369,11 @@ def api_stats():
         stats['total_supervisiones_seguridad'] = result.scalar() or 0
 
         # Promedio general operativo
-        result = db.session.execute(text("SELECT AVG(calificacion) FROM supervisiones_operativas"))
+        result = db.session.execute(text("SELECT AVG(calificacion_general) FROM supervisiones_operativas"))
         stats['promedio_operativo'] = round(float(result.scalar() or 0), 2)
 
         # Promedio general seguridad
-        result = db.session.execute(text("SELECT AVG(calificacion) FROM supervisiones_seguridad"))
+        result = db.session.execute(text("SELECT AVG(calificacion_general) FROM supervisiones_seguridad"))
         stats['promedio_seguridad'] = round(float(result.scalar() or 0), 2)
 
         return jsonify({'success': True, 'data': stats})
