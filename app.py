@@ -799,6 +799,46 @@ def admin_table_data(table_name):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ DEBUG ENDPOINT (TEMPORAL) ============
+@app.route('/api/debug/explore')
+def debug_explore():
+    """Endpoint temporal para explorar estructura de BD"""
+    try:
+        result = {}
+
+        # Listar todas las tablas
+        tables = db.session.execute(text("""
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public' ORDER BY table_name
+        """))
+        result['tables'] = [row[0] for row in tables]
+
+        # Estructura de cada tabla relevante
+        for table in ['catalogo_areas', 'catalogo_kpis_seguridad', 'supervision_areas',
+                      'seguridad_kpis', 'sucursales', 'supervisiones_operativas']:
+            try:
+                cols = db.session.execute(text(f"""
+                    SELECT column_name, data_type
+                    FROM information_schema.columns
+                    WHERE table_name = '{table}' ORDER BY ordinal_position
+                """))
+                result[f'{table}_columns'] = [{'name': r[0], 'type': r[1]} for r in cols]
+
+                # Contar registros
+                count = db.session.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
+                result[f'{table}_count'] = count
+
+                # Muestra de datos
+                sample = db.session.execute(text(f"SELECT * FROM {table} LIMIT 3"))
+                columns = sample.keys()
+                result[f'{table}_sample'] = [dict(zip(columns, [str(v) if v else None for v in row])) for row in sample]
+            except Exception as e:
+                result[f'{table}_error'] = str(e)
+
+        return jsonify({'success': True, 'data': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
