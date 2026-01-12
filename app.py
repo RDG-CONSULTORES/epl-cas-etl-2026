@@ -97,13 +97,12 @@ def admin():
         total_grupos = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
 
         result = db.session.execute(text("""
-            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, aplica_a
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin
             FROM periodos_cas ORDER BY fecha_inicio DESC
         """))
         periodos = [{'id': r[0], 'codigo': r[1], 'nombre': r[2],
                      'fecha_inicio': str(r[3]) if r[3] else '',
-                     'fecha_fin': str(r[4]) if r[4] else '',
-                     'aplica_a': r[5] or 'Todos'} for r in result]
+                     'fecha_fin': str(r[4]) if r[4] else ''} for r in result]
 
         periodo_activo_id = None
         result = db.session.execute(text("SELECT id FROM periodos_cas WHERE activo = true ORDER BY fecha_inicio DESC LIMIT 1"))
@@ -124,7 +123,7 @@ def api_periodos():
     """Obtener todos los periodos CAS"""
     try:
         result = db.session.execute(text("""
-            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, activo, aplica_a
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, activo
             FROM periodos_cas ORDER BY fecha_inicio DESC
         """))
         periodos = []
@@ -133,7 +132,7 @@ def api_periodos():
                 'id': row[0], 'codigo': row[1], 'nombre': row[2],
                 'fecha_inicio': str(row[3]) if row[3] else None,
                 'fecha_fin': str(row[4]) if row[4] else None,
-                'activo': row[5], 'aplica_a': row[6]
+                'activo': row[5]
             })
         return jsonify({'success': True, 'data': periodos})
     except Exception as e:
@@ -238,26 +237,22 @@ def api_ranking_grupos(tipo):
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
         query = f"""
-            SELECT g.id, g.nombre, g.codigo,
+            SELECT g.id, g.nombre,
                    COALESCE(AVG(sup.calificacion_general), 0) as promedio,
                    COUNT(DISTINCT s.id) as total_sucursales,
                    COUNT(sup.id) as total_supervisiones
             FROM grupos_operativos g
             LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
             LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
+            WHERE g.activo = true
         """
 
         params = {}
-        conditions = ["g.activo = true"]
-
         if periodo_id:
-            conditions.append("(sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)")
+            query += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
             params['periodo_id'] = periodo_id
 
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        query += " GROUP BY g.id, g.nombre, g.codigo ORDER BY promedio DESC"
+        query += " GROUP BY g.id, g.nombre ORDER BY promedio DESC"
 
         result = db.session.execute(text(query), params)
         ranking = []
@@ -276,11 +271,10 @@ def api_ranking_grupos(tipo):
                 'posicion': pos,
                 'id': row[0],
                 'nombre': row[1],
-                'codigo': row[2],
-                'promedio': round(float(row[3]), 2),
-                'color': get_color_class(float(row[3])),
-                'total_sucursales': row[4],
-                'total_supervisiones': row[5],
+                'promedio': round(float(row[2]), 2),
+                'color': get_color_class(float(row[2])),
+                'total_sucursales': row[3],
+                'total_supervisiones': row[4],
                 'territorio': grupo_territorio
             })
             pos += 1
@@ -299,32 +293,25 @@ def api_ranking_sucursales(tipo):
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
         query = f"""
-            SELECT s.id, s.nombre, s.codigo, s.estado, s.municipio,
-                   g.nombre as grupo_nombre, g.id as grupo_id,
+            SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
                    COALESCE(AVG(sup.calificacion_general), 0) as promedio,
-                   COUNT(sup.id) as total_supervisiones,
-                   s.latitud, s.longitud
+                   COUNT(sup.id) as total_supervisiones
             FROM sucursales s
             LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
             LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
+            WHERE s.activo = true
         """
 
         params = {}
-        conditions = ["s.activo = true"]
-
         if periodo_id:
-            conditions.append("(sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)")
+            query += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
             params['periodo_id'] = periodo_id
 
         if grupo_id:
-            conditions.append("s.grupo_operativo_id = :grupo_id")
+            query += " AND s.grupo_operativo_id = :grupo_id"
             params['grupo_id'] = grupo_id
 
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-
-        query += " GROUP BY s.id, s.nombre, s.codigo, s.estado, s.municipio, g.nombre, g.id, s.latitud, s.longitud"
-        query += " ORDER BY promedio DESC"
+        query += " GROUP BY s.id, s.nombre, g.nombre, g.id ORDER BY promedio DESC"
 
         result = db.session.execute(text(query), params)
         ranking = []
@@ -334,16 +321,11 @@ def api_ranking_sucursales(tipo):
                 'posicion': pos,
                 'id': row[0],
                 'nombre': row[1],
-                'codigo': row[2],
-                'estado': row[3],
-                'municipio': row[4],
-                'grupo_nombre': row[5],
-                'grupo_id': row[6],
-                'promedio': round(float(row[7]), 2),
-                'color': get_color_class(float(row[7])),
-                'total_supervisiones': row[8],
-                'latitud': float(row[9]) if row[9] else None,
-                'longitud': float(row[10]) if row[10] else None
+                'grupo_nombre': row[2],
+                'grupo_id': row[3],
+                'promedio': round(float(row[4]), 2),
+                'color': get_color_class(float(row[4])),
+                'total_supervisiones': row[5]
             })
             pos += 1
 
@@ -361,7 +343,7 @@ def api_grupo_detalle(grupo_id, tipo):
 
         # Info del grupo
         grupo = db.session.execute(text("""
-            SELECT id, nombre, codigo FROM grupos_operativos WHERE id = :id
+            SELECT id, nombre FROM grupos_operativos WHERE id = :id
         """), {'id': grupo_id}).fetchone()
 
         if not grupo:
@@ -383,7 +365,7 @@ def api_grupo_detalle(grupo_id, tipo):
 
         # Sucursales del grupo
         query_suc = f"""
-            SELECT s.id, s.nombre, s.codigo, s.estado,
+            SELECT s.id, s.nombre,
                    COALESCE(AVG(sup.calificacion_general), 0) as promedio,
                    COUNT(sup.id) as supervisiones
             FROM sucursales s
@@ -392,22 +374,22 @@ def api_grupo_detalle(grupo_id, tipo):
         """
         if periodo_id:
             query_suc += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
-        query_suc += " GROUP BY s.id, s.nombre, s.codigo, s.estado ORDER BY promedio DESC"
+        query_suc += " GROUP BY s.id, s.nombre ORDER BY promedio DESC"
 
         result = db.session.execute(text(query_suc), params)
         sucursales = []
         for row in result:
             sucursales.append({
-                'id': row[0], 'nombre': row[1], 'codigo': row[2], 'estado': row[3],
-                'promedio': round(float(row[4]), 2),
-                'color': get_color_class(float(row[4])),
-                'supervisiones': row[5]
+                'id': row[0], 'nombre': row[1],
+                'promedio': round(float(row[2]), 2),
+                'color': get_color_class(float(row[2])),
+                'supervisiones': row[3]
             })
 
         return jsonify({
             'success': True,
             'data': {
-                'grupo': {'id': grupo[0], 'nombre': grupo[1], 'codigo': grupo[2]},
+                'grupo': {'id': grupo[0], 'nombre': grupo[1]},
                 'promedio': round(promedio, 2),
                 'color': get_color_class(promedio),
                 'total_sucursales': len(sucursales),
@@ -554,46 +536,61 @@ def api_sucursal_tendencia(sucursal_id, tipo):
 # ============ API ENDPOINTS - MAPA ============
 @app.route('/api/mapa/<tipo>')
 def api_mapa(tipo):
-    """Datos para el mapa con ubicaciones"""
+    """Datos para el mapa con ubicaciones desde supervisiones"""
     try:
         periodo_id = request.args.get('periodo_id')
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        query = f"""
-            SELECT s.id, s.nombre, s.codigo, s.estado, s.municipio,
-                   s.latitud, s.longitud,
-                   g.nombre as grupo_nombre,
-                   COALESCE(AVG(sup.calificacion_general), 0) as promedio,
-                   COUNT(sup.id) as supervisiones
-            FROM sucursales s
-            LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-            LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
-            WHERE s.activo = true AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL
-        """
-        params = {}
-        if periodo_id:
-            query += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
-            params['periodo_id'] = periodo_id
-
-        query += " GROUP BY s.id, s.nombre, s.codigo, s.estado, s.municipio, s.latitud, s.longitud, g.nombre"
+        if tipo == 'operativas':
+            # Usar lat/lon de supervisiones operativas
+            query = """
+                SELECT s.id, s.nombre, g.nombre as grupo_nombre,
+                       AVG(sup.calificacion_general) as promedio,
+                       AVG(sup.lat_entrega) as lat, AVG(sup.lon_entrega) as lng,
+                       COUNT(sup.id) as supervisiones
+                FROM sucursales s
+                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+                JOIN supervisiones_operativas sup ON s.id = sup.sucursal_id
+                WHERE s.activo = true AND sup.lat_entrega IS NOT NULL
+            """
+            params = {}
+            if periodo_id:
+                query += " AND sup.periodo_id = :periodo_id"
+                params['periodo_id'] = periodo_id
+            query += " GROUP BY s.id, s.nombre, g.nombre"
+        else:
+            # Para seguridad, obtener coordenadas de las supervisiones operativas del mismo día
+            query = """
+                SELECT s.id, s.nombre, g.nombre as grupo_nombre,
+                       AVG(ss.calificacion_general) as promedio,
+                       AVG(so.lat_entrega) as lat, AVG(so.lon_entrega) as lng,
+                       COUNT(ss.id) as supervisiones
+                FROM sucursales s
+                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+                JOIN supervisiones_seguridad ss ON s.id = ss.sucursal_id
+                LEFT JOIN supervisiones_operativas so ON s.id = so.sucursal_id
+                    AND DATE(so.fecha_supervision) = DATE(ss.fecha_supervision)
+                WHERE s.activo = true AND so.lat_entrega IS NOT NULL
+            """
+            params = {}
+            if periodo_id:
+                query += " AND ss.periodo_id = :periodo_id"
+                params['periodo_id'] = periodo_id
+            query += " GROUP BY s.id, s.nombre, g.nombre"
 
         result = db.session.execute(text(query), params)
         markers = []
         for row in result:
-            markers.append({
-                'id': row[0],
-                'nombre': row[1],
-                'codigo': row[2],
-                'estado': row[3],
-                'municipio': row[4],
-                'lat': float(row[5]),
-                'lng': float(row[6]),
-                'grupo': row[7],
-                'promedio': round(float(row[8]), 2),
-                'color': get_color_class(float(row[8])),
-                'supervisiones': row[9],
-                'territorio': get_territorio(row[7]) if row[7] else 'desconocido'
-            })
+            if row[4] and row[5]:  # lat and lng exist
+                markers.append({
+                    'id': row[0],
+                    'nombre': row[1],
+                    'grupo': row[2],
+                    'promedio': round(float(row[3]), 2) if row[3] else 0,
+                    'color': get_color_class(float(row[3]) if row[3] else 0),
+                    'lat': float(row[4]),
+                    'lng': float(row[5]),
+                    'supervisiones': row[6]
+                })
 
         return jsonify({'success': True, 'data': markers})
     except Exception as e:
@@ -609,7 +606,7 @@ def api_historico(tipo):
 
         # Obtener todos los períodos
         periodos = db.session.execute(text("""
-            SELECT id, codigo, nombre, aplica_a FROM periodos_cas ORDER BY fecha_inicio
+            SELECT id, codigo, nombre FROM periodos_cas ORDER BY fecha_inicio
         """)).fetchall()
 
         # Obtener datos por grupo y período
@@ -679,7 +676,7 @@ def api_historico(tipo):
         return jsonify({
             'success': True,
             'data': {
-                'periodos': [{'codigo': p[1], 'nombre': p[2], 'aplica_a': p[3]} for p in periodos],
+                'periodos': [{'codigo': p[1], 'nombre': p[2]} for p in periodos],
                 'grupos': grupos_list,
                 'epl_cas': epl_cas
             }
