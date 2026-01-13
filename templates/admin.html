@@ -3,178 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - EPL CAS 2026</title>
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Admin - EPL CAS 2026</title>
     <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1c1c24;
+            --bg-card: #252530;
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --accent: #ff6b35;
+            --accent-light: #ff8c5a;
+            --excellent: #30d158;
+            --critical: #ff453a;
+            --radius: 12px;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f;
-            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
         }
+
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
         }
-        header {
+
+        /* Header */
+        .admin-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 32px;
-            padding-bottom: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        header h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+
+        .admin-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .nav-links {
+
+        .header-links {
             display: flex;
-            gap: 16px;
+            gap: 12px;
         }
-        .nav-links a {
-            color: #8e8e93;
+
+        .header-link {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
             text-decoration: none;
+            border-radius: var(--radius);
             font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-        .nav-links a:hover {
-            color: #ff6b35;
+
+        .header-link:hover {
+            background: var(--accent);
+            color: white;
         }
+
+        .header-link.logout {
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--critical);
+        }
+
+        /* Cards */
         .card {
-            background: #1c1c24;
+            background: var(--bg-card);
             border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        .card h2 {
-            font-size: 1.125rem;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-        }
-        .stat-item {
-            background: #252530;
-            border-radius: 12px;
             padding: 20px;
-            text-align: center;
+            margin-bottom: 16px;
         }
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ff6b35;
-        }
-        .stat-label {
-            font-size: 0.75rem;
-            color: #8e8e93;
-            margin-top: 4px;
+
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .form-group {
-            margin-bottom: 20px;
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
-        .form-group label {
-            display: block;
-            color: #8e8e93;
-            font-size: 0.875rem;
-            margin-bottom: 8px;
+
+        .stat-item {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
         }
-        select, input {
-            width: 100%;
-            padding: 14px 16px;
-            background: #252530;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
         }
-        select:focus, input:focus {
-            border-color: #ff6b35;
+
+        .stat-label {
+            font-size: 0.6875rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
-        button, .btn {
-            display: inline-block;
-            padding: 14px 24px;
-            background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 0.9375rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s;
+
+        /* Periodo Items */
+        .periodo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        button:hover, .btn:hover {
-            transform: translateY(-2px);
-        }
-        .btn-secondary {
-            background: #252530;
-        }
+
         .periodo-item {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .periodo-item.activo {
+            border-color: var(--excellent);
+            background: rgba(48, 209, 88, 0.1);
+        }
+
+        .periodo-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
-            background: #252530;
-            border-radius: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
-        .periodo-item.active {
-            border: 2px solid #ff6b35;
-        }
-        .periodo-info {
-            flex: 1;
-        }
-        .periodo-info h4 {
-            font-size: 0.9375rem;
+
+        .periodo-name {
+            font-size: 1rem;
             font-weight: 600;
         }
-        .periodo-info p {
-            font-size: 0.75rem;
-            color: #8e8e93;
-            margin-top: 2px;
-        }
-        .badge {
-            background: #ff6b35;
-            color: white;
+
+        .periodo-badge {
             font-size: 0.625rem;
+            font-weight: 600;
             padding: 4px 8px;
             border-radius: 6px;
-            font-weight: 600;
-            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .success-message {
-            background: rgba(48,209,88,0.1);
-            border: 1px solid #30d158;
-            color: #30d158;
+
+        .periodo-badge.activo {
+            background: var(--excellent);
+            color: #000;
+        }
+
+        .periodo-badge.inactivo {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        /* Date Inputs */
+        .fecha-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .fecha-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .fecha-label {
+            font-size: 0.6875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .fecha-input {
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .fecha-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Buttons */
+        .periodo-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: var(--accent-light);
+        }
+
+        .btn-activate {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .btn-activate:hover {
+            background: var(--excellent);
+            color: #000;
+        }
+
+        .btn-activate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Messages */
+        .message {
             padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .message.success {
+            background: rgba(48, 209, 88, 0.15);
+            border: 1px solid var(--excellent);
+            color: var(--excellent);
+        }
+
+        .message.error {
+            background: rgba(255, 69, 58, 0.15);
+            border: 1px solid var(--critical);
+            color: var(--critical);
+        }
+
+        /* Info text */
+        .info-text {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Loading state */
+        .saving {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🔧 Admin Panel</h1>
-            <nav class="nav-links">
-                <a href="/">← Dashboard</a>
-                <a href="/admin/logout">Cerrar sesión</a>
-            </nav>
+        <!-- Header -->
+        <header class="admin-header">
+            <h1 class="admin-title">Admin Panel</h1>
+            <div class="header-links">
+                <a href="/" class="header-link">Dashboard</a>
+                <a href="/admin/logout" class="header-link logout">Salir</a>
+            </div>
         </header>
-        
-        <!-- Stats -->
+
+        <!-- Stats Card -->
         <div class="card">
-            <h2>📊 Estadísticas Generales</h2>
+            <h2 class="card-title">Estadisticas</h2>
             <div class="stats-grid">
                 <div class="stat-item">
                     <div class="stat-value">{{ total_op }}</div>
@@ -190,55 +318,108 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ total_grupos }}</div>
-                    <div class="stat-label">Grupos Op.</div>
+                    <div class="stat-label">Grupos</div>
                 </div>
             </div>
         </div>
-        
-        <!-- Periodo Activo -->
+
+        <!-- Periodos Card -->
         <div class="card">
-            <h2>📅 Periodo Activo</h2>
-            <form method="POST" action="/admin/set-periodo">
-                <div class="form-group">
-                    <label>Seleccionar periodo activo para el dashboard</label>
-                    <select name="periodo_id">
-                        {% for p in periodos %}
-                        <option value="{{ p.id }}" {% if periodo_activo_id and p.id == periodo_activo_id %}selected{% endif %}>
-                            {{ p.codigo }} - {{ p.nombre }} ({{ p.fecha_inicio }} a {{ p.fecha_fin }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit">Guardar Periodo Activo</button>
-            </form>
-        </div>
-        
-        <!-- Periodos Configurados -->
-        <div class="card">
-            <h2>📋 Periodos Configurados</h2>
-            {% for p in periodos %}
-            <div class="periodo-item {% if periodo_activo_id and p.id == periodo_activo_id %}active{% endif %}">
-                <div class="periodo-info">
-                    <h4>
-                        {{ p.codigo }}
-                        {% if periodo_activo_id and p.id == periodo_activo_id %}
-                        <span class="badge">ACTIVO</span>
-                        {% endif %}
-                    </h4>
-                    <p>{{ p.fecha_inicio }} → {{ p.fecha_fin }} | Aplica a: {{ p.aplica_a }}</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Info ETL -->
-        <div class="card">
-            <h2>🔄 Sincronización ETL</h2>
-            <p style="color: #8e8e93; margin-bottom: 16px;">
-                El ETL se ejecuta automáticamente cada día a las 6:00 AM (hora México) vía GitHub Actions.
+            <h2 class="card-title">Periodos CAS</h2>
+            <p class="info-text" style="margin-bottom: 16px;">
+                Edita las fechas de cada periodo y selecciona cual es el periodo activo para el dashboard.
             </p>
-            <a href="https://github.com" target="_blank" class="btn btn-secondary">Ver en GitHub →</a>
+
+            <div class="periodo-list" id="periodoList">
+                {% for p in periodos %}
+                <div class="periodo-item {% if p.activo %}activo{% endif %}" data-id="{{ p.id }}">
+                    <div class="periodo-header">
+                        <span class="periodo-name">{{ p.codigo or p.nombre }}</span>
+                        <span class="periodo-badge {% if p.activo %}activo{% else %}inactivo{% endif %}">
+                            {% if p.activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="fecha-row">
+                        <div class="fecha-group">
+                            <label class="fecha-label">Fecha Inicio</label>
+                            <input type="date" class="fecha-input" name="fecha_inicio" value="{{ p.fecha_inicio }}">
+                        </div>
+                        <div class="fecha-group">
+                            <label class="fecha-label">Fecha Fin</label>
+                            <input type="date" class="fecha-input" name="fecha_fin" value="{{ p.fecha_fin }}">
+                        </div>
+                    </div>
+
+                    <div class="periodo-actions">
+                        <button class="btn btn-save" onclick="savePeriodo({{ p.id }}, this)">
+                            Guardar Fechas
+                        </button>
+                        <form action="/admin/set-periodo" method="POST" style="flex: 1; display: flex;">
+                            <input type="hidden" name="periodo_id" value="{{ p.id }}">
+                            <button type="submit" class="btn btn-activate" {% if p.activo %}disabled{% endif %}>
+                                {% if p.activo %}Activo{% else %}Activar{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card">
+            <h2 class="card-title">Sincronizacion ETL</h2>
+            <p class="info-text">
+                El ETL se ejecuta automaticamente cada dia a las 6:00 AM (hora Mexico) via GitHub Actions para sincronizar datos de Zenput.
+            </p>
         </div>
     </div>
+
+    <script>
+        function savePeriodo(periodoId, btn) {
+            var item = btn.closest('.periodo-item');
+            var fechaInicio = item.querySelector('input[name="fecha_inicio"]').value;
+            var fechaFin = item.querySelector('input[name="fecha_fin"]').value;
+
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+            item.classList.add('saving');
+
+            var formData = new FormData();
+            formData.append('periodo_id', periodoId);
+            formData.append('fecha_inicio', fechaInicio);
+            formData.append('fecha_fin', fechaFin);
+
+            fetch('/admin/update-periodo', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    btn.textContent = 'Guardado!';
+                    btn.style.background = '#30d158';
+                    setTimeout(function() {
+                        btn.textContent = 'Guardar Fechas';
+                        btn.style.background = '';
+                        btn.disabled = false;
+                        item.classList.remove('saving');
+                    }, 1500);
+                } else {
+                    alert('Error: ' + data.error);
+                    btn.textContent = 'Guardar Fechas';
+                    btn.disabled = false;
+                    item.classList.remove('saving');
+                }
+            })
+            .catch(function(e) {
+                alert('Error al guardar');
+                btn.textContent = 'Guardar Fechas';
+                btn.disabled = false;
+                item.classList.remove('saving');
+            });
+        }
+    </script>
 </body>
 </html>

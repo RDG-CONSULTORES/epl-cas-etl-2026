@@ -97,12 +97,13 @@ def admin():
         total_grupos = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
 
         result = db.session.execute(text("""
-            SELECT id, nombre, fecha_inicio, fecha_fin
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, activo
             FROM periodos_cas ORDER BY fecha_inicio DESC
         """))
-        periodos = [{'id': r[0], 'nombre': r[1],
-                     'fecha_inicio': str(r[2]) if r[2] else '',
-                     'fecha_fin': str(r[3]) if r[3] else ''} for r in result]
+        periodos = [{'id': r[0], 'codigo': r[1], 'nombre': r[2],
+                     'fecha_inicio': str(r[3]) if r[3] else '',
+                     'fecha_fin': str(r[4]) if r[4] else '',
+                     'activo': r[5]} for r in result]
 
         periodo_activo_id = None
         result = db.session.execute(text("SELECT id FROM periodos_cas WHERE activo = true ORDER BY fecha_inicio DESC LIMIT 1"))
@@ -116,6 +117,51 @@ def admin():
     except Exception as e:
         return render_template('admin.html', total_op=0, total_seg=0,
             total_sucursales=0, total_grupos=0, periodos=[], periodo_activo_id=None, error=str(e))
+
+@app.route('/admin/set-periodo', methods=['POST'])
+@login_required
+def admin_set_periodo():
+    """Establecer el periodo activo"""
+    try:
+        periodo_id = request.form.get('periodo_id')
+        if not periodo_id:
+            return redirect(url_for('admin'))
+
+        # Desactivar todos los periodos
+        db.session.execute(text("UPDATE periodos_cas SET activo = false"))
+        # Activar el seleccionado
+        db.session.execute(text("UPDATE periodos_cas SET activo = true WHERE id = :id"), {'id': periodo_id})
+        db.session.commit()
+
+        return redirect(url_for('admin'))
+    except Exception as e:
+        db.session.rollback()
+        return redirect(url_for('admin'))
+
+@app.route('/admin/update-periodo', methods=['POST'])
+@login_required
+def admin_update_periodo():
+    """Actualizar fechas de un periodo"""
+    try:
+        periodo_id = request.form.get('periodo_id')
+        fecha_inicio = request.form.get('fecha_inicio')
+        fecha_fin = request.form.get('fecha_fin')
+
+        if not periodo_id:
+            return jsonify({'success': False, 'error': 'ID requerido'}), 400
+
+        # Actualizar fechas
+        db.session.execute(text("""
+            UPDATE periodos_cas
+            SET fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin
+            WHERE id = :id
+        """), {'id': periodo_id, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin})
+        db.session.commit()
+
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ API ENDPOINTS - DATOS BÁSICOS ============
 @app.route('/api/periodos')
