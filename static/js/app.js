@@ -7,6 +7,9 @@
 var currentTipo = 'operativas';
 var currentView = 'grupos';
 var currentTerritorio = 'todas';
+var currentPeriodoId = null;
+var currentPeriodo = null;
+var periodosDisponibles = [];
 var map = null;
 var markers = [];
 var scrollPosition = 0; // Para guardar posición de scroll en iOS
@@ -46,8 +49,177 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initializing...');
     initToggles();
     initTabs();
-    loadDashboard();
+    initPeriodSelector();
+    loadPeriodoContexto(); // Cargar periodo primero, luego dashboard
 });
+
+// ========== PERIODO SELECTOR ==========
+function initPeriodSelector() {
+    var selector = document.getElementById('periodSelector');
+    var overlay = document.getElementById('periodSheetOverlay');
+
+    if (selector) {
+        selector.addEventListener('click', function() {
+            openPeriodSheet();
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closePeriodSheet();
+            }
+        });
+    }
+}
+
+function loadPeriodoContexto() {
+    fetch('/api/periodo-contexto/' + currentTipo)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success && data.data) {
+                var d = data.data;
+
+                // Guardar periodo actual
+                if (d.periodo_actual) {
+                    currentPeriodo = d.periodo_actual;
+                    currentPeriodoId = d.periodo_actual.id;
+
+                    // Actualizar UI
+                    var periodName = document.getElementById('periodName');
+                    if (periodName) {
+                        periodName.textContent = d.periodo_actual.codigo || d.periodo_actual.nombre;
+                    }
+                }
+
+                // Guardar lista de periodos
+                periodosDisponibles = d.periodos || [];
+
+                // Actualizar progreso
+                if (d.progreso) {
+                    var progressText = document.getElementById('progressText');
+                    if (progressText) {
+                        progressText.textContent = d.progreso.supervisadas + '/' + d.progreso.total;
+                    }
+                }
+
+                // Ahora cargar el dashboard con el periodo
+                loadDashboard();
+            }
+        })
+        .catch(function(e) {
+            console.error('Error loading periodo contexto:', e);
+            loadDashboard(); // Cargar dashboard aunque falle
+        });
+}
+
+function openPeriodSheet() {
+    var overlay = document.getElementById('periodSheetOverlay');
+    var body = document.getElementById('periodSheetBody');
+    var selector = document.getElementById('periodSelector');
+
+    if (!overlay || !body) return;
+
+    // Generar opciones
+    var html = '';
+    periodosDisponibles.forEach(function(p) {
+        var isSelected = currentPeriodoId && currentPeriodoId == p.id;
+        var fechas = formatPeriodDates(p.fecha_inicio, p.fecha_fin);
+
+        html += '<div class="period-option ' + (isSelected ? 'selected' : '') + '" data-id="' + p.id + '">' +
+            '<div class="period-option-info">' +
+                '<span class="period-option-name">' + (p.codigo || p.nombre) + '</span>' +
+                '<span class="period-option-dates">' + fechas + '</span>' +
+            '</div>' +
+            '<div class="period-option-check">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
+                    '<polyline points="20 6 9 17 4 12"/>' +
+                '</svg>' +
+            '</div>' +
+        '</div>';
+    });
+
+    body.innerHTML = html;
+
+    // Event listeners para las opciones
+    body.querySelectorAll('.period-option').forEach(function(opt) {
+        opt.addEventListener('click', function() {
+            var periodoId = parseInt(opt.dataset.id);
+            selectPeriodo(periodoId);
+        });
+    });
+
+    if (selector) selector.classList.add('open');
+    overlay.classList.add('active');
+    lockBodyScroll();
+}
+
+function closePeriodSheet() {
+    var overlay = document.getElementById('periodSheetOverlay');
+    var selector = document.getElementById('periodSelector');
+
+    if (selector) selector.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+    unlockBodyScroll();
+}
+
+function selectPeriodo(periodoId) {
+    // Encontrar el periodo en la lista
+    var periodo = periodosDisponibles.find(function(p) { return p.id == periodoId; });
+
+    if (periodo) {
+        currentPeriodoId = periodo.id;
+        currentPeriodo = periodo;
+
+        // Actualizar UI
+        var periodName = document.getElementById('periodName');
+        if (periodName) {
+            periodName.textContent = periodo.codigo || periodo.nombre;
+        }
+
+        // Cerrar sheet
+        closePeriodSheet();
+
+        // Recargar todo con el nuevo periodo
+        loadDashboard();
+        loadPeriodoProgreso();
+    }
+}
+
+function loadPeriodoProgreso() {
+    // Recargar solo el progreso
+    fetch('/api/periodo-contexto/' + currentTipo)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success && data.data && data.data.progreso) {
+                var progressText = document.getElementById('progressText');
+                if (progressText) {
+                    // Buscar progreso del periodo actual si es diferente
+                    progressText.textContent = data.data.progreso.supervisadas + '/' + data.data.progreso.total;
+                }
+            }
+        });
+}
+
+function formatPeriodDates(inicio, fin) {
+    if (!inicio || !fin) return '';
+
+    var meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    try {
+        var fi = new Date(inicio + 'T00:00:00');
+        var ff = new Date(fin + 'T00:00:00');
+
+        var diaI = fi.getDate();
+        var mesI = meses[fi.getMonth()];
+        var diaF = ff.getDate();
+        var mesF = meses[ff.getMonth()];
+
+        return diaI + ' ' + mesI + ' - ' + diaF + ' ' + mesF;
+    } catch (e) {
+        return inicio + ' - ' + fin;
+    }
+}
 
 // ========== TOGGLES ==========
 function initToggles() {
@@ -57,7 +229,7 @@ function initToggles() {
             document.querySelectorAll('.toggle-btn').forEach(function(b) { b.classList.remove('active'); });
             btn.classList.add('active');
             currentTipo = btn.dataset.tipo;
-            loadDashboard();
+            loadPeriodoContexto(); // Recargar contexto con nuevo tipo
         });
     });
 
@@ -121,7 +293,12 @@ function loadDashboard() {
 
 // ========== KPIs ==========
 function loadKPIs() {
-    fetch('/api/kpis/' + currentTipo)
+    var url = '/api/kpis/' + currentTipo;
+    if (currentPeriodoId) {
+        url += '?periodo_id=' + currentPeriodoId;
+    }
+
+    fetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             console.log('KPIs response:', data);
@@ -191,6 +368,10 @@ function loadRanking() {
     var endpoint = currentView === 'grupos'
         ? '/api/ranking/grupos/' + currentTipo
         : '/api/ranking/sucursales/' + currentTipo;
+
+    if (currentPeriodoId) {
+        endpoint += '?periodo_id=' + currentPeriodoId;
+    }
 
     fetch(endpoint)
         .then(function(res) { return res.json(); })
@@ -498,7 +679,12 @@ function loadMapData() {
     markers.forEach(function(m) { map.removeLayer(m); });
     markers = [];
 
-    fetch('/api/mapa/' + currentTipo)
+    var url = '/api/mapa/' + currentTipo;
+    if (currentPeriodoId) {
+        url += '?periodo_id=' + currentPeriodoId;
+    }
+
+    fetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data && data.data.length > 0) {
@@ -623,7 +809,12 @@ function loadAlertas() {
     if (critContainer) critContainer.innerHTML = '<div class="loading">Cargando...</div>';
     if (warnContainer) warnContainer.innerHTML = '<div class="loading">Cargando...</div>';
 
-    fetch('/api/alertas/' + currentTipo)
+    var url = '/api/alertas/' + currentTipo;
+    if (currentPeriodoId) {
+        url += '?periodo_id=' + currentPeriodoId;
+    }
+
+    fetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {

@@ -21,6 +21,30 @@
             <a href="/admin/login" class="admin-btn">Admin</a>
         </header>
 
+        <!-- Period Bar -->
+        <div class="period-bar" id="periodBar">
+            <button class="period-selector" id="periodSelector">
+                <span class="period-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </span>
+                <span class="period-name" id="periodName">Cargando...</span>
+                <span class="period-chevron">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </span>
+            </button>
+            <div class="period-progress">
+                <span class="progress-text" id="progressText">-/-</span>
+                <span class="progress-label">sucursales</span>
+            </div>
+        </div>
+
         <!-- Main Toggle: Operativas / Seguridad -->
         <div class="main-toggle-container">
             <div class="main-toggle">
@@ -137,6 +161,19 @@
             </section>
         </main>
 
+    </div>
+
+    <!-- Period Sheet Picker (iOS Style) -->
+    <div class="sheet-overlay" id="periodSheetOverlay">
+        <div class="sheet-container" id="periodSheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h3 class="sheet-title">Seleccionar Periodo</h3>
+            </div>
+            <div class="sheet-body" id="periodSheetBody">
+                <!-- Filled by JS -->
+            </div>
+        </div>
     </div>
 
     <!-- Bottom Tab Navigation (iOS Style) -->

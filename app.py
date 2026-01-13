@@ -173,6 +173,102 @@ def admin_update_periodo():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ API ENDPOINTS - PERIODO CONTEXTO ============
+@app.route('/api/periodo-contexto/<tipo>')
+def api_periodo_contexto(tipo):
+    """Obtener contexto del periodo actual para el dashboard"""
+    try:
+        from datetime import date
+        hoy = date.today()
+        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+
+        # 1. Buscar periodo activo (primero por fecha actual, luego por flag activo)
+        periodo_actual = None
+
+        # Intentar por fecha actual
+        result = db.session.execute(text("""
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin
+            FROM periodos_cas
+            WHERE fecha_inicio <= :hoy AND fecha_fin >= :hoy
+            ORDER BY fecha_inicio DESC LIMIT 1
+        """), {'hoy': hoy})
+        row = result.fetchone()
+
+        if row:
+            periodo_actual = {
+                'id': row[0], 'codigo': row[1], 'nombre': row[2],
+                'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
+                'metodo': 'fecha'
+            }
+        else:
+            # Si no hay match por fecha, buscar el marcado como activo
+            result = db.session.execute(text("""
+                SELECT id, codigo, nombre, fecha_inicio, fecha_fin
+                FROM periodos_cas WHERE activo = true
+                ORDER BY fecha_inicio DESC LIMIT 1
+            """))
+            row = result.fetchone()
+            if row:
+                periodo_actual = {
+                    'id': row[0], 'codigo': row[1], 'nombre': row[2],
+                    'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
+                    'metodo': 'activo'
+                }
+            else:
+                # Fallback: último periodo con datos
+                result = db.session.execute(text(f"""
+                    SELECT p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
+                    FROM periodos_cas p
+                    JOIN {tabla} s ON s.periodo_id = p.id
+                    GROUP BY p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
+                    ORDER BY p.fecha_inicio DESC LIMIT 1
+                """))
+                row = result.fetchone()
+                if row:
+                    periodo_actual = {
+                        'id': row[0], 'codigo': row[1], 'nombre': row[2],
+                        'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
+                        'metodo': 'ultimo_con_datos'
+                    }
+
+        # 2. Lista de periodos para el selector (últimos 6)
+        result = db.session.execute(text("""
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin
+            FROM periodos_cas ORDER BY fecha_inicio DESC LIMIT 6
+        """))
+        periodos = [{'id': r[0], 'codigo': r[1], 'nombre': r[2],
+                     'fecha_inicio': str(r[3]) if r[3] else '',
+                     'fecha_fin': str(r[4]) if r[4] else ''} for r in result]
+
+        # 3. Progreso de sucursales en el periodo actual
+        progreso = {'supervisadas': 0, 'total': 86, 'porcentaje': 0}
+        if periodo_actual:
+            result = db.session.execute(text(f"""
+                SELECT COUNT(DISTINCT sucursal_id) FROM {tabla}
+                WHERE periodo_id = :periodo_id
+            """), {'periodo_id': periodo_actual['id']})
+            supervisadas = result.scalar() or 0
+
+            result = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true"))
+            total = result.scalar() or 86
+
+            progreso = {
+                'supervisadas': supervisadas,
+                'total': total,
+                'porcentaje': round((supervisadas / total * 100) if total > 0 else 0, 1)
+            }
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'periodo_actual': periodo_actual,
+                'periodos': periodos,
+                'progreso': progreso
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ API ENDPOINTS - DATOS BÁSICOS ============
 @app.route('/api/periodos')
 def api_periodos():
