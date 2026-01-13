@@ -1388,6 +1388,50 @@ body.modal-open {
     margin-bottom: 20px;
 }
 
+.trend-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+/* Barra clickeable */
+.trend-bar {
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.trend-bar:hover {
+    transform: scale(1.05);
+}
+
+.trend-bar:active {
+    transform: scale(0.98);
+}
+
+/* Barra seleccionada */
+.trend-bar.selected {
+    background: rgba(255, 107, 53, 0.15);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+}
+
+.trend-bar.selected .trend-label {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Loading inline para áreas */
+.loading-inline {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+    font-size: 0.875rem;
+}
+
 /* ========== MAP POPUP ========== */
 .map-popup {
     text-align: center;

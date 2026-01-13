@@ -657,12 +657,17 @@ function openSucursalModal(sucursalId) {
 
             // Construir HTML de tendencia (últimas 4 supervisiones)
             var tendenciaHtml = '';
+            var lastSupervisionId = null;
             if (tendData.success && tendData.data && tendData.data.length > 0) {
                 var maxVal = 100;
-                var barsHtml = tendData.data.map(function(t) {
+                // Guardar el ID de la última supervisión (la más reciente está al final)
+                lastSupervisionId = tendData.data[tendData.data.length - 1].id;
+
+                var barsHtml = tendData.data.map(function(t, index) {
                     var height = Math.max((t.calificacion / maxVal) * 100, 5);
                     var tColor = t.color || getColorClass(t.calificacion);
-                    return '<div class="trend-bar">' +
+                    var isLast = index === tendData.data.length - 1;
+                    return '<div class="trend-bar ' + (isLast ? 'selected' : '') + '" data-sup-id="' + t.id + '" data-fecha="' + t.fecha + '" onclick="loadSupervisionAreas(' + t.id + ', this)">' +
                         '<div class="trend-fill ' + tColor + '" style="height: ' + height + '%">' +
                         '<span class="trend-value">' + t.calificacion + '</span>' +
                         '</div>' +
@@ -672,16 +677,19 @@ function openSucursalModal(sucursalId) {
 
                 tendenciaHtml = '<div class="tendencia-section">' +
                     '<h4 class="modal-section-title">Ultimas ' + tendData.data.length + ' Supervisiones</h4>' +
+                    '<p class="trend-hint">Toca una barra para ver sus areas</p>' +
                     '<div class="trend-chart">' + barsHtml + '</div>' +
                     '</div>';
             }
 
-            // Construir HTML de áreas/KPIs
+            // Construir HTML de áreas/KPIs (en contenedor actualizable)
             var areasHtml = '';
-            var areasTitle = currentTipo === 'operativas' ? 'Areas Evaluadas (' + (s.areas ? s.areas.length : 0) + ')' : 'KPIs de Seguridad (' + (s.areas ? s.areas.length : 0) + ')';
+            var areasTypeLabel = currentTipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
+            var areasCount = s.areas ? s.areas.length : 0;
             if (s.areas && s.areas.length > 0) {
-                areasHtml = '<h4 class="modal-section-title">' + areasTitle + '</h4>' +
-                    '<div class="areas-grid">' +
+                areasHtml = '<div id="areasContainer" data-tipo="' + currentTipo + '">' +
+                    '<h4 class="modal-section-title" id="areasTitle">' + areasTypeLabel + ' (' + areasCount + ') - Ultima Supervision</h4>' +
+                    '<div class="areas-grid" id="areasGrid">' +
                     s.areas.map(function(a) {
                         var aColorClass = a.color || getColorClass(a.porcentaje);
                         return '<div class="area-card ' + aColorClass + '">' +
@@ -689,9 +697,9 @@ function openSucursalModal(sucursalId) {
                             '<span class="area-score">' + a.porcentaje + '%</span>' +
                             '</div>';
                     }).join('') +
-                    '</div>';
+                    '</div></div>';
             } else {
-                areasHtml = '<div class="empty-state">Sin datos de areas</div>';
+                areasHtml = '<div id="areasContainer"><div class="empty-state">Sin datos de areas</div></div>';
             }
 
             // Info adicional
@@ -750,6 +758,67 @@ function openSucursalModal(sucursalId) {
             unlockBodyScroll();
         }
     };
+}
+
+// Cargar áreas de una supervisión específica cuando se hace click en una barra
+function loadSupervisionAreas(supervisionId, barElement) {
+    var container = document.getElementById('areasContainer');
+    var areasTitle = document.getElementById('areasTitle');
+    var areasGrid = document.getElementById('areasGrid');
+    var tipo = container ? container.getAttribute('data-tipo') : currentTipo;
+
+    if (!container) return;
+
+    // Marcar la barra como seleccionada
+    var allBars = document.querySelectorAll('.trend-bar');
+    allBars.forEach(function(bar) {
+        bar.classList.remove('selected');
+    });
+    if (barElement) {
+        barElement.classList.add('selected');
+    }
+
+    // Mostrar loading en las áreas
+    if (areasGrid) {
+        areasGrid.innerHTML = '<div class="loading-inline">Cargando...</div>';
+    }
+
+    // Obtener fecha de la barra para mostrar en el título
+    var fecha = barElement ? barElement.getAttribute('data-fecha') : '';
+
+    // Llamar al API
+    fetch('/api/supervision/' + supervisionId + '/areas/' + tipo)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success && data.data) {
+                var d = data.data;
+                var areasTypeLabel = tipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
+
+                // Actualizar título
+                if (areasTitle) {
+                    areasTitle.textContent = areasTypeLabel + ' (' + d.areas.length + ') - ' + d.fecha;
+                }
+
+                // Actualizar grid de áreas
+                if (areasGrid && d.areas && d.areas.length > 0) {
+                    areasGrid.innerHTML = d.areas.map(function(a) {
+                        var aColorClass = a.color || getColorClass(a.porcentaje);
+                        return '<div class="area-card ' + aColorClass + '">' +
+                            '<span class="area-name">' + a.nombre + '</span>' +
+                            '<span class="area-score">' + a.porcentaje + '%</span>' +
+                            '</div>';
+                    }).join('');
+                } else if (areasGrid) {
+                    areasGrid.innerHTML = '<div class="empty-state">Sin datos de areas para esta supervision</div>';
+                }
+            }
+        })
+        .catch(function(e) {
+            console.error('Error loading supervision areas:', e);
+            if (areasGrid) {
+                areasGrid.innerHTML = '<div class="error-state">Error al cargar areas</div>';
+            }
+        });
 }
 
 // ========== MAP ==========

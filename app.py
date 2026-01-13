@@ -806,6 +806,101 @@ def api_sucursal_tendencia(sucursal_id, tipo):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/supervision/<int:supervision_id>/areas/<tipo>')
+def api_supervision_areas(supervision_id, tipo):
+    """Obtener áreas/KPIs de una supervisión específica"""
+    try:
+        if tipo == 'operativas':
+            # Obtener info de la supervisión
+            sup = db.session.execute(text("""
+                SELECT so.id, so.calificacion_general, so.fecha_supervision, so.supervisor,
+                       p.nombre as periodo_nombre
+                FROM supervisiones_operativas so
+                LEFT JOIN periodos_cas p ON so.periodo_id = p.id
+                WHERE so.id = :sup_id
+            """), {'sup_id': supervision_id}).fetchone()
+
+            if not sup:
+                return jsonify({'success': False, 'error': 'Supervisión no encontrada'}), 404
+
+            # Obtener áreas
+            areas_result = db.session.execute(text("""
+                SELECT ca.nombre, sa.porcentaje
+                FROM supervision_areas sa
+                JOIN catalogo_areas ca ON sa.area_id = ca.id
+                WHERE sa.supervision_id = :sup_id
+                ORDER BY ca.numero ASC
+            """), {'sup_id': supervision_id})
+
+            areas = []
+            for row in areas_result:
+                areas.append({
+                    'nombre': row[0],
+                    'porcentaje': round(float(row[1]), 2) if row[1] else 0,
+                    'color': get_color_class(float(row[1]) if row[1] else 0)
+                })
+
+            fecha = sup[2]
+            fecha_str = fecha.strftime('%d/%m/%Y') if fecha else '-'
+
+            return jsonify({
+                'success': True,
+                'data': {
+                    'supervision_id': sup[0],
+                    'calificacion': round(float(sup[1]), 2) if sup[1] else 0,
+                    'fecha': fecha_str,
+                    'supervisor': sup[3],
+                    'periodo': sup[4],
+                    'areas': areas
+                }
+            })
+        else:
+            # Seguridad - KPIs
+            sup = db.session.execute(text("""
+                SELECT ss.id, ss.calificacion_general, ss.fecha_supervision, ss.supervisor,
+                       p.nombre as periodo_nombre
+                FROM supervisiones_seguridad ss
+                LEFT JOIN periodos_cas p ON ss.periodo_id = p.id
+                WHERE ss.id = :sup_id
+            """), {'sup_id': supervision_id}).fetchone()
+
+            if not sup:
+                return jsonify({'success': False, 'error': 'Supervisión no encontrada'}), 404
+
+            # Obtener KPIs
+            kpis_result = db.session.execute(text("""
+                SELECT ck.nombre, sk.porcentaje
+                FROM supervision_kpis sk
+                JOIN catalogo_kpis ck ON sk.kpi_id = ck.id
+                WHERE sk.supervision_id = :sup_id
+                ORDER BY ck.id ASC
+            """), {'sup_id': supervision_id})
+
+            areas = []
+            for row in kpis_result:
+                areas.append({
+                    'nombre': row[0],
+                    'porcentaje': round(float(row[1]), 2) if row[1] else 0,
+                    'color': get_color_class(float(row[1]) if row[1] else 0)
+                })
+
+            fecha = sup[2]
+            fecha_str = fecha.strftime('%d/%m/%Y') if fecha else '-'
+
+            return jsonify({
+                'success': True,
+                'data': {
+                    'supervision_id': sup[0],
+                    'calificacion': round(float(sup[1]), 2) if sup[1] else 0,
+                    'fecha': fecha_str,
+                    'supervisor': sup[3],
+                    'periodo': sup[4],
+                    'areas': areas
+                }
+            })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ API ENDPOINTS - MAPA ============
 @app.route('/api/mapa/<tipo>')
 def api_mapa(tipo):
