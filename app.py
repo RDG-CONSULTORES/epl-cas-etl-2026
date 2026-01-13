@@ -91,13 +91,23 @@ def admin_logout():
 def admin():
     """Panel de administración"""
     try:
+        # Asegurar que existe la columna activo en periodos_cas
+        try:
+            db.session.execute(text("""
+                ALTER TABLE periodos_cas ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT false
+            """))
+            db.session.commit()
+        except:
+            db.session.rollback()
+
         total_op = db.session.execute(text("SELECT COUNT(*) FROM supervisiones_operativas")).scalar() or 0
         total_seg = db.session.execute(text("SELECT COUNT(*) FROM supervisiones_seguridad")).scalar() or 0
         total_sucursales = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true")).scalar() or 0
         total_grupos = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
 
         result = db.session.execute(text("""
-            SELECT id, codigo, nombre, fecha_inicio, fecha_fin, activo
+            SELECT id, codigo, nombre, fecha_inicio, fecha_fin,
+                   COALESCE(activo, false) as activo
             FROM periodos_cas ORDER BY fecha_inicio DESC
         """))
         periodos = [{'id': r[0], 'codigo': r[1], 'nombre': r[2],
