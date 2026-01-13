@@ -4,6 +4,7 @@
    ============================================ */
 
 :root {
+    /* Dark Mode (default) */
     --bg-primary: #0a0a0f;
     --bg-secondary: #1c1c24;
     --bg-card: #252530;
@@ -21,6 +22,27 @@
     --radius-lg: 16px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light Mode */
+[data-theme="light"] {
+    --bg-primary: #f2f2f7;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f5f5f5;
+    --text-primary: #000000;
+    --text-secondary: #6e6e73;
+    --accent: #ff6b35;
+    --accent-light: #ff8c5a;
+    --excellent: #28a745;
+    --good: #007aff;
+    --regular: #ff9500;
+    --critical: #ff3b30;
+    --warning: #ff9500;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --border-color: rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -86,6 +108,94 @@ body {
 .admin-btn:hover {
     background: var(--accent);
     color: white;
+}
+
+/* Header Actions Container */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--bg-card-hover);
+    transform: scale(1.05);
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-secondary);
+    fill: none;
+    stroke-width: 2;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover svg {
+    stroke: var(--accent);
+}
+
+/* Sun icon (shown in dark mode) */
+.theme-toggle .icon-sun {
+    display: block;
+}
+
+.theme-toggle .icon-moon {
+    display: none;
+}
+
+/* Moon icon (shown in light mode) */
+[data-theme="light"] .theme-toggle .icon-sun {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle .icon-moon {
+    display: block;
+}
+
+/* Light mode specific adjustments */
+[data-theme="light"] .header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .period-bar {
+    background: rgba(255, 107, 53, 0.05);
+    border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+}
+
+[data-theme="light"] .bottom-nav {
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .sheet-container {
+    background: var(--bg-secondary);
+}
+
+[data-theme="light"] .modal-container {
+    background: var(--bg-secondary);
+}
+
+[data-theme="light"] .kpi-card {
+    box-shadow: var(--shadow);
+}
+
+[data-theme="light"] .ranking-item {
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* ========== PERIOD BAR ========== */

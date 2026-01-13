@@ -45,9 +45,40 @@ function forceRepaint(element) {
     }
 }
 
+// ========== THEME TOGGLE ==========
+function initTheme() {
+    // Cargar tema guardado o usar dark por defecto
+    var savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Inicializar toggle
+    var toggle = document.getElementById('themeToggle');
+    if (toggle) {
+        toggle.addEventListener('click', function() {
+            toggleTheme();
+        });
+    }
+}
+
+function toggleTheme() {
+    var html = document.documentElement;
+    var currentTheme = html.getAttribute('data-theme') || 'dark';
+    var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    console.log('Theme changed to:', newTheme);
+}
+
+function getTheme() {
+    return document.documentElement.getAttribute('data-theme') || 'dark';
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initializing...');
+    initTheme();
     initToggles();
     initTabs();
     initPeriodSelector();
