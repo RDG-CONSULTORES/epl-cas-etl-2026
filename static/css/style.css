@@ -41,7 +41,7 @@ body {
 .app-container {
     max-width: 600px;
     margin: 0 auto;
-    padding-bottom: calc(20px + var(--safe-bottom));
+    padding-bottom: calc(80px + var(--safe-bottom)); /* Espacio para bottom nav */
 }
 
 /* ========== HEADER ========== */
@@ -119,35 +119,69 @@ body {
     color: white;
 }
 
-/* ========== TAB NAVIGATION ========== */
-.tab-nav {
+/* ========== BOTTOM TAB NAVIGATION (iOS Style) ========== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
-    gap: 8px;
-    padding: 8px 16px 16px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    justify-content: space-around;
+    align-items: center;
+    height: calc(64px + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: rgba(28, 28, 36, 0.85);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
 }
 
-.tab-nav::-webkit-scrollbar {
-    display: none;
-}
-
-.tab-btn {
-    flex-shrink: 0;
-    padding: 10px 20px;
-    background: var(--bg-card);
+.bottom-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    height: 100%;
+    padding: 8px 0;
+    background: transparent;
     border: none;
-    border-radius: var(--radius);
     color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.tab-btn.active {
-    background: var(--accent);
-    color: white;
+.bottom-tab:active {
+    transform: scale(0.95);
+}
+
+.bottom-tab.active {
+    color: var(--accent);
+}
+
+.tab-icon {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.5;
+    transition: all 0.2s ease;
+}
+
+.bottom-tab.active .tab-icon {
+    stroke-width: 2;
+}
+
+.tab-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+/* Legacy tab-btn styles for JS compatibility */
+.tab-btn {
+    display: none;
 }
 
 /* ========== TAB CONTENT ========== */
