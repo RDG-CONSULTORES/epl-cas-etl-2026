@@ -159,10 +159,21 @@ def extract_areas(answers):
 
 def extract_calificacion_general(answers):
     """Extrae la calificación general"""
+    # Buscar en orden de prioridad
+    campos_calificacion = [
+        'PORCENTAJE %',              # Operativas
+        'CALIFICACION PORCENTAJE %'  # Seguridad
+    ]
+
     for ans in answers:
-        title = ans.get('title', '').strip()
-        if title == 'PORCENTAJE %' and ans.get('field_type') == 'formula':
-            return ans.get('value')
+        if ans.get('field_type') != 'formula':
+            continue
+        title = ans.get('title', '').strip().upper()
+
+        for campo in campos_calificacion:
+            if title == campo.upper():
+                return ans.get('value')
+
     return None
 
 def extract_kpis(answers):
@@ -419,8 +430,74 @@ def run_sync():
     return resultados
 
 # ============================================================
+# FIX: Actualizar calificaciones de seguridad existentes
+# ============================================================
+
+def fix_seguridad_calificaciones():
+    """Re-extrae calificaciones de seguridad desde Zenput para registros con calificacion=0"""
+    log("=" * 60)
+    log("FIX: Actualizando calificaciones de seguridad")
+    log("=" * 60)
+
+    headers = {'X-API-TOKEN': ZENPUT_TOKEN}
+
+    with get_db() as conn:
+        cur = conn.cursor()
+
+        # Obtener supervisiones de seguridad con calificacion 0 o NULL
+        cur.execute("""
+            SELECT id, zenput_submission_id
+            FROM supervisiones_seguridad
+            WHERE calificacion_general IS NULL OR calificacion_general = 0
+        """)
+        registros = cur.fetchall()
+        log(f"Encontrados {len(registros)} registros con calificación 0 o NULL")
+
+        actualizados = 0
+        for reg in registros:
+            sup_id = reg['id']
+            zenput_id = reg['zenput_submission_id']
+
+            try:
+                # Obtener submission de Zenput
+                resp = requests.get(
+                    f'{ZENPUT_BASE}/submissions/{zenput_id}/',
+                    headers=headers,
+                    timeout=30
+                )
+                resp.raise_for_status()
+                data = resp.json().get('data', {})
+                answers = data.get('answers', [])
+
+                # Extraer calificación
+                calificacion = extract_calificacion_general(answers)
+
+                if calificacion and calificacion > 0:
+                    cur.execute("""
+                        UPDATE supervisiones_seguridad
+                        SET calificacion_general = %s
+                        WHERE id = %s
+                    """, (calificacion, sup_id))
+                    actualizados += 1
+                    log(f"  ✓ ID {sup_id}: {calificacion}%")
+
+            except Exception as e:
+                log(f"  ✗ Error ID {sup_id}: {e}", 'ERROR')
+                continue
+
+        conn.commit()
+        log(f"\n✅ Actualizados {actualizados} de {len(registros)} registros")
+
+    return actualizados
+
+# ============================================================
 # MAIN
 # ============================================================
 
 if __name__ == '__main__':
-    run_sync()
+    import sys
+
+    if len(sys.argv) > 1 and sys.argv[1] == '--fix-seguridad':
+        fix_seguridad_calificaciones()
+    else:
+        run_sync()
