@@ -439,7 +439,21 @@ def fix_seguridad_calificaciones():
     log("FIX: Actualizando calificaciones de seguridad")
     log("=" * 60)
 
-    headers = {'X-API-TOKEN': ZENPUT_TOKEN}
+    # Obtener todas las submissions de seguridad desde Zenput
+    log("Obteniendo submissions de Zenput...")
+    submissions = fetch_zenput(FORMS['seguridad']['id'])
+    log(f"Total submissions en Zenput: {len(submissions)}")
+
+    # Crear mapa de submission_id -> calificacion
+    calificaciones_zenput = {}
+    for sub in submissions:
+        sub_id = str(sub.get('id'))
+        answers = sub.get('answers', [])
+        calif = extract_calificacion_general(answers)
+        if calif and calif > 0:
+            calificaciones_zenput[sub_id] = calif
+
+    log(f"Submissions con calificación válida: {len(calificaciones_zenput)}")
 
     with get_db() as conn:
         cur = conn.cursor()
@@ -451,39 +465,22 @@ def fix_seguridad_calificaciones():
             WHERE calificacion_general IS NULL OR calificacion_general = 0
         """)
         registros = cur.fetchall()
-        log(f"Encontrados {len(registros)} registros con calificación 0 o NULL")
+        log(f"Registros en BD con calificación 0 o NULL: {len(registros)}")
 
         actualizados = 0
         for reg in registros:
             sup_id = reg['id']
             zenput_id = reg['zenput_submission_id']
 
-            try:
-                # Obtener submission de Zenput
-                resp = requests.get(
-                    f'{ZENPUT_BASE}/submissions/{zenput_id}/',
-                    headers=headers,
-                    timeout=30
-                )
-                resp.raise_for_status()
-                data = resp.json().get('data', {})
-                answers = data.get('answers', [])
-
-                # Extraer calificación
-                calificacion = extract_calificacion_general(answers)
-
-                if calificacion and calificacion > 0:
-                    cur.execute("""
-                        UPDATE supervisiones_seguridad
-                        SET calificacion_general = %s
-                        WHERE id = %s
-                    """, (calificacion, sup_id))
-                    actualizados += 1
-                    log(f"  ✓ ID {sup_id}: {calificacion}%")
-
-            except Exception as e:
-                log(f"  ✗ Error ID {sup_id}: {e}", 'ERROR')
-                continue
+            if zenput_id in calificaciones_zenput:
+                calif = calificaciones_zenput[zenput_id]
+                cur.execute("""
+                    UPDATE supervisiones_seguridad
+                    SET calificacion_general = %s
+                    WHERE id = %s
+                """, (calif, sup_id))
+                actualizados += 1
+                log(f"  ✓ ID {sup_id}: {calif}%")
 
         conn.commit()
         log(f"\n✅ Actualizados {actualizados} de {len(registros)} registros")

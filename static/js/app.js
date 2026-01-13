@@ -10,6 +10,7 @@ var currentTerritorio = 'todas';
 var currentPeriodoId = null;
 var currentPeriodo = null;
 var periodosDisponibles = [];
+var periodoActivoId = null; // ID del periodo marcado como activo
 var map = null;
 var markers = [];
 var scrollPosition = 0; // Para guardar posición de scroll en iOS
@@ -84,6 +85,7 @@ function loadPeriodoContexto() {
                 if (d.periodo_actual) {
                     currentPeriodo = d.periodo_actual;
                     currentPeriodoId = d.periodo_actual.id;
+                    periodoActivoId = d.periodo_actual.id; // Guardar el activo
 
                     // Actualizar UI
                     var periodName = document.getElementById('periodName');
@@ -92,8 +94,11 @@ function loadPeriodoContexto() {
                     }
                 }
 
-                // Guardar lista de periodos
-                periodosDisponibles = d.periodos || [];
+                // Guardar lista de periodos con info de activo
+                periodosDisponibles = (d.periodos || []).map(function(p) {
+                    p.activo = (periodoActivoId && p.id == periodoActivoId);
+                    return p;
+                });
 
                 // Actualizar progreso
                 if (d.progreso) {
@@ -120,15 +125,37 @@ function openPeriodSheet() {
 
     if (!overlay || !body) return;
 
-    // Generar opciones
+    // Generar opciones - empezar con "Todos"
     var html = '';
+
+    // Opción "Todos los periodos"
+    var isAllSelected = currentPeriodoId === 'all';
+    html += '<div class="period-option ' + (isAllSelected ? 'selected' : '') + '" data-id="all">' +
+        '<div class="period-option-info">' +
+            '<span class="period-option-name">Todos</span>' +
+            '<span class="period-option-dates">Historico acumulado</span>' +
+        '</div>' +
+        '<div class="period-option-check">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
+                '<polyline points="20 6 9 17 4 12"/>' +
+            '</svg>' +
+        '</div>' +
+    '</div>';
+
+    // Separador
+    html += '<div class="period-separator"></div>';
+
+    // Periodos individuales
     periodosDisponibles.forEach(function(p) {
         var isSelected = currentPeriodoId && currentPeriodoId == p.id;
         var fechas = formatPeriodDates(p.fecha_inicio, p.fecha_fin);
+        var isActivo = p.activo || (periodoActivoId && p.id == periodoActivoId);
 
         html += '<div class="period-option ' + (isSelected ? 'selected' : '') + '" data-id="' + p.id + '">' +
             '<div class="period-option-info">' +
-                '<span class="period-option-name">' + (p.codigo || p.nombre) + '</span>' +
+                '<span class="period-option-name">' + (p.codigo || p.nombre) +
+                    (isActivo ? ' <span class="period-activo-badge">Activo</span>' : '') +
+                '</span>' +
                 '<span class="period-option-dates">' + fechas + '</span>' +
             '</div>' +
             '<div class="period-option-check">' +
@@ -144,8 +171,12 @@ function openPeriodSheet() {
     // Event listeners para las opciones
     body.querySelectorAll('.period-option').forEach(function(opt) {
         opt.addEventListener('click', function() {
-            var periodoId = parseInt(opt.dataset.id);
-            selectPeriodo(periodoId);
+            var periodoId = opt.dataset.id;
+            if (periodoId === 'all') {
+                selectPeriodo('all');
+            } else {
+                selectPeriodo(parseInt(periodoId));
+            }
         });
     });
 
@@ -164,6 +195,28 @@ function closePeriodSheet() {
 }
 
 function selectPeriodo(periodoId) {
+    var periodName = document.getElementById('periodName');
+
+    if (periodoId === 'all') {
+        // Seleccionar "Todos"
+        currentPeriodoId = 'all';
+        currentPeriodo = null;
+
+        if (periodName) {
+            periodName.textContent = 'Todos';
+        }
+
+        // Cerrar sheet y recargar
+        closePeriodSheet();
+        loadDashboard();
+        // No actualizamos progreso porque es acumulado
+        var progressText = document.getElementById('progressText');
+        if (progressText) {
+            progressText.textContent = 'Acumulado';
+        }
+        return;
+    }
+
     // Encontrar el periodo en la lista
     var periodo = periodosDisponibles.find(function(p) { return p.id == periodoId; });
 
@@ -172,7 +225,6 @@ function selectPeriodo(periodoId) {
         currentPeriodo = periodo;
 
         // Actualizar UI
-        var periodName = document.getElementById('periodName');
         if (periodName) {
             periodName.textContent = periodo.codigo || periodo.nombre;
         }
@@ -305,14 +357,32 @@ function loadKPIs() {
             if (data.success && data.data) {
                 var d = data.data;
                 var promEl = document.getElementById('kpiPromedio');
+                var promLabelEl = document.getElementById('kpiPromedioLabel');
+                var acumEl = document.getElementById('kpiAcumulado');
                 var totalEl = document.getElementById('kpiTotal');
                 var gruposEl = document.getElementById('kpiGrupos');
                 var sucEl = document.getElementById('kpiSucursales');
 
+                // Promedio principal
                 if (promEl) {
-                    promEl.textContent = d.promedio || '-';
+                    promEl.textContent = d.promedio ? d.promedio + '%' : '-';
                     promEl.className = 'kpi-value ' + (d.color || 'gray');
                 }
+
+                // Label y acumulado
+                if (currentPeriodoId === 'all') {
+                    // Modo "Todos" - solo mostrar acumulado
+                    if (promLabelEl) promLabelEl.textContent = 'Promedio Acumulado';
+                    if (acumEl) acumEl.style.display = 'none';
+                } else {
+                    // Modo periodo específico - mostrar ambos
+                    if (promLabelEl) promLabelEl.textContent = 'Promedio Periodo';
+                    if (acumEl) {
+                        acumEl.style.display = 'block';
+                        acumEl.textContent = 'Acum: ' + (d.promedio_acumulado ? d.promedio_acumulado + '%' : '-');
+                    }
+                }
+
                 if (totalEl) totalEl.textContent = d.total_supervisiones || 0;
                 if (gruposEl) gruposEl.textContent = d.total_grupos || 0;
                 if (sucEl) sucEl.textContent = d.sucursales_supervisadas || 0;
@@ -369,8 +439,16 @@ function loadRanking() {
         ? '/api/ranking/grupos/' + currentTipo
         : '/api/ranking/sucursales/' + currentTipo;
 
+    var params = [];
     if (currentPeriodoId) {
-        endpoint += '?periodo_id=' + currentPeriodoId;
+        params.push('periodo_id=' + currentPeriodoId);
+    }
+    // Filtro de territorio para sucursales
+    if (currentView === 'sucursales' && currentTerritorio !== 'todas') {
+        params.push('territorio=' + currentTerritorio);
+    }
+    if (params.length > 0) {
+        endpoint += '?' + params.join('&');
     }
 
     fetch(endpoint)
@@ -380,7 +458,7 @@ function loadRanking() {
             if (data.success && data.data && data.data.length > 0) {
                 var items = data.data;
 
-                // Filter by territorio
+                // Filter by territorio solo para grupos (ya se filtra en backend para sucursales)
                 if (currentTerritorio !== 'todas' && currentView === 'grupos') {
                     items = items.filter(function(item) {
                         return item.territorio === currentTerritorio;
@@ -392,28 +470,31 @@ function loadRanking() {
                     return;
                 }
 
-                var html = items.map(function(item, i) {
-                    var pos = i + 1;
-                    var posClass = pos <= 3 ? 'pos-' + pos : '';
-                    var colorClass = item.color || getColorClass(item.promedio);
+                var html = items.map(function(item) {
+                    // Usar posición del backend (con empates)
+                    var pos = item.posicion;
+                    var isPendiente = pos === null;
+                    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+                    var colorClass = item.color || 'gray';
+                    var promedio = item.promedio !== null ? item.promedio + '%' : 'Pendiente';
 
                     if (currentView === 'grupos') {
-                        return '<div class="ranking-item" onclick="openGrupoModal(' + item.id + ')">' +
-                            '<span class="ranking-pos ' + posClass + '">' + pos + '</span>' +
+                        return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openGrupoModal(' + item.id + ')">' +
+                            '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
                             '<div class="ranking-info">' +
                             '<span class="ranking-name">' + item.nombre + '</span>' +
                             '<span class="ranking-meta">' + item.total_sucursales + ' sucursales | ' + item.territorio + '</span>' +
                             '</div>' +
-                            '<span class="ranking-score ' + colorClass + '">' + item.promedio + '</span>' +
+                            '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
                             '</div>';
                     } else {
-                        return '<div class="ranking-item" onclick="openSucursalModal(' + item.id + ')">' +
-                            '<span class="ranking-pos ' + posClass + '">' + pos + '</span>' +
+                        return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openSucursalModal(' + item.id + ')">' +
+                            '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
                             '<div class="ranking-info">' +
                             '<span class="ranking-name">' + item.nombre + '</span>' +
                             '<span class="ranking-meta">' + (item.grupo_nombre || '-') + '</span>' +
                             '</div>' +
-                            '<span class="ranking-score ' + colorClass + '">' + item.promedio + '</span>' +
+                            '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
                             '</div>';
                     }
                 }).join('');

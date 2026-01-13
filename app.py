@@ -312,26 +312,33 @@ def api_kpis(tipo):
         periodo_id = request.args.get('periodo_id')
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        # Promedio general
-        query_prom = f"SELECT AVG(calificacion_general) FROM {tabla}"
         params = {}
-        if periodo_id:
-            query_prom += " WHERE periodo_id = :periodo_id"
-            params['periodo_id'] = periodo_id
+        params_periodo = {}
 
-        promedio = db.session.execute(text(query_prom), params).scalar() or 0
+        # Promedio del periodo (si hay periodo_id)
+        if periodo_id and periodo_id != 'all':
+            query_prom = f"SELECT AVG(calificacion_general) FROM {tabla} WHERE periodo_id = :periodo_id"
+            params_periodo['periodo_id'] = periodo_id
+            promedio_periodo = db.session.execute(text(query_prom), params_periodo).scalar() or 0
+        else:
+            promedio_periodo = None
+
+        # Promedio acumulado (siempre histórico total)
+        promedio_acumulado = db.session.execute(text(f"SELECT AVG(calificacion_general) FROM {tabla}")).scalar() or 0
 
         # Total supervisiones
-        query_total = f"SELECT COUNT(*) FROM {tabla}"
-        if periodo_id:
-            query_total += " WHERE periodo_id = :periodo_id"
-        total_supervisiones = db.session.execute(text(query_total), params).scalar() or 0
+        if periodo_id and periodo_id != 'all':
+            query_total = f"SELECT COUNT(*) FROM {tabla} WHERE periodo_id = :periodo_id"
+            total_supervisiones = db.session.execute(text(query_total), params_periodo).scalar() or 0
+        else:
+            total_supervisiones = db.session.execute(text(f"SELECT COUNT(*) FROM {tabla}")).scalar() or 0
 
         # Sucursales supervisadas
-        query_suc = f"SELECT COUNT(DISTINCT sucursal_id) FROM {tabla}"
-        if periodo_id:
-            query_suc += " WHERE periodo_id = :periodo_id"
-        sucursales_supervisadas = db.session.execute(text(query_suc), params).scalar() or 0
+        if periodo_id and periodo_id != 'all':
+            query_suc = f"SELECT COUNT(DISTINCT sucursal_id) FROM {tabla} WHERE periodo_id = :periodo_id"
+            sucursales_supervisadas = db.session.execute(text(query_suc), params_periodo).scalar() or 0
+        else:
+            sucursales_supervisadas = db.session.execute(text(f"SELECT COUNT(DISTINCT sucursal_id) FROM {tabla}")).scalar() or 0
 
         # Total sucursales
         total_sucursales = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true")).scalar() or 0
@@ -351,10 +358,12 @@ def api_kpis(tipo):
                 SUM(CASE WHEN calificacion_general < 70 THEN 1 ELSE 0 END) as critico
             FROM {tabla}
         """
-        if periodo_id:
+        if periodo_id and periodo_id != 'all':
             query_dist += " WHERE periodo_id = :periodo_id"
+            dist_result = db.session.execute(text(query_dist), params_periodo).fetchone()
+        else:
+            dist_result = db.session.execute(text(query_dist)).fetchone()
 
-        dist_result = db.session.execute(text(query_dist), params).fetchone()
         distribucion = {
             'excelente': dist_result[0] or 0,
             'bueno': dist_result[1] or 0,
@@ -362,11 +371,16 @@ def api_kpis(tipo):
             'critico': dist_result[3] or 0
         }
 
+        # Promedio a mostrar: del periodo si existe, si no acumulado
+        promedio_mostrar = promedio_periodo if promedio_periodo is not None else promedio_acumulado
+
         return jsonify({
             'success': True,
             'data': {
-                'promedio': float(round(promedio, 2)),
-                'color': get_color_class(promedio),
+                'promedio': float(round(promedio_mostrar, 2)),
+                'promedio_periodo': float(round(promedio_periodo, 2)) if promedio_periodo is not None else None,
+                'promedio_acumulado': float(round(promedio_acumulado, 2)),
+                'color': get_color_class(promedio_mostrar),
                 'total_supervisiones': int(total_supervisiones),
                 'sucursales_supervisadas': int(sucursales_supervisadas),
                 'total_sucursales': int(total_sucursales),
@@ -386,55 +400,95 @@ def api_kpis(tipo):
 # ============ API ENDPOINTS - RANKINGS ============
 @app.route('/api/ranking/grupos/<tipo>')
 def api_ranking_grupos(tipo):
-    """Ranking de grupos operativos"""
+    """Ranking de grupos operativos - con empates"""
     try:
         periodo_id = request.args.get('periodo_id')
-        territorio = request.args.get('territorio')  # local, foranea, mixto, all
+        territorio = request.args.get('territorio')  # local, foranea, mixto, todas
 
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        query = f"""
-            SELECT g.id, g.nombre,
-                   COALESCE(AVG(sup.calificacion_general), 0) as promedio,
-                   COUNT(DISTINCT s.id) as total_sucursales,
-                   COUNT(sup.id) as total_supervisiones
-            FROM grupos_operativos g
-            LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
-            LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
-            WHERE g.activo = true
-        """
-
-        params = {}
-        if periodo_id:
-            query += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
-            params['periodo_id'] = periodo_id
-
-        query += " GROUP BY g.id, g.nombre ORDER BY promedio DESC"
+        # Query que incluye todos los grupos
+        if periodo_id and periodo_id != 'all':
+            query = f"""
+                SELECT g.id, g.nombre,
+                       AVG(sup.calificacion_general) as promedio,
+                       COUNT(DISTINCT s.id) as total_sucursales,
+                       COUNT(sup.id) as total_supervisiones
+                FROM grupos_operativos g
+                LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = :periodo_id
+                WHERE g.activo = true
+                GROUP BY g.id, g.nombre
+                ORDER BY promedio DESC NULLS LAST, g.nombre ASC
+            """
+            params = {'periodo_id': periodo_id}
+        else:
+            query = f"""
+                SELECT g.id, g.nombre,
+                       AVG(sup.calificacion_general) as promedio,
+                       COUNT(DISTINCT s.id) as total_sucursales,
+                       COUNT(sup.id) as total_supervisiones
+                FROM grupos_operativos g
+                LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
+                WHERE g.activo = true
+                GROUP BY g.id, g.nombre
+                ORDER BY promedio DESC NULLS LAST, g.nombre ASC
+            """
+            params = {}
 
         result = db.session.execute(text(query), params)
-        ranking = []
-        pos = 1
-        for row in result:
+        rows = list(result)
+
+        # Separar grupos con y sin supervisiones
+        con_supervisiones = []
+        sin_supervisiones = []
+
+        for row in rows:
             grupo_territorio = get_territorio(row[1])
 
             # Filtrar por territorio si se especifica
-            if territorio and territorio != 'all':
+            if territorio and territorio != 'todas':
                 if territorio == 'local' and grupo_territorio not in ['local', 'mixto']:
                     continue
                 if territorio == 'foranea' and grupo_territorio not in ['foranea', 'mixto']:
                     continue
 
-            ranking.append({
-                'posicion': pos,
+            item = {
                 'id': row[0],
                 'nombre': row[1],
-                'promedio': round(float(row[2]), 2),
-                'color': get_color_class(float(row[2])),
+                'promedio': round(float(row[2]), 2) if row[2] else None,
                 'total_sucursales': row[3],
                 'total_supervisiones': row[4],
                 'territorio': grupo_territorio
-            })
+            }
+
+            if row[4] > 0 and row[2] is not None:
+                con_supervisiones.append(item)
+            else:
+                sin_supervisiones.append(item)
+
+        # Asignar posiciones con empates
+        ranking = []
+        pos = 1
+        prev_promedio = None
+        for item in con_supervisiones:
+            if prev_promedio is not None and item['promedio'] == prev_promedio:
+                item['posicion'] = ranking[-1]['posicion']
+            else:
+                item['posicion'] = pos
+
+            item['color'] = get_color_class(item['promedio'])
+            ranking.append(item)
+            prev_promedio = item['promedio']
             pos += 1
+
+        # Agregar grupos sin supervisiones al final
+        for item in sin_supervisiones:
+            item['posicion'] = None
+            item['color'] = 'gray'
+            item['promedio'] = None
+            ranking.append(item)
 
         return jsonify({'success': True, 'data': ranking})
     except Exception as e:
@@ -442,49 +496,100 @@ def api_ranking_grupos(tipo):
 
 @app.route('/api/ranking/sucursales/<tipo>')
 def api_ranking_sucursales(tipo):
-    """Ranking de sucursales"""
+    """Ranking de sucursales - incluye todas las 86, con empates"""
     try:
         periodo_id = request.args.get('periodo_id')
         grupo_id = request.args.get('grupo_id')
+        territorio = request.args.get('territorio')  # local, foranea
 
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        query = f"""
-            SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
-                   COALESCE(AVG(sup.calificacion_general), 0) as promedio,
-                   COUNT(sup.id) as total_supervisiones
-            FROM sucursales s
-            LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-            LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
-            WHERE s.activo = true
-        """
+        # Query que incluye TODAS las sucursales
+        if periodo_id and periodo_id != 'all':
+            query = f"""
+                SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
+                       s.clasificacion,
+                       AVG(sup.calificacion_general) as promedio,
+                       COUNT(sup.id) as total_supervisiones
+                FROM sucursales s
+                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = :periodo_id
+                WHERE s.activo = true
+            """
+        else:
+            query = f"""
+                SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
+                       s.clasificacion,
+                       AVG(sup.calificacion_general) as promedio,
+                       COUNT(sup.id) as total_supervisiones
+                FROM sucursales s
+                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
+                WHERE s.activo = true
+            """
 
         params = {}
-        if periodo_id:
-            query += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
+        if periodo_id and periodo_id != 'all':
             params['periodo_id'] = periodo_id
 
         if grupo_id:
             query += " AND s.grupo_operativo_id = :grupo_id"
             params['grupo_id'] = grupo_id
 
-        query += " GROUP BY s.id, s.nombre, g.nombre, g.id ORDER BY promedio DESC"
+        # Filtro por territorio (clasificacion de sucursal)
+        if territorio and territorio != 'todas':
+            if territorio == 'local':
+                query += " AND s.clasificacion = 'local'"
+            elif territorio == 'foranea':
+                query += " AND s.clasificacion = 'foraneo'"
+
+        query += " GROUP BY s.id, s.nombre, g.nombre, g.id, s.clasificacion"
+        query += " ORDER BY promedio DESC NULLS LAST, s.nombre ASC"
 
         result = db.session.execute(text(query), params)
-        ranking = []
-        pos = 1
-        for row in result:
-            ranking.append({
-                'posicion': pos,
+        rows = list(result)
+
+        # Separar supervisadas de pendientes
+        supervisadas = []
+        pendientes = []
+
+        for row in rows:
+            item = {
                 'id': row[0],
                 'nombre': row[1],
                 'grupo_nombre': row[2],
                 'grupo_id': row[3],
-                'promedio': round(float(row[4]), 2),
-                'color': get_color_class(float(row[4])),
-                'total_supervisiones': row[5]
-            })
+                'clasificacion': row[4] or 'local',
+                'promedio': round(float(row[5]), 2) if row[5] else None,
+                'total_supervisiones': row[6]
+            }
+            if row[6] > 0 and row[5] is not None:
+                supervisadas.append(item)
+            else:
+                pendientes.append(item)
+
+        # Asignar posiciones con empates para supervisadas
+        ranking = []
+        pos = 1
+        prev_promedio = None
+        for i, item in enumerate(supervisadas):
+            if prev_promedio is not None and item['promedio'] == prev_promedio:
+                # Empate - misma posición
+                item['posicion'] = ranking[-1]['posicion']
+            else:
+                item['posicion'] = pos
+
+            item['color'] = get_color_class(item['promedio'])
+            ranking.append(item)
+            prev_promedio = item['promedio']
             pos += 1
+
+        # Agregar pendientes al final (sin posición)
+        for item in pendientes:
+            item['posicion'] = None
+            item['color'] = 'gray'
+            item['promedio'] = None
+            ranking.append(item)
 
         return jsonify({'success': True, 'data': ranking})
     except Exception as e:
