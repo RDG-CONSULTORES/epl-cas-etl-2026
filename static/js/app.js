@@ -456,19 +456,35 @@ function openSucursalModal(sucursalId) {
 
 // ========== MAP ==========
 function initMap() {
-    if (map) return;
-
     var container = document.getElementById('mapContainer');
     if (!container) return;
 
-    map = L.map(container).setView([25.6866, -100.3161], 10);
+    // Si el mapa ya existe, solo invalidar tamaño y retornar
+    if (map) {
+        // Esperar a que el tab sea visible antes de invalidar
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 150);
+        return;
+    }
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: 'OpenStreetMap, CARTO',
+    // Crear mapa nuevo con tiles claros (CartoDB Voyager)
+    map = L.map(container, {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView([25.6866, -100.3161], 10);
+
+    // Tiles claros - CartoDB Voyager (profesional y legible)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
         maxZoom: 19
     }).addTo(map);
 
-    setTimeout(function() { map.invalidateSize(); }, 100);
+    // Invalidar tamaño después de que el DOM esté listo
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 200);
 }
 
 function loadMapData() {
@@ -528,12 +544,13 @@ function loadMapData() {
 }
 
 function getMarkerColor(colorClass) {
+    // Colores optimizados para mapa claro (más saturados para mejor visibilidad)
     var colors = {
-        'excellent': '#30d158',
-        'good': '#5ac8fa',
-        'regular': '#ffd60a',
-        'critical': '#ff453a',
-        'gray': '#8e8e93'
+        'excellent': '#22c55e',  // Verde más visible
+        'good': '#3b82f6',       // Azul más visible
+        'regular': '#f59e0b',    // Amarillo/naranja más visible
+        'critical': '#ef4444',   // Rojo más visible
+        'gray': '#6b7280'
     };
     return colors[colorClass] || colors.gray;
 }

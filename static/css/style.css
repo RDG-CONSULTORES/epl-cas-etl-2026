@@ -1011,12 +1011,14 @@ body.modal-open {
 .map-popup {
     text-align: center;
     min-width: 150px;
+    color: #1a1a2e;
 }
 
 .map-popup strong {
     font-size: 0.9375rem;
     display: block;
     margin-bottom: 4px;
+    color: #1a1a2e;
 }
 
 .popup-grupo {
@@ -1048,16 +1050,16 @@ body.modal-open {
     background: var(--accent-light);
 }
 
-/* Leaflet popup dark theme */
+/* Leaflet popup - tema claro para mapa Voyager */
 .leaflet-popup-content-wrapper {
-    background: var(--bg-card) !important;
-    color: var(--text-primary) !important;
+    background: #ffffff !important;
+    color: #1a1a2e !important;
     border-radius: 12px !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
 }
 
 .leaflet-popup-tip {
-    background: var(--bg-card) !important;
+    background: #ffffff !important;
 }
 
 .leaflet-popup-content {
