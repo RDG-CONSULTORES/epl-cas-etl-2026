@@ -774,23 +774,25 @@ function loadMapData() {
                 data.data.forEach(function(item) {
                     if (!item.lat || !item.lng) return;
 
-                    var colorClass = item.color || getColorClass(item.promedio);
+                    var colorClass = item.color || 'gray';
                     var color = getMarkerColor(colorClass);
+                    var isPendiente = item.promedio === null;
 
                     var marker = L.circleMarker([item.lat, item.lng], {
-                        radius: 10,
+                        radius: isPendiente ? 8 : 10,
                         fillColor: color,
                         color: '#fff',
                         weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.9
+                        opacity: isPendiente ? 0.6 : 1,
+                        fillOpacity: isPendiente ? 0.5 : 0.9
                     }).addTo(map);
 
                     // Popup con botón para ver detalle
+                    var scoreText = isPendiente ? 'Pendiente' : item.promedio + '%';
                     var popupContent = '<div class="map-popup">' +
                         '<strong>' + item.nombre + '</strong><br>' +
                         '<span class="popup-grupo">' + (item.grupo || '-') + '</span><br>' +
-                        '<span class="popup-score ' + colorClass + '">' + item.promedio + '%</span><br>' +
+                        '<span class="popup-score ' + colorClass + '">' + scoreText + '</span><br>' +
                         '<button class="popup-btn" onclick="openSucursalModal(' + item.id + ')">Ver Detalle</button>' +
                         '</div>';
 

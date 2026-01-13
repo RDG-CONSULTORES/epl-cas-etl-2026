@@ -809,61 +809,64 @@ def api_sucursal_tendencia(sucursal_id, tipo):
 # ============ API ENDPOINTS - MAPA ============
 @app.route('/api/mapa/<tipo>')
 def api_mapa(tipo):
-    """Datos para el mapa con ubicaciones desde supervisiones"""
+    """Datos para el mapa - muestra TODAS las sucursales siempre"""
     try:
         periodo_id = request.args.get('periodo_id')
+        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        if tipo == 'operativas':
-            # Usar lat/lon de supervisiones operativas
-            query = """
+        # Query que incluye TODAS las sucursales con coordenadas fijas
+        if periodo_id and periodo_id != 'all':
+            query = f"""
                 SELECT s.id, s.nombre, g.nombre as grupo_nombre,
+                       s.latitud as lat, s.longitud as lng,
                        AVG(sup.calificacion_general) as promedio,
-                       AVG(sup.lat_entrega) as lat, AVG(sup.lon_entrega) as lng,
                        COUNT(sup.id) as supervisiones
                 FROM sucursales s
                 LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-                JOIN supervisiones_operativas sup ON s.id = sup.sucursal_id
-                WHERE s.activo = true AND sup.lat_entrega IS NOT NULL
+                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = :periodo_id
+                WHERE s.activo = true AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL
+                GROUP BY s.id, s.nombre, g.nombre, s.latitud, s.longitud
+                ORDER BY promedio DESC NULLS LAST
             """
-            params = {}
-            if periodo_id:
-                query += " AND sup.periodo_id = :periodo_id"
-                params['periodo_id'] = periodo_id
-            query += " GROUP BY s.id, s.nombre, g.nombre"
+            params = {'periodo_id': periodo_id}
         else:
-            # Para seguridad, obtener coordenadas de las supervisiones operativas del mismo día
-            query = """
+            query = f"""
                 SELECT s.id, s.nombre, g.nombre as grupo_nombre,
-                       AVG(ss.calificacion_general) as promedio,
-                       AVG(so.lat_entrega) as lat, AVG(so.lon_entrega) as lng,
-                       COUNT(ss.id) as supervisiones
+                       s.latitud as lat, s.longitud as lng,
+                       AVG(sup.calificacion_general) as promedio,
+                       COUNT(sup.id) as supervisiones
                 FROM sucursales s
                 LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-                JOIN supervisiones_seguridad ss ON s.id = ss.sucursal_id
-                LEFT JOIN supervisiones_operativas so ON s.id = so.sucursal_id
-                    AND DATE(so.fecha_supervision) = DATE(ss.fecha_supervision)
-                WHERE s.activo = true AND so.lat_entrega IS NOT NULL
+                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
+                WHERE s.activo = true AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL
+                GROUP BY s.id, s.nombre, g.nombre, s.latitud, s.longitud
+                ORDER BY promedio DESC NULLS LAST
             """
             params = {}
-            if periodo_id:
-                query += " AND ss.periodo_id = :periodo_id"
-                params['periodo_id'] = periodo_id
-            query += " GROUP BY s.id, s.nombre, g.nombre"
 
         result = db.session.execute(text(query), params)
         markers = []
         for row in result:
-            if row[4] and row[5]:  # lat and lng exist
-                markers.append({
-                    'id': row[0],
-                    'nombre': row[1],
-                    'grupo': row[2],
-                    'promedio': round(float(row[3]), 2) if row[3] else 0,
-                    'color': get_color_class(float(row[3]) if row[3] else 0),
-                    'lat': float(row[4]),
-                    'lng': float(row[5]),
-                    'supervisiones': row[6]
-                })
+            promedio = round(float(row[5]), 2) if row[5] else None
+            supervisiones = row[6] or 0
+
+            # Color: gris si no hay supervisiones, según promedio si hay
+            if supervisiones > 0 and promedio is not None:
+                color = get_color_class(promedio)
+            else:
+                color = 'gray'
+                promedio = None
+
+            markers.append({
+                'id': row[0],
+                'nombre': row[1],
+                'grupo': row[2],
+                'lat': float(row[3]),
+                'lng': float(row[4]),
+                'promedio': promedio,
+                'color': color,
+                'supervisiones': supervisiones
+            })
 
         return jsonify({'success': True, 'data': markers})
     except Exception as e:
