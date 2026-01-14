@@ -43,7 +43,7 @@ def get_color_class(value):
 
 def get_territorio(grupo_nombre):
     """Determina territorio del grupo"""
-    locales = ['TEPEYAC', 'OGAS', 'EFM', 'EPL SO', 'PLOG NUEVO LEON', 'GRUPO CENTRITO', 'GRUPO SABINAS HIDALGO']
+    locales = ['TEPEYAC', 'OGAS', 'EFM', 'EPL SO', 'PLOG NUEVO LEON', 'GRUPO CENTRITO', 'GRUPO SABINAS HIDALGO', 'GRUPO CADE']
     mixtos = ['TEC', 'EXPO', 'GRUPO SALTILLO']
 
     for local in locales:
