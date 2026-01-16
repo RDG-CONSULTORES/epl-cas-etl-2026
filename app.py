@@ -54,6 +54,40 @@ def get_territorio(grupo_nombre):
             return 'mixto'
     return 'foranea'
 
+# Configuración de agrupaciones de grupos operativos
+GRUPOS_AGRUPACIONES = {
+    'PLOG': {
+        'nombre': 'Franquicias PLOG',
+        'patron': 'PLOG %'  # SQL LIKE pattern
+    }
+}
+
+def calcular_promedio_agrupacion(patron, tipo, periodo_id=None):
+    """
+    Calcula promedio de una agrupación usando TODAS las supervisiones
+    de los grupos que coinciden con el patrón (promedio ponderado correcto)
+    """
+    tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+
+    query = f"""
+        SELECT AVG(sup.calificacion_general) as promedio,
+               COUNT(sup.id) as total_supervisiones,
+               COUNT(DISTINCT g.id) as total_grupos,
+               COUNT(DISTINCT s.id) as total_sucursales
+        FROM grupos_operativos g
+        JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+        JOIN {tabla} sup ON s.id = sup.sucursal_id
+        WHERE g.activo = true
+          AND g.nombre LIKE :patron
+    """
+    params = {'patron': patron}
+
+    if periodo_id and periodo_id != 'all':
+        query += " AND sup.periodo_id = :periodo_id"
+        params['periodo_id'] = periodo_id
+
+    return db.session.execute(text(query), params).fetchone()
+
 # ============ DECORADORES ============
 def login_required(f):
     @wraps(f)
@@ -400,7 +434,7 @@ def api_kpis(tipo):
 # ============ API ENDPOINTS - RANKINGS ============
 @app.route('/api/ranking/grupos/<tipo>')
 def api_ranking_grupos(tipo):
-    """Ranking de grupos operativos - con empates"""
+    """Ranking de grupos operativos - con empates y agrupaciones"""
     try:
         periodo_id = request.args.get('periodo_id')
         territorio = request.args.get('territorio')  # local, foranea, mixto, todas
@@ -440,18 +474,21 @@ def api_ranking_grupos(tipo):
         result = db.session.execute(text(query), params)
         rows = list(result)
 
-        # Separar grupos con y sin supervisiones
-        con_supervisiones = []
-        sin_supervisiones = []
+        # Identificar grupos que pertenecen a agrupaciones
+        grupos_agrupados = {}  # {key_agrupacion: [grupos]}
+        grupos_independientes = []
 
         for row in rows:
-            grupo_territorio = get_territorio(row[1])
+            grupo_nombre = row[1]
+            grupo_territorio = get_territorio(grupo_nombre)
 
             # Filtrar por territorio si se especifica
             if territorio and territorio != 'todas':
                 if territorio == 'local' and grupo_territorio not in ['local', 'mixto']:
                     continue
                 if territorio == 'foranea' and grupo_territorio not in ['foranea', 'mixto']:
+                    continue
+                if territorio == 'mixto' and grupo_territorio != 'mixto':
                     continue
 
             item = {
@@ -460,15 +497,131 @@ def api_ranking_grupos(tipo):
                 'promedio': round(float(row[2]), 2) if row[2] else None,
                 'total_sucursales': row[3],
                 'total_supervisiones': row[4],
-                'territorio': grupo_territorio
+                'territorio': grupo_territorio,
+                'tipo': 'grupo'
             }
 
-            if row[4] > 0 and row[2] is not None:
-                con_supervisiones.append(item)
-            else:
-                sin_supervisiones.append(item)
+            # Verificar si pertenece a alguna agrupación
+            es_agrupado = False
+            for key, config in GRUPOS_AGRUPACIONES.items():
+                patron_check = config['patron'].replace('%', '').strip()
+                if grupo_nombre.upper().startswith(patron_check):
+                    if key not in grupos_agrupados:
+                        grupos_agrupados[key] = []
+                    grupos_agrupados[key].append(item)
+                    es_agrupado = True
+                    break
 
-        # Asignar posiciones con empates
+            if not es_agrupado:
+                grupos_independientes.append(item)
+
+        # Construir agrupaciones con sus promedios calculados correctamente
+        agrupaciones_items = []
+        for key, config in GRUPOS_AGRUPACIONES.items():
+            if key not in grupos_agrupados or len(grupos_agrupados[key]) == 0:
+                continue
+
+            grupos_en_agrupacion = grupos_agrupados[key]
+
+            # Calcular promedio ponderado de la agrupación
+            # Filtrar por territorio si aplica
+            if territorio and territorio != 'todas':
+                # Recalcular promedio solo con grupos filtrados
+                grupos_filtrados_ids = [g['id'] for g in grupos_en_agrupacion]
+                if not grupos_filtrados_ids:
+                    continue
+
+                # Query para promedio filtrado por grupos específicos
+                query_agrup = f"""
+                    SELECT AVG(sup.calificacion_general) as promedio,
+                           COUNT(sup.id) as total_supervisiones,
+                           COUNT(DISTINCT g.id) as total_grupos,
+                           COUNT(DISTINCT s.id) as total_sucursales
+                    FROM grupos_operativos g
+                    JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+                    JOIN {tabla} sup ON s.id = sup.sucursal_id
+                    WHERE g.activo = true AND g.id IN :grupo_ids
+                """
+                params_agrup = {'grupo_ids': tuple(grupos_filtrados_ids)}
+                if periodo_id and periodo_id != 'all':
+                    query_agrup += " AND sup.periodo_id = :periodo_id"
+                    params_agrup['periodo_id'] = periodo_id
+                agrup_data = db.session.execute(text(query_agrup), params_agrup).fetchone()
+            else:
+                # Usar función helper para calcular promedio de toda la agrupación
+                agrup_data = calcular_promedio_agrupacion(config['patron'], tipo, periodo_id)
+
+            if agrup_data and agrup_data[0] is not None:
+                promedio_agrup = round(float(agrup_data[0]), 2)
+                total_supervisiones = agrup_data[1] or 0
+                total_grupos = agrup_data[2] or len(grupos_en_agrupacion)
+                total_sucursales = agrup_data[3] or 0
+            else:
+                # Sin supervisiones
+                promedio_agrup = None
+                total_supervisiones = 0
+                total_grupos = len(grupos_en_agrupacion)
+                total_sucursales = sum(g['total_sucursales'] for g in grupos_en_agrupacion)
+
+            # Ordenar grupos dentro de la agrupación por promedio
+            grupos_ordenados = sorted(
+                grupos_en_agrupacion,
+                key=lambda x: (x['promedio'] is None, -(x['promedio'] or 0))
+            )
+
+            # Asignar posiciones internas a grupos
+            pos_interna = 1
+            prev_prom = None
+            for g in grupos_ordenados:
+                if g['promedio'] is not None:
+                    if prev_prom is not None and g['promedio'] == prev_prom:
+                        g['posicion_interna'] = grupos_ordenados[grupos_ordenados.index(g) - 1].get('posicion_interna', pos_interna)
+                    else:
+                        g['posicion_interna'] = pos_interna
+                    g['color'] = get_color_class(g['promedio'])
+                    prev_prom = g['promedio']
+                    pos_interna += 1
+                else:
+                    g['posicion_interna'] = None
+                    g['color'] = 'gray'
+
+            agrupacion_item = {
+                'tipo': 'agrupacion',
+                'id': f'agrupacion-{key}',
+                'key': key,
+                'nombre': config['nombre'],
+                'promedio': promedio_agrup,
+                'color': get_color_class(promedio_agrup) if promedio_agrup else 'gray',
+                'total_grupos': total_grupos,
+                'total_sucursales': total_sucursales,
+                'total_supervisiones': total_supervisiones,
+                'grupos': grupos_ordenados
+            }
+            agrupaciones_items.append(agrupacion_item)
+
+        # Combinar agrupaciones + grupos independientes
+        todos_items = agrupaciones_items + grupos_independientes
+
+        # Separar con y sin supervisiones para ranking global
+        con_supervisiones = []
+        sin_supervisiones = []
+
+        for item in todos_items:
+            if item['tipo'] == 'agrupacion':
+                if item['total_supervisiones'] > 0 and item['promedio'] is not None:
+                    con_supervisiones.append(item)
+                else:
+                    sin_supervisiones.append(item)
+            else:
+                if item['total_supervisiones'] > 0 and item['promedio'] is not None:
+                    con_supervisiones.append(item)
+                else:
+                    sin_supervisiones.append(item)
+
+        # Ordenar por promedio
+        con_supervisiones.sort(key=lambda x: -(x['promedio'] or 0))
+
+        # Asignar posiciones globales con empates
         ranking = []
         pos = 1
         prev_promedio = None
@@ -478,20 +631,24 @@ def api_ranking_grupos(tipo):
             else:
                 item['posicion'] = pos
 
-            item['color'] = get_color_class(item['promedio'])
+            if item['tipo'] != 'agrupacion':
+                item['color'] = get_color_class(item['promedio'])
             ranking.append(item)
             prev_promedio = item['promedio']
             pos += 1
 
-        # Agregar grupos sin supervisiones al final
+        # Agregar items sin supervisiones al final
         for item in sin_supervisiones:
             item['posicion'] = None
-            item['color'] = 'gray'
-            item['promedio'] = None
+            if item['tipo'] != 'agrupacion':
+                item['color'] = 'gray'
+                item['promedio'] = None
             ranking.append(item)
 
         return jsonify({'success': True, 'data': ranking})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/ranking/sucursales/<tipo>')

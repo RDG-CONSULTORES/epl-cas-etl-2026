@@ -800,6 +800,116 @@ body {
     background: rgba(255,255,255,0.05);
 }
 
+/* ========== AGRUPACIONES (iOS DisclosureGroup Style) ========== */
+.agrupacion-item {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 107, 53, 0.2);
+}
+
+.agrupacion-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.agrupacion-header:hover {
+    background: var(--bg-card-hover);
+}
+
+.agrupacion-header:active {
+    transform: scale(0.99);
+}
+
+.agrupacion-header .ranking-pos {
+    flex-shrink: 0;
+}
+
+.agrupacion-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.agrupacion-item.expanded .agrupacion-chevron {
+    transform: rotate(90deg);
+}
+
+.agrupacion-header .ranking-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.agrupacion-header .ranking-name {
+    font-weight: 600;
+}
+
+.agrupacion-header .ranking-score {
+    flex-shrink: 0;
+}
+
+/* Cuerpo de la agrupación (grupos anidados) */
+.agrupacion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.agrupacion-item.expanded .agrupacion-body {
+    max-height: 2000px;
+}
+
+/* Grupos dentro de la agrupación */
+.agrupacion-body .ranking-item {
+    margin: 0;
+    border-radius: 0;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-left: 24px;
+    position: relative;
+}
+
+.agrupacion-body .ranking-item:last-child {
+    border-bottom: none;
+}
+
+/* Indicador visual de jerarquía */
+.agrupacion-body .ranking-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0.4;
+}
+
+.agrupacion-body .ranking-item:hover::before {
+    opacity: 1;
+}
+
+/* Ajustes para tema claro */
+[data-theme="light"] .agrupacion-item {
+    border-color: rgba(255, 107, 53, 0.3);
+}
+
+[data-theme="light"] .agrupacion-body {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .agrupacion-body .ranking-item {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
 /* ========== MAP ========== */
 .map-controls {
     margin-bottom: 12px;

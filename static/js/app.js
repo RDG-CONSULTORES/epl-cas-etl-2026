@@ -16,6 +16,9 @@ var markers = [];
 var scrollPosition = 0; // Para guardar posición de scroll en iOS
 var openModalsCount = 0; // Contador de modales abiertos
 
+// Estado de agrupaciones expandidas/colapsadas
+var agrupacionesEstado = {};
+
 // ========== iOS MODAL FIX ==========
 function lockBodyScroll() {
     if (openModalsCount === 0) {
@@ -474,8 +477,8 @@ function loadRanking() {
     if (currentPeriodoId) {
         params.push('periodo_id=' + currentPeriodoId);
     }
-    // Filtro de territorio para sucursales
-    if (currentView === 'sucursales' && currentTerritorio !== 'todas') {
+    // Filtro de territorio
+    if (currentTerritorio !== 'todas') {
         params.push('territorio=' + currentTerritorio);
     }
     if (params.length > 0) {
@@ -489,36 +492,31 @@ function loadRanking() {
             if (data.success && data.data && data.data.length > 0) {
                 var items = data.data;
 
-                // Filter by territorio solo para grupos (ya se filtra en backend para sucursales)
-                if (currentTerritorio !== 'todas' && currentView === 'grupos') {
-                    items = items.filter(function(item) {
-                        return item.territorio === currentTerritorio;
-                    });
-                }
-
                 if (items.length === 0) {
                     container.innerHTML = '<div class="empty-state">Sin resultados para este filtro</div>';
                     return;
                 }
 
-                var html = items.map(function(item) {
-                    // Usar posición del backend (con empates)
-                    var pos = item.posicion;
-                    var isPendiente = pos === null;
-                    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
-                    var colorClass = item.color || 'gray';
-                    var promedio = item.promedio !== null ? item.promedio + '%' : 'Pendiente';
+                var html = '';
 
-                    if (currentView === 'grupos') {
-                        return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openGrupoModal(' + item.id + ')">' +
-                            '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
-                            '<div class="ranking-info">' +
-                            '<span class="ranking-name">' + item.nombre + '</span>' +
-                            '<span class="ranking-meta">' + item.total_sucursales + ' sucursales | ' + item.territorio + '</span>' +
-                            '</div>' +
-                            '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
-                            '</div>';
-                    } else {
+                if (currentView === 'grupos') {
+                    // Vista de grupos con soporte para agrupaciones
+                    items.forEach(function(item) {
+                        if (item.tipo === 'agrupacion') {
+                            html += renderAgrupacion(item);
+                        } else {
+                            html += renderGrupoItem(item);
+                        }
+                    });
+                } else {
+                    // Vista de sucursales (sin cambios)
+                    html = items.map(function(item) {
+                        var pos = item.posicion;
+                        var isPendiente = pos === null;
+                        var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+                        var colorClass = item.color || 'gray';
+                        var promedio = item.promedio !== null ? item.promedio + '%' : 'Pendiente';
+
                         return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openSucursalModal(' + item.id + ')">' +
                             '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
                             '<div class="ranking-info">' +
@@ -527,8 +525,8 @@ function loadRanking() {
                             '</div>' +
                             '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
                             '</div>';
-                    }
-                }).join('');
+                    }).join('');
+                }
 
                 container.innerHTML = html;
             } else {
@@ -539,6 +537,78 @@ function loadRanking() {
             console.error('Error loading ranking:', e);
             container.innerHTML = '<div class="error-state">Error al cargar ranking</div>';
         });
+}
+
+// Renderiza un grupo individual
+function renderGrupoItem(item) {
+    var pos = item.posicion;
+    var isPendiente = pos === null;
+    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+    var colorClass = item.color || 'gray';
+    var promedio = item.promedio !== null ? item.promedio + '%' : 'Pendiente';
+
+    return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openGrupoModal(' + item.id + ')">' +
+        '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+        '<div class="ranking-info">' +
+        '<span class="ranking-name">' + item.nombre + '</span>' +
+        '<span class="ranking-meta">' + item.total_sucursales + ' sucursales | ' + item.territorio + '</span>' +
+        '</div>' +
+        '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
+        '</div>';
+}
+
+// Renderiza una agrupación con sus grupos anidados
+function renderAgrupacion(agrupacion) {
+    var isExpanded = agrupacionesEstado[agrupacion.id] === true;
+    var colorClass = agrupacion.color || 'gray';
+    var promedio = agrupacion.promedio !== null ? agrupacion.promedio + '%' : 'Pendiente';
+    var pos = agrupacion.posicion;
+    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+
+    // Renderizar grupos dentro de la agrupación
+    var gruposHtml = '';
+    if (agrupacion.grupos && agrupacion.grupos.length > 0) {
+        gruposHtml = agrupacion.grupos.map(function(g) {
+            var gPos = g.posicion_interna;
+            var gPosClass = gPos && gPos <= 3 ? 'pos-' + gPos : '';
+            var gColorClass = g.color || 'gray';
+            var gPromedio = g.promedio !== null ? g.promedio + '%' : 'Pendiente';
+            var gIsPendiente = g.promedio === null;
+
+            return '<div class="ranking-item agrupacion-child ' + (gIsPendiente ? 'pendiente' : '') + '" onclick="openGrupoModal(' + g.id + ')">' +
+                '<span class="ranking-pos ' + gPosClass + '">' + (gPos || '-') + '</span>' +
+                '<div class="ranking-info">' +
+                '<span class="ranking-name">' + g.nombre + '</span>' +
+                '<span class="ranking-meta">' + g.total_sucursales + ' sucursales | ' + g.territorio + '</span>' +
+                '</div>' +
+                '<span class="ranking-score ' + gColorClass + '">' + gPromedio + '</span>' +
+                '</div>';
+        }).join('');
+    }
+
+    return '<div class="agrupacion-item ' + (isExpanded ? 'expanded' : '') + '" data-agrupacion="' + agrupacion.id + '">' +
+        '<div class="agrupacion-header" onclick="toggleAgrupacion(\'' + agrupacion.id + '\')">' +
+            '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+            '<svg class="agrupacion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                '<polyline points="9 6 15 12 9 18"/>' +
+            '</svg>' +
+            '<div class="ranking-info">' +
+                '<span class="ranking-name">' + agrupacion.nombre + '</span>' +
+                '<span class="ranking-meta">' + agrupacion.total_grupos + ' grupos | ' + agrupacion.total_sucursales + ' sucursales</span>' +
+            '</div>' +
+            '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
+        '</div>' +
+        '<div class="agrupacion-body">' + gruposHtml + '</div>' +
+    '</div>';
+}
+
+// Toggle expandir/colapsar agrupación
+function toggleAgrupacion(agrupacionId) {
+    agrupacionesEstado[agrupacionId] = !agrupacionesEstado[agrupacionId];
+    var element = document.querySelector('[data-agrupacion="' + agrupacionId + '"]');
+    if (element) {
+        element.classList.toggle('expanded');
+    }
 }
 
 // ========== MODALS ==========
