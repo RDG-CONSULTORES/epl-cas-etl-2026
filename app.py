@@ -57,7 +57,7 @@ def get_territorio(grupo_nombre):
 # Configuración de agrupaciones de grupos operativos
 GRUPOS_AGRUPACIONES = {
     'PLOG': {
-        'nombre': 'Franquicias PLOG',
+        'nombre': 'PLOG',
         'patron': 'PLOG %'  # SQL LIKE pattern
     }
 }
