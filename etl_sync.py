@@ -415,18 +415,28 @@ def run_sync():
         """)
         for row in cur.fetchall():
             log(f"  {row['tabla']}: {row['total']}")
-    
+
+        # Verificar si hay que hacer transición de periodo
+        log("\n" + "=" * 60)
+        log("VERIFICANDO TRANSICIÓN DE PERIODO")
+        log("=" * 60)
+        nuevo_periodo = verificar_transicion_periodo(conn)
+        if nuevo_periodo:
+            resultados['transicion'] = nuevo_periodo
+
     log("\n" + "=" * 60)
     log("RESUMEN DE SINCRONIZACIÓN")
     log("=" * 60)
     for tipo, res in resultados.items():
-        if 'error' in res:
+        if tipo == 'transicion':
+            log(f"  📅 Nuevo periodo activo: {res}")
+        elif 'error' in res:
             log(f"  {tipo}: ERROR - {res['error']}", 'ERROR')
         else:
             log(f"  {tipo}: {res['nuevos']} nuevos / {res['total']} procesados")
     log("=" * 60)
     log("✅ ETL completado exitosamente")
-    
+
     return resultados
 
 # ============================================================
@@ -486,6 +496,74 @@ def fix_seguridad_calificaciones():
         log(f"\n✅ Actualizados {actualizados} de {len(registros)} registros")
 
     return actualizados
+
+# ============================================================
+# TRANSICIÓN AUTOMÁTICA DE PERIODO
+# ============================================================
+
+def verificar_transicion_periodo(conn):
+    """
+    Verifica si el periodo activo tiene 86/86 sucursales supervisadas.
+    Si es así, automáticamente activa el siguiente periodo.
+
+    Returns:
+        str: Código del nuevo periodo si hubo transición, None si no
+    """
+    cur = conn.cursor()
+
+    # 1. Obtener periodo activo y su progreso (basado en supervisiones operativas)
+    cur.execute('''
+        SELECT p.id, p.codigo, p.nombre,
+               COUNT(DISTINCT so.sucursal_id) as supervisadas,
+               (SELECT COUNT(*) FROM sucursales WHERE activo = true) as total
+        FROM periodos_cas p
+        LEFT JOIN supervisiones_operativas so ON so.periodo_id = p.id
+        WHERE p.activo = true
+        GROUP BY p.id, p.codigo, p.nombre
+    ''')
+    activo = cur.fetchone()
+
+    if not activo:
+        log("⚠️ No hay periodo activo definido")
+        return None
+
+    periodo_codigo = activo['codigo'] or activo['nombre']
+    supervisadas = activo['supervisadas'] or 0
+    total = activo['total'] or 86
+
+    log(f"Periodo activo: {periodo_codigo} - Progreso: {supervisadas}/{total}")
+
+    # 2. ¿Se completaron todas las sucursales?
+    if supervisadas < total:
+        log(f"Periodo {periodo_codigo} continúa activo ({total - supervisadas} sucursales pendientes)")
+        return None
+
+    # 3. ¡Completado! Buscar siguiente periodo por fecha
+    cur.execute('''
+        SELECT id, codigo, nombre FROM periodos_cas
+        WHERE fecha_inicio > (SELECT fecha_inicio FROM periodos_cas WHERE id = %s)
+        ORDER BY fecha_inicio ASC
+        LIMIT 1
+    ''', (activo['id'],))
+    siguiente = cur.fetchone()
+
+    if not siguiente:
+        log(f"✅ Periodo {periodo_codigo} COMPLETADO - No hay siguiente periodo definido")
+        return None
+
+    siguiente_codigo = siguiente['codigo'] or siguiente['nombre']
+
+    # 4. Ejecutar la transición
+    cur.execute("UPDATE periodos_cas SET activo = false WHERE id = %s", (activo['id'],))
+    cur.execute("UPDATE periodos_cas SET activo = true WHERE id = %s", (siguiente['id'],))
+    conn.commit()
+
+    log("=" * 60)
+    log(f"🔄 TRANSICIÓN AUTOMÁTICA DE PERIODO")
+    log(f"   {periodo_codigo} (COMPLETADO) → {siguiente_codigo} (ACTIVO)")
+    log("=" * 60)
+
+    return siguiente_codigo
 
 # ============================================================
 # MAIN
