@@ -46,6 +46,62 @@
     }
 })();
 
+// ========== ANTI-SCREENSHOT / PROTECCIONES VISUALES ==========
+(function() {
+    // Blur al perder foco o cambiar de tab (anti-screenshot, screen share)
+    var blurOverlay = document.createElement('div');
+    blurOverlay.id = 'securityBlur';
+    blurOverlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;' +
+        'background:rgba(10,10,15,0.97);display:none;align-items:center;justify-content:center;' +
+        'font-family:-apple-system,sans-serif;color:#8e8e93;font-size:1rem;text-align:center;';
+    blurOverlay.innerHTML = '<div><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2">' +
+        '<path d="M17 11V7a5 5 0 00-10 0v4"/><rect x="3" y="11" width="18" height="11" rx="2"/>' +
+        '<circle cx="12" cy="16" r="1"/></svg><p style="margin-top:12px;">Contenido protegido</p></div>';
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.appendChild(blurOverlay);
+    });
+
+    function showBlur() { blurOverlay.style.display = 'flex'; }
+    function hideBlur() { blurOverlay.style.display = 'none'; }
+
+    // Visibility change (tab switch, minimize)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) { showBlur(); } else { setTimeout(hideBlur, 300); }
+    });
+
+    // Window blur/focus (alt-tab, screenshot tools)
+    window.addEventListener('blur', function() { showBlur(); });
+    window.addEventListener('focus', function() { setTimeout(hideBlur, 300); });
+
+    // Bloquear PrintScreen
+    document.addEventListener('keyup', function(e) {
+        if (e.key === 'PrintScreen') {
+            navigator.clipboard.writeText('').catch(function() {});
+            showBlur();
+            setTimeout(hideBlur, 1500);
+        }
+    });
+
+    // Bloquear Ctrl+P / Cmd+P (Print)
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); }
+    });
+
+    // Deshabilitar seleccion de texto y drag
+    document.addEventListener('selectstart', function(e) {
+        // Permitir en inputs y textareas
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+    });
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+    // Deshabilitar copiar
+    document.addEventListener('copy', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+    });
+})();
+
 // ========== AUTH STATE ==========
 var authToken = sessionStorage.getItem('jwt_token') || null;
 
