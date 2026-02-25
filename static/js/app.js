@@ -1385,3 +1385,11 @@ function getColorClass(value) {
     if (num >= 70) return 'regular';
     return 'critical';
 }
+
+// Exponer funciones globales para onclick/onsubmit del HTML (sobrevive terser --mangle)
+window.handleLogin = handleLogin;
+window.handleLogout = handleLogout;
+window.openGrupoModal = openGrupoModal;
+window.openSucursalModal = openSucursalModal;
+window.toggleAgrupacion = toggleAgrupacion;
+window.loadSupervisionAreas = loadSupervisionAreas;
