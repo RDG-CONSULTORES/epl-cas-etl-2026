@@ -9,7 +9,8 @@ from flask import Flask, render_template, jsonify, request, session, redirect, u
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+import jwt
 
 load_dotenv()
 
@@ -27,6 +28,50 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
+JWT_SECRET = os.environ['SECRET_KEY']
+JWT_EXPIRY_HOURS = 24
+
+# ============ JWT AUTH ============
+def generate_jwt(role='viewer'):
+    """Genera un token JWT"""
+    payload = {
+        'sub': role,
+        'role': role,
+        'iat': datetime.now(timezone.utc),
+        'exp': datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm='HS256')
+
+def verify_jwt(token):
+    """Verifica y decodifica un token JWT. Retorna payload o None."""
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+
+# Rutas públicas que no requieren JWT
+JWT_PUBLIC_ROUTES = {'/api/health', '/api/auth/login'}
+
+@app.before_request
+def jwt_protect_api():
+    """Middleware: protege todos los /api/* endpoints con JWT"""
+    if not request.path.startswith('/api/'):
+        return  # No es API, dejar pasar (HTML, static, admin)
+    if request.path in JWT_PUBLIC_ROUTES:
+        return  # Ruta pública
+    # Los endpoints /api/admin/* pueden usar session O JWT
+    if request.path.startswith('/api/admin/') and session.get('admin_logged_in'):
+        return  # Admin con session activa
+    # Verificar Authorization header
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return jsonify({'success': False, 'error': 'Token requerido'}), 401
+    token = auth_header.split(' ', 1)[1]
+    payload = verify_jwt(token)
+    if not payload:
+        return jsonify({'success': False, 'error': 'Token invalido o expirado'}), 401
+    # Guardar payload en request context para uso posterior
+    request.jwt_payload = payload
 
 # ============ HELPERS ============
 def get_color_class(value):
@@ -96,6 +141,17 @@ def login_required(f):
             return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# ============ AUTH ENDPOINTS ============
+@app.route('/api/auth/login', methods=['POST'])
+def api_auth_login():
+    """Login: valida password y devuelve JWT"""
+    data = request.get_json(silent=True) or {}
+    password = data.get('password', '')
+    if password == ADMIN_PASSWORD:
+        token = generate_jwt(role='admin')
+        return jsonify({'success': True, 'token': token})
+    return jsonify({'success': False, 'error': 'Credenciales incorrectas'}), 401
 
 # ============ RUTAS PRINCIPALES ============
 @app.route('/')

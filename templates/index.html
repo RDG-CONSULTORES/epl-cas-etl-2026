@@ -11,6 +11,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-logo">
+                <h1>EPL CAS 2026</h1>
+                <p>Dashboard de Supervisiones</p>
+            </div>
+            <div class="login-error" id="loginError" style="display:none;"></div>
+            <form id="loginForm" onsubmit="return handleLogin(event)">
+                <div class="login-field">
+                    <label for="loginPassword">Contrasena</label>
+                    <input type="password" id="loginPassword" required autofocus placeholder="Ingresa tu contrasena">
+                </div>
+                <button type="submit" class="login-submit" id="loginBtn">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -35,6 +53,13 @@
                     <!-- Moon icon (for light mode - click to go dark) -->
                     <svg class="icon-moon" viewBox="0 0 24 24">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+                <button class="admin-btn" onclick="handleLogout()" title="Cerrar sesion" style="background:none;border:none;cursor:pointer;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
                     </svg>
                 </button>
                 <a href="/admin/login" class="admin-btn">Admin</a>

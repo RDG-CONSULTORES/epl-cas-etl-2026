@@ -3,6 +3,82 @@
  * Simplified and robust version
  */
 
+// ========== AUTH STATE ==========
+var authToken = sessionStorage.getItem('jwt_token') || null;
+
+function authFetch(url, options) {
+    if (!authToken) {
+        showLoginScreen();
+        return Promise.reject(new Error('No auth token'));
+    }
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers['Authorization'] = 'Bearer ' + authToken;
+    return fetch(url, options).then(function(res) {
+        if (res.status === 401) {
+            authToken = null;
+            sessionStorage.removeItem('jwt_token');
+            showLoginScreen();
+            return Promise.reject(new Error('Token expired'));
+        }
+        return res;
+    });
+}
+
+function showLoginScreen() {
+    var overlay = document.getElementById('loginOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+}
+
+function hideLoginScreen() {
+    var overlay = document.getElementById('loginOverlay');
+    if (overlay) overlay.classList.add('hidden');
+}
+
+function handleLogin(e) {
+    e.preventDefault();
+    var password = document.getElementById('loginPassword').value;
+    var btn = document.getElementById('loginBtn');
+    var errorEl = document.getElementById('loginError');
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+    errorEl.style.display = 'none';
+
+    fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: password})
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success && data.token) {
+            authToken = data.token;
+            sessionStorage.setItem('jwt_token', data.token);
+            hideLoginScreen();
+            document.getElementById('loginPassword').value = '';
+            loadPeriodoContexto();
+        } else {
+            errorEl.textContent = data.error || 'Credenciales incorrectas';
+            errorEl.style.display = 'block';
+        }
+    })
+    .catch(function() {
+        errorEl.textContent = 'Error de conexion';
+        errorEl.style.display = 'block';
+    })
+    .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Ingresar';
+    });
+    return false;
+}
+
+function handleLogout() {
+    authToken = null;
+    sessionStorage.removeItem('jwt_token');
+    showLoginScreen();
+}
+
 // State
 var currentTipo = 'operativas';
 var currentView = 'grupos';
@@ -85,7 +161,13 @@ document.addEventListener('DOMContentLoaded', function() {
     initToggles();
     initTabs();
     initPeriodSelector();
-    loadPeriodoContexto(); // Cargar periodo primero, luego dashboard
+    // Verificar si hay token valido antes de cargar datos
+    if (authToken) {
+        hideLoginScreen();
+        loadPeriodoContexto();
+    } else {
+        showLoginScreen();
+    }
 });
 
 // ========== PERIODO SELECTOR ==========
@@ -109,7 +191,7 @@ function initPeriodSelector() {
 }
 
 function loadPeriodoContexto() {
-    fetch('/api/periodo-contexto/' + currentTipo)
+    authFetch('/api/periodo-contexto/' + currentTipo)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
@@ -274,7 +356,7 @@ function selectPeriodo(periodoId) {
 
 function loadPeriodoProgreso() {
     // Recargar solo el progreso
-    fetch('/api/periodo-contexto/' + currentTipo)
+    authFetch('/api/periodo-contexto/' + currentTipo)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data && data.data.progreso) {
@@ -384,7 +466,7 @@ function loadKPIs() {
         url += '?periodo_id=' + currentPeriodoId;
     }
 
-    fetch(url)
+    authFetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             console.log('KPIs response:', data);
@@ -485,7 +567,7 @@ function loadRanking() {
         endpoint += '?' + params.join('&');
     }
 
-    fetch(endpoint)
+    authFetch(endpoint)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             console.log('Ranking response:', data);
@@ -630,7 +712,7 @@ function openGrupoModal(grupoId) {
     // Forzar repaint para iOS
     forceRepaint(container);
 
-    fetch('/api/grupo/' + grupoId + '/' + currentTipo)
+    authFetch('/api/grupo/' + grupoId + '/' + currentTipo)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
@@ -712,8 +794,8 @@ function openSucursalModal(sucursalId) {
 
     // Cargar datos de sucursal y tendencia en paralelo
     Promise.all([
-        fetch('/api/sucursal/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); }),
-        fetch('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); })
+        authFetch('/api/sucursal/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); }),
+        authFetch('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); })
     ]).then(function(results) {
         var sucData = results[0];
         var tendData = results[1];
@@ -857,7 +939,7 @@ function loadSupervisionAreas(supervisionId, barElement) {
     var fecha = barElement ? barElement.getAttribute('data-fecha') : '';
 
     // Llamar al API
-    fetch('/api/supervision/' + supervisionId + '/areas/' + tipo)
+    authFetch('/api/supervision/' + supervisionId + '/areas/' + tipo)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
@@ -935,7 +1017,7 @@ function loadMapData() {
         url += '?periodo_id=' + currentPeriodoId;
     }
 
-    fetch(url)
+    authFetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data && data.data.length > 0) {
@@ -1005,7 +1087,7 @@ function loadHistorico() {
     if (!container) return;
     container.innerHTML = '<div class="loading">Cargando...</div>';
 
-    fetch('/api/historico/' + currentTipo)
+    authFetch('/api/historico/' + currentTipo)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
@@ -1067,7 +1149,7 @@ function loadAlertas() {
         url += '?periodo_id=' + currentPeriodoId;
     }
 
-    fetch(url)
+    authFetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
