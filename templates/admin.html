@@ -367,6 +367,44 @@
             </div>
         </div>
 
+        <!-- Usuarios Card -->
+        <div class="card">
+            <h2 class="card-title">Usuarios del Sistema</h2>
+            <div id="usuariosList" style="margin-bottom: 16px;">
+                <p class="info-text">Cargando...</p>
+            </div>
+            <button class="btn btn-save" onclick="showNewUserForm()" style="width:100%;">+ Nuevo Usuario</button>
+            <div id="newUserForm" style="display:none; margin-top:16px; background:var(--bg-secondary); border-radius:var(--radius); padding:16px;">
+                <div class="fecha-row">
+                    <div class="fecha-group">
+                        <label class="fecha-label">Email</label>
+                        <input type="email" class="fecha-input" id="nuEmail" placeholder="email@epl.mx">
+                    </div>
+                    <div class="fecha-group">
+                        <label class="fecha-label">Nombre</label>
+                        <input type="text" class="fecha-input" id="nuNombre" placeholder="Nombre completo">
+                    </div>
+                </div>
+                <div class="fecha-row">
+                    <div class="fecha-group">
+                        <label class="fecha-label">Contrasena</label>
+                        <input type="password" class="fecha-input" id="nuPassword" placeholder="Min 6 caracteres">
+                    </div>
+                    <div class="fecha-group">
+                        <label class="fecha-label">Rol</label>
+                        <select class="fecha-input" id="nuRole">
+                            <option value="viewer">Viewer</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="periodo-actions" style="margin-top:12px;">
+                    <button class="btn btn-save" onclick="createUser()">Crear Usuario</button>
+                    <button class="btn btn-activate" onclick="hideNewUserForm()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Info Card -->
         <div class="card">
             <h2 class="card-title">Sincronizacion ETL</h2>
@@ -420,6 +458,101 @@
                 item.classList.remove('saving');
             });
         }
+
+        // ========== USUARIOS ==========
+        function loadUsuarios() {
+            fetch('/api/admin/usuarios')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var container = document.getElementById('usuariosList');
+                    if (!data.success) { container.innerHTML = '<p class="info-text">Error cargando usuarios</p>'; return; }
+                    var users = data.data;
+                    if (users.length === 0) { container.innerHTML = '<p class="info-text">No hay usuarios</p>'; return; }
+                    var html = '';
+                    users.forEach(function(u) {
+                        var statusColor = u.activo ? '#30d158' : '#ff453a';
+                        var statusText = u.activo ? 'Activo' : 'Inactivo';
+                        html += '<div class="periodo-item" style="border-color:' + (u.activo ? 'transparent' : 'rgba(255,69,58,0.3)') + ';">';
+                        html += '<div class="periodo-header">';
+                        html += '<span class="periodo-name">' + u.nombre + '</span>';
+                        html += '<span class="periodo-badge" style="background:' + statusColor + ';color:#000;">' + u.role.toUpperCase() + '</span>';
+                        html += '</div>';
+                        html += '<p style="color:var(--text-secondary);font-size:0.8125rem;margin-bottom:12px;">' + u.email + ' &middot; ' + statusText + '</p>';
+                        html += '<div class="periodo-actions">';
+                        if (u.activo) {
+                            html += '<button class="btn btn-activate" onclick="toggleUser(' + u.id + ', false)">Desactivar</button>';
+                        } else {
+                            html += '<button class="btn btn-save" onclick="toggleUser(' + u.id + ', true)">Reactivar</button>';
+                        }
+                        html += '<button class="btn btn-activate" onclick="promptResetPassword(' + u.id + ')">Reset Password</button>';
+                        html += '</div></div>';
+                    });
+                    container.innerHTML = html;
+                });
+        }
+
+        function showNewUserForm() { document.getElementById('newUserForm').style.display = 'block'; }
+        function hideNewUserForm() { document.getElementById('newUserForm').style.display = 'none'; }
+
+        function createUser() {
+            var email = document.getElementById('nuEmail').value.trim();
+            var nombre = document.getElementById('nuNombre').value.trim();
+            var password = document.getElementById('nuPassword').value;
+            var role = document.getElementById('nuRole').value;
+            if (!email || !nombre || !password) { alert('Todos los campos son requeridos'); return; }
+            if (password.length < 6) { alert('La contrasena debe tener al menos 6 caracteres'); return; }
+            fetch('/api/admin/usuarios', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: email, nombre: nombre, password: password, role: role})
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    hideNewUserForm();
+                    document.getElementById('nuEmail').value = '';
+                    document.getElementById('nuNombre').value = '';
+                    document.getElementById('nuPassword').value = '';
+                    loadUsuarios();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo crear'));
+                }
+            });
+        }
+
+        function toggleUser(userId, activate) {
+            var method = activate ? 'PUT' : 'DELETE';
+            var url = '/api/admin/usuarios/' + userId;
+            if (activate) {
+                fetch(url, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({activo: true})
+                }).then(function() { loadUsuarios(); });
+            } else {
+                if (confirm('Desactivar este usuario?')) {
+                    fetch(url, {method: 'DELETE'}).then(function() { loadUsuarios(); });
+                }
+            }
+        }
+
+        function promptResetPassword(userId) {
+            var newPass = prompt('Nueva contrasena (min 6 caracteres):');
+            if (!newPass || newPass.length < 6) { alert('Contrasena invalida'); return; }
+            fetch('/api/admin/usuarios/' + userId, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: newPass})
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) { alert('Contrasena actualizada'); }
+                else { alert('Error: ' + (data.error || 'Fallo')); }
+            });
+        }
+
+        // Cargar usuarios al iniciar
+        loadUsuarios();
     </script>
 </body>
 </html>

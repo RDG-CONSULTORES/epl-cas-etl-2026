@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
+from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 
 load_dotenv()
@@ -31,15 +32,48 @@ ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
 JWT_SECRET = os.environ['SECRET_KEY']
 JWT_EXPIRY_HOURS = 24
 
+# ============ TABLA USUARIOS ============
+def init_usuarios_table():
+    """Crea la tabla de usuarios si no existe y siembra el admin inicial"""
+    db.session.execute(text("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(200) NOT NULL UNIQUE,
+            nombre VARCHAR(200) NOT NULL,
+            password_hash VARCHAR(300) NOT NULL,
+            role VARCHAR(20) NOT NULL DEFAULT 'viewer',
+            activo BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """))
+    db.session.commit()
+    # Crear admin si no existe ningun usuario
+    count = db.session.execute(text("SELECT COUNT(*) FROM usuarios")).scalar()
+    if count == 0:
+        admin_hash = generate_password_hash(ADMIN_PASSWORD)
+        db.session.execute(text("""
+            INSERT INTO usuarios (email, nombre, password_hash, role)
+            VALUES (:email, :nombre, :hash, 'admin')
+        """), {'email': 'admin@epl.mx', 'nombre': 'Administrador', 'hash': admin_hash})
+        db.session.commit()
+
+with app.app_context():
+    try:
+        init_usuarios_table()
+    except Exception:
+        db.session.rollback()
+
 # ============ JWT AUTH ============
-def generate_jwt(role='viewer'):
+def generate_jwt(role='viewer', user_id=None, email=None):
     """Genera un token JWT"""
     payload = {
-        'sub': role,
+        'sub': str(user_id) if user_id else role,
         'role': role,
         'iat': datetime.now(timezone.utc),
         'exp': datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS)
     }
+    if email:
+        payload['email'] = email
     return jwt.encode(payload, JWT_SECRET, algorithm='HS256')
 
 def verify_jwt(token):
@@ -145,12 +179,24 @@ def login_required(f):
 # ============ AUTH ENDPOINTS ============
 @app.route('/api/auth/login', methods=['POST'])
 def api_auth_login():
-    """Login: valida password y devuelve JWT"""
+    """Login: valida email+password contra tabla usuarios"""
     data = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip().lower()
     password = data.get('password', '')
-    if password == ADMIN_PASSWORD:
-        token = generate_jwt(role='admin')
-        return jsonify({'success': True, 'token': token})
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Email y contrasena requeridos'}), 400
+    # Buscar usuario en DB
+    user = db.session.execute(text("""
+        SELECT id, email, nombre, password_hash, role
+        FROM usuarios WHERE email = :email AND activo = true
+    """), {'email': email}).fetchone()
+    if user and check_password_hash(user[3], password):
+        token = generate_jwt(role=user[4], user_id=user[0], email=user[1])
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {'id': user[0], 'nombre': user[2], 'email': user[1], 'role': user[4]}
+        })
     return jsonify({'success': False, 'error': 'Credenciales incorrectas'}), 401
 
 # ============ RUTAS PRINCIPALES ============
@@ -163,11 +209,17 @@ def index():
 def admin_login():
     """Login del panel de administración"""
     if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
-        if password == ADMIN_PASSWORD:
+        user = db.session.execute(text("""
+            SELECT id, password_hash, role FROM usuarios
+            WHERE email = :email AND activo = true
+        """), {'email': email}).fetchone()
+        if user and check_password_hash(user[1], password) and user[2] == 'admin':
             session['admin_logged_in'] = True
+            session['admin_user_id'] = user[0]
             return redirect(url_for('admin'))
-        return render_template('admin_login.html', error='Contraseña incorrecta')
+        return render_template('admin_login.html', error='Credenciales incorrectas o sin permisos de admin')
     return render_template('admin_login.html')
 
 @app.route('/admin/logout')
@@ -1333,6 +1385,106 @@ def api_alertas(tipo):
             }
         })
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ API ENDPOINTS - USUARIOS ============
+@app.route('/api/admin/usuarios')
+@login_required
+def admin_list_usuarios():
+    """Listar todos los usuarios"""
+    try:
+        result = db.session.execute(text("""
+            SELECT id, email, nombre, role, activo, created_at
+            FROM usuarios ORDER BY id
+        """))
+        usuarios = []
+        for row in result:
+            usuarios.append({
+                'id': row[0], 'email': row[1], 'nombre': row[2],
+                'role': row[3], 'activo': row[4],
+                'created_at': str(row[5]) if row[5] else None
+            })
+        return jsonify({'success': True, 'data': usuarios})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/usuarios', methods=['POST'])
+@login_required
+def admin_create_usuario():
+    """Crear nuevo usuario"""
+    try:
+        data = request.get_json(silent=True) or {}
+        email = data.get('email', '').strip().lower()
+        nombre = data.get('nombre', '').strip()
+        password = data.get('password', '')
+        role = data.get('role', 'viewer')
+        if not email or not nombre or not password:
+            return jsonify({'success': False, 'error': 'Email, nombre y contrasena requeridos'}), 400
+        if role not in ('admin', 'viewer'):
+            return jsonify({'success': False, 'error': 'Role debe ser admin o viewer'}), 400
+        # Verificar que no exista
+        exists = db.session.execute(text(
+            "SELECT id FROM usuarios WHERE email = :email"
+        ), {'email': email}).fetchone()
+        if exists:
+            return jsonify({'success': False, 'error': 'Ya existe un usuario con ese email'}), 409
+        password_hash = generate_password_hash(password)
+        db.session.execute(text("""
+            INSERT INTO usuarios (email, nombre, password_hash, role)
+            VALUES (:email, :nombre, :hash, :role)
+        """), {'email': email, 'nombre': nombre, 'hash': password_hash, 'role': role})
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/usuarios/<int:user_id>', methods=['PUT'])
+@login_required
+def admin_update_usuario(user_id):
+    """Actualizar usuario (nombre, role, activo, password opcional)"""
+    try:
+        data = request.get_json(silent=True) or {}
+        nombre = data.get('nombre', '').strip()
+        role = data.get('role')
+        activo = data.get('activo')
+        password = data.get('password', '').strip()
+        updates = []
+        params = {'id': user_id}
+        if nombre:
+            updates.append("nombre = :nombre")
+            params['nombre'] = nombre
+        if role in ('admin', 'viewer'):
+            updates.append("role = :role")
+            params['role'] = role
+        if activo is not None:
+            updates.append("activo = :activo")
+            params['activo'] = bool(activo)
+        if password:
+            updates.append("password_hash = :hash")
+            params['hash'] = generate_password_hash(password)
+        if not updates:
+            return jsonify({'success': False, 'error': 'Nada que actualizar'}), 400
+        query = f"UPDATE usuarios SET {', '.join(updates)} WHERE id = :id"
+        db.session.execute(text(query), params)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/usuarios/<int:user_id>', methods=['DELETE'])
+@login_required
+def admin_delete_usuario(user_id):
+    """Desactivar usuario (soft delete)"""
+    try:
+        db.session.execute(text(
+            "UPDATE usuarios SET activo = false WHERE id = :id"
+        ), {'id': user_id})
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ API ENDPOINTS - HEALTH ============

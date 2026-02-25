@@ -21,8 +21,12 @@
             <div class="login-error" id="loginError" style="display:none;"></div>
             <form id="loginForm" onsubmit="return handleLogin(event)">
                 <div class="login-field">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required autofocus placeholder="tu@email.com" autocomplete="email">
+                </div>
+                <div class="login-field">
                     <label for="loginPassword">Contrasena</label>
-                    <input type="password" id="loginPassword" required autofocus placeholder="Ingresa tu contrasena">
+                    <input type="password" id="loginPassword" required placeholder="Ingresa tu contrasena" autocomplete="current-password">
                 </div>
                 <button type="submit" class="login-submit" id="loginBtn">Ingresar</button>
             </form>

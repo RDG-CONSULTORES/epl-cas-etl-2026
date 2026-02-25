@@ -93,6 +93,17 @@ CREATE TABLE IF NOT EXISTS seguridad_kpis (
     UNIQUE(supervision_id, kpi_id)
 );
 
+-- Usuarios del sistema
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(200) NOT NULL UNIQUE,
+    nombre VARCHAR(200) NOT NULL,
+    password_hash VARCHAR(300) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'viewer',
+    activo BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Checkpoints del ETL (ultima fecha de sync)
 CREATE TABLE IF NOT EXISTS sync_checkpoints (
     formulario VARCHAR(100) PRIMARY KEY,

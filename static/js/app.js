@@ -37,6 +37,7 @@ function hideLoginScreen() {
 
 function handleLogin(e) {
     e.preventDefault();
+    var email = document.getElementById('loginEmail').value;
     var password = document.getElementById('loginPassword').value;
     var btn = document.getElementById('loginBtn');
     var errorEl = document.getElementById('loginError');
@@ -47,13 +48,16 @@ function handleLogin(e) {
     fetch('/api/auth/login', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({password: password})
+        body: JSON.stringify({email: email, password: password})
     })
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.success && data.token) {
             authToken = data.token;
             sessionStorage.setItem('jwt_token', data.token);
+            if (data.user) {
+                sessionStorage.setItem('user_name', data.user.nombre);
+            }
             hideLoginScreen();
             document.getElementById('loginPassword').value = '';
             loadPeriodoContexto();
@@ -76,6 +80,7 @@ function handleLogin(e) {
 function handleLogout() {
     authToken = null;
     sessionStorage.removeItem('jwt_token');
+    sessionStorage.removeItem('user_name');
     showLoginScreen();
 }
 
