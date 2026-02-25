@@ -17,6 +17,12 @@ import jwt
 
 load_dotenv()
 
+# Validar variables de entorno requeridas al arrancar
+_REQUIRED_ENVS = ['SECRET_KEY', 'DATABASE_URL', 'ADMIN_PASSWORD']
+_missing = [v for v in _REQUIRED_ENVS if not os.environ.get(v)]
+if _missing:
+    raise RuntimeError(f"Variables de entorno faltantes: {', '.join(_missing)}")
+
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
 

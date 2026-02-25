@@ -16,8 +16,28 @@ COPY . .
 # Build frontend (minify JS/CSS)
 RUN python3 build.py
 
+# Remove unnecessary files from image
+RUN rm -rf .git .github .env* backups/ fotos_proteccion_civil/ \
+    __pycache__ *.md node_modules/
+
+# Create non-root user
+RUN useradd --create-home appuser
+USER appuser
+
 # Expose port
 EXPOSE 5000
 
-# Run with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "app:app"]
+# Run with hardened gunicorn config
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:5000", \
+     "--workers", "2", \
+     "--threads", "2", \
+     "--timeout", "120", \
+     "--graceful-timeout", "30", \
+     "--keep-alive", "5", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "100", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--log-level", "warning", \
+     "app:app"]
