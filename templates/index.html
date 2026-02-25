@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#0a0a0f">
     <title>EPL CAS 2026</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}?v={{ cache_bust }}">
 </head>
 <body>
     <!-- Login Overlay -->
@@ -293,6 +293,6 @@
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="{{ url_for('static', filename=js_file) }}"></script>
+    <script src="{{ url_for('static', filename=js_file) }}?v={{ cache_bust }}"></script>
 </body>
 </html>

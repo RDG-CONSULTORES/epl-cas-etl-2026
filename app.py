@@ -289,7 +289,9 @@ def index():
         os.path.join(app.static_folder, 'dist', 'js', 'app.min.js'))
     js_file = 'dist/js/app.min.js' if use_dist else 'js/app.js'
     css_file = 'dist/css/style.min.css' if use_dist else 'css/style.css'
-    return render_template('index.html', js_file=js_file, css_file=css_file)
+    import hashlib, time
+    cache_bust = hashlib.md5(str(int(time.time()) // 300).encode()).hexdigest()[:8]
+    return render_template('index.html', js_file=js_file, css_file=css_file, cache_bust=cache_bust)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")

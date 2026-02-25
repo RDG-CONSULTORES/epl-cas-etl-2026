@@ -22,19 +22,6 @@
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
     });
 
-    // Detectar dev tools abierto via debugger timing
-    var _dc = 0;
-    setInterval(function() {
-        var t0 = performance.now();
-        (function(){}).constructor('debugger')();
-        if (performance.now() - t0 > 100) {
-            _dc++;
-            if (_dc > 2) { document.body.innerHTML = ''; }
-        } else {
-            _dc = 0;
-        }
-    }, 3000);
-
     // Limpiar console
     if (typeof console !== 'undefined') {
         var _log = console.log;
