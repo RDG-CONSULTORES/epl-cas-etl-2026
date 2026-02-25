@@ -11,6 +11,8 @@ env/
 # Environment variables
 .env
 .env.local
+.env.production
+.env.staging
 
 # IDE
 .vscode/
@@ -28,3 +30,19 @@ Thumbs.db
 # Database
 *.db
 *.sqlite3
+
+# Source maps
+*.map
+
+# Build artifacts
+dist/
+build/
+
+# PDFs generados
+*.pdf
+
+# Fotos descargadas
+fotos_proteccion_civil/
+
+# Backups locales (contienen secretos)
+backups/

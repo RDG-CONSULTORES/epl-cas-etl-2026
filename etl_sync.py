@@ -17,10 +17,8 @@ from datetime import datetime
 # CONFIGURACIÓN (Variables de entorno en Railway)
 # ============================================================
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 
-    'postgresql://postgres:TszPoSlPeZmXodYvEqoPwQKaUUxBbSOE@caboose.proxy.rlwy.net:10380/railway')
-
-ZENPUT_TOKEN = os.environ.get('ZENPUT_TOKEN', 'cb908e0d4e0f5501c635325c611db314')
+DATABASE_URL = os.environ['DATABASE_URL']
+ZENPUT_TOKEN = os.environ['ZENPUT_TOKEN']
 ZENPUT_BASE = 'https://www.zenput.com/api/v3'
 
 FORMS = {

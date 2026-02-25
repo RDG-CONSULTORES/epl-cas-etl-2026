@@ -14,7 +14,7 @@ from datetime import datetime
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'epl-cas-2026-rdg-secret')
+app.secret_key = os.environ['SECRET_KEY']
 
 # Configuración de base de datos
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
@@ -26,7 +26,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '20Bube85!21637543')
+ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
 
 # ============ HELPERS ============
 def get_color_class(value):
