@@ -11,12 +11,51 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import jwt
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ['SECRET_KEY']
+
+# Configuración de sesiones seguras
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
+
+# Rate limiter (in-memory, suficiente para single-instance Railway)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["120 per minute"],
+    storage_uri="memory://"
+)
+
+# ============ SECURITY HEADERS ============
+@app.after_request
+def add_security_headers(response):
+    """Agrega headers de seguridad a todas las respuestas"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(self)'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    # CSP: permite Leaflet (unpkg), tiles de OpenStreetMap, y estilos/scripts inline necesarios
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' https://unpkg.com 'unsafe-inline'; "
+        "style-src 'self' https://unpkg.com 'unsafe-inline'; "
+        "img-src 'self' data: https://*.tile.openstreetmap.org; "
+        "connect-src 'self'; "
+        "font-src 'self'; "
+        "frame-ancestors 'none'"
+    )
+    # Eliminar header Server para no revelar tecnología
+    response.headers.pop('Server', None)
+    return response
 
 # Configuración de base de datos
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
@@ -178,6 +217,7 @@ def login_required(f):
 
 # ============ AUTH ENDPOINTS ============
 @app.route('/api/auth/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_auth_login():
     """Login: valida email+password contra tabla usuarios"""
     data = request.get_json(silent=True) or {}
@@ -206,6 +246,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/admin/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def admin_login():
     """Login del panel de administración"""
     if request.method == 'POST':
@@ -1489,6 +1530,7 @@ def admin_delete_usuario(user_id):
 
 # ============ API ENDPOINTS - HEALTH ============
 @app.route('/api/health')
+@limiter.exempt
 def health():
     """Health check endpoint"""
     try:
