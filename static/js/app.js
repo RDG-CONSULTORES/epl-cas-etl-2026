@@ -3,6 +3,49 @@
  * Simplified and robust version
  */
 
+// ========== ANTI-DEBUGGING / ANTI-INSPECT ==========
+(function() {
+    // Bloquear click derecho
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+    // Bloquear atajos de teclado de dev tools
+    document.addEventListener('keydown', function(e) {
+        // F12
+        if (e.key === 'F12') { e.preventDefault(); return false; }
+        // Ctrl+Shift+I / Cmd+Opt+I (Inspector)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
+        // Ctrl+Shift+J / Cmd+Opt+J (Console)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'J') { e.preventDefault(); return false; }
+        // Ctrl+U / Cmd+U (View Source)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); return false; }
+        // Ctrl+Shift+C (Element picker)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') { e.preventDefault(); return false; }
+    });
+
+    // Detectar dev tools abierto via debugger timing
+    var _dc = 0;
+    setInterval(function() {
+        var t0 = performance.now();
+        (function(){}).constructor('debugger')();
+        if (performance.now() - t0 > 100) {
+            _dc++;
+            if (_dc > 2) { document.body.innerHTML = ''; }
+        } else {
+            _dc = 0;
+        }
+    }, 3000);
+
+    // Limpiar console
+    if (typeof console !== 'undefined') {
+        var _log = console.log;
+        console.log = function() {};
+        console.warn = function() {};
+        console.info = function() {};
+        console.error = function() {};
+        console.debug = function() {};
+    }
+})();
+
 // ========== AUTH STATE ==========
 var authToken = sessionStorage.getItem('jwt_token') || null;
 

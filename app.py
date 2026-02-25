@@ -243,7 +243,12 @@ def api_auth_login():
 @app.route('/')
 def index():
     """Página principal del dashboard"""
-    return render_template('index.html')
+    # En produccion sirve archivos minificados si existen
+    use_dist = os.environ.get('FLASK_ENV') == 'production' and os.path.exists(
+        os.path.join(app.static_folder, 'dist', 'js', 'app.min.js'))
+    js_file = 'dist/js/app.min.js' if use_dist else 'js/app.js'
+    css_file = 'dist/css/style.min.css' if use_dist else 'css/style.css'
+    return render_template('index.html', js_file=js_file, css_file=css_file)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
