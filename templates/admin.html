@@ -413,6 +413,14 @@
             </p>
         </div>
 
+        <!-- Audit Log Card -->
+        <div class="card">
+            <h2 class="card-title">Registro de Actividad</h2>
+            <div id="auditLog" style="max-height:400px;overflow-y:auto;">
+                <p class="info-text">Cargando...</p>
+            </div>
+        </div>
+
         <!-- Footer Legal -->
         <div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,0.1);margin-top:24px;">
             <p style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:6px;">&copy; 2026 RDG Consultores. Todos los derechos reservados.</p>
@@ -557,8 +565,42 @@
             });
         }
 
-        // Cargar usuarios al iniciar
+        // ========== AUDIT LOG ==========
+        function loadAuditLog() {
+            fetch('/api/admin/audit')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var container = document.getElementById('auditLog');
+                    if (!data.success || data.data.length === 0) {
+                        container.innerHTML = '<p class="info-text">Sin registros</p>';
+                        return;
+                    }
+                    var html = '<div style="font-size:0.75rem;">';
+                    var eventColors = {
+                        'LOGIN_OK': '#30d158', 'LOGIN_FAIL': '#ff453a',
+                        'ADMIN_LOGIN_OK': '#30d158', 'ADMIN_LOGIN_FAIL': '#ff453a',
+                        'USER_CREATE': '#5ac8fa', 'USER_UPDATE': '#ffd60a',
+                        'USER_DEACTIVATE': '#ff9f0a'
+                    };
+                    data.data.forEach(function(log) {
+                        var color = eventColors[log.evento] || 'var(--text-secondary)';
+                        var ts = log.timestamp ? log.timestamp.substring(0, 19) : '-';
+                        html += '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">';
+                        html += '<span style="color:' + color + ';font-weight:600;">' + log.evento + '</span>';
+                        html += ' <span style="color:var(--text-secondary);">' + (log.email || '-') + '</span>';
+                        html += '<br><span style="color:var(--text-secondary);opacity:0.6;">' + ts;
+                        if (log.ip) html += ' | ' + log.ip;
+                        if (log.detalle) html += ' | ' + log.detalle;
+                        html += '</span></div>';
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                });
+        }
+
+        // Cargar datos al iniciar
         loadUsuarios();
+        loadAuditLog();
     </script>
 </body>
 </html>

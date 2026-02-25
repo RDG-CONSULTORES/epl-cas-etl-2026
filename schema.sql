@@ -104,6 +104,17 @@ CREATE TABLE IF NOT EXISTS usuarios (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Audit log
+CREATE TABLE IF NOT EXISTS audit_log (
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT NOW(),
+    evento VARCHAR(50) NOT NULL,
+    email VARCHAR(200),
+    ip VARCHAR(50),
+    detalle VARCHAR(500),
+    user_agent VARCHAR(500)
+);
+
 -- Checkpoints del ETL (ultima fecha de sync)
 CREATE TABLE IF NOT EXISTS sync_checkpoints (
     formulario VARCHAR(100) PRIMARY KEY,

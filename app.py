@@ -96,9 +96,42 @@ def init_usuarios_table():
         """), {'email': 'admin@epl.mx', 'nombre': 'Administrador', 'hash': admin_hash})
         db.session.commit()
 
+def init_audit_table():
+    """Crea la tabla de audit log si no existe"""
+    db.session.execute(text("""
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP DEFAULT NOW(),
+            evento VARCHAR(50) NOT NULL,
+            email VARCHAR(200),
+            ip VARCHAR(50),
+            detalle VARCHAR(500),
+            user_agent VARCHAR(500)
+        )
+    """))
+    db.session.commit()
+
+def audit(evento, email=None, detalle=None):
+    """Registra un evento en el audit log"""
+    try:
+        db.session.execute(text("""
+            INSERT INTO audit_log (evento, email, ip, detalle, user_agent)
+            VALUES (:evento, :email, :ip, :detalle, :ua)
+        """), {
+            'evento': evento,
+            'email': email,
+            'ip': request.remote_addr if request else None,
+            'detalle': detalle[:500] if detalle else None,
+            'ua': str(request.user_agent)[:500] if request else None
+        })
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
 with app.app_context():
     try:
         init_usuarios_table()
+        init_audit_table()
     except Exception:
         db.session.rollback()
 
@@ -232,11 +265,13 @@ def api_auth_login():
     """), {'email': email}).fetchone()
     if user and check_password_hash(user[3], password):
         token = generate_jwt(role=user[4], user_id=user[0], email=user[1])
+        audit('LOGIN_OK', email=user[1], detalle=f'role={user[4]}')
         return jsonify({
             'success': True,
             'token': token,
             'user': {'id': user[0], 'nombre': user[2], 'email': user[1], 'role': user[4]}
         })
+    audit('LOGIN_FAIL', email=email, detalle='Credenciales incorrectas')
     return jsonify({'success': False, 'error': 'Credenciales incorrectas'}), 401
 
 # ============ RUTAS PRINCIPALES ============
@@ -264,7 +299,9 @@ def admin_login():
         if user and check_password_hash(user[1], password) and user[2] == 'admin':
             session['admin_logged_in'] = True
             session['admin_user_id'] = user[0]
+            audit('ADMIN_LOGIN_OK', email=email)
             return redirect(url_for('admin'))
+        audit('ADMIN_LOGIN_FAIL', email=email, detalle='Credenciales incorrectas o sin permisos')
         return render_template('admin_login.html', error='Credenciales incorrectas o sin permisos de admin')
     return render_template('admin_login.html')
 
@@ -1480,6 +1517,7 @@ def admin_create_usuario():
             VALUES (:email, :nombre, :hash, :role)
         """), {'email': email, 'nombre': nombre, 'hash': password_hash, 'role': role})
         db.session.commit()
+        audit('USER_CREATE', email=email, detalle=f'role={role}')
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -1514,6 +1552,8 @@ def admin_update_usuario(user_id):
         query = f"UPDATE usuarios SET {', '.join(updates)} WHERE id = :id"
         db.session.execute(text(query), params)
         db.session.commit()
+        fields = [u.split(' =')[0] for u in updates]
+        audit('USER_UPDATE', detalle=f'user_id={user_id} fields={",".join(fields)}')
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -1528,9 +1568,34 @@ def admin_delete_usuario(user_id):
             "UPDATE usuarios SET activo = false WHERE id = :id"
         ), {'id': user_id})
         db.session.commit()
+        audit('USER_DEACTIVATE', detalle=f'user_id={user_id}')
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ API ENDPOINTS - AUDIT LOG ============
+@app.route('/api/admin/audit')
+@login_required
+def admin_audit_log():
+    """Obtener últimos 100 eventos del audit log"""
+    try:
+        result = db.session.execute(text("""
+            SELECT id, timestamp, evento, email, ip, detalle
+            FROM audit_log ORDER BY id DESC LIMIT 100
+        """))
+        logs = []
+        for row in result:
+            logs.append({
+                'id': row[0],
+                'timestamp': str(row[1]) if row[1] else None,
+                'evento': row[2],
+                'email': row[3],
+                'ip': row[4],
+                'detalle': row[5]
+            })
+        return jsonify({'success': True, 'data': logs})
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ API ENDPOINTS - HEALTH ============
