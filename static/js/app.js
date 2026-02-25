@@ -102,6 +102,64 @@
     });
 })();
 
+// ========== MARCA DE AGUA DINAMICA (CANVAS) ==========
+var _watermarkCanvas = null;
+
+function initWatermark(userEmail) {
+    if (_watermarkCanvas) _watermarkCanvas.remove();
+    var canvas = document.createElement('canvas');
+    canvas.id = 'watermarkCanvas';
+    canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;' +
+        'pointer-events:none;opacity:0.06;';
+    document.body.appendChild(canvas);
+    _watermarkCanvas = canvas;
+
+    function draw() {
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        var dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        var ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, w, h);
+
+        var now = new Date();
+        var ts = now.toLocaleDateString('es-MX') + ' ' +
+                 now.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+        var label = (userEmail || 'usuario') + ' | ' + ts;
+
+        ctx.font = '14px -apple-system, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.rotate(-25 * Math.PI / 180);
+
+        var stepX = 280;
+        var stepY = 120;
+        for (var y = -h; y < h * 2; y += stepY) {
+            for (var x = -w; x < w * 2; x += stepX) {
+                ctx.fillText(label, x, y);
+            }
+        }
+    }
+
+    draw();
+    window.addEventListener('resize', draw);
+    // Redibujar cada 5 minutos (actualiza timestamp)
+    setInterval(draw, 300000);
+
+    // Proteccion: si alguien elimina el canvas, recrearlo
+    var observer = new MutationObserver(function(mutations) {
+        if (!document.getElementById('watermarkCanvas')) {
+            document.body.appendChild(canvas);
+        }
+    });
+    observer.observe(document.body, { childList: true });
+}
+
+function removeWatermark() {
+    if (_watermarkCanvas) { _watermarkCanvas.remove(); _watermarkCanvas = null; }
+}
+
 // ========== AUTH STATE ==========
 var authToken = sessionStorage.getItem('jwt_token') || null;
 
@@ -156,8 +214,10 @@ function handleLogin(e) {
             sessionStorage.setItem('jwt_token', data.token);
             if (data.user) {
                 sessionStorage.setItem('user_name', data.user.nombre);
+                sessionStorage.setItem('user_email', data.user.email);
             }
             hideLoginScreen();
+            initWatermark(data.user ? data.user.email : '');
             document.getElementById('loginPassword').value = '';
             loadPeriodoContexto();
         } else {
@@ -180,6 +240,8 @@ function handleLogout() {
     authToken = null;
     sessionStorage.removeItem('jwt_token');
     sessionStorage.removeItem('user_name');
+    sessionStorage.removeItem('user_email');
+    removeWatermark();
     showLoginScreen();
 }
 
@@ -268,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verificar si hay token valido antes de cargar datos
     if (authToken) {
         hideLoginScreen();
+        initWatermark(sessionStorage.getItem('user_email') || '');
         loadPeriodoContexto();
     } else {
         showLoginScreen();
