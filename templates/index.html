@@ -30,6 +30,20 @@
                 </div>
                 <button type="submit" class="login-submit" id="loginBtn">Ingresar</button>
             </form>
+            <div class="biometric-divider" id="biometricDivider" style="display:none;">
+                <span>o</span>
+            </div>
+            <button type="button" class="biometric-btn" id="biometricBtn" style="display:none;" onclick="loginWithBiometric()">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M7 3C4.239 3 2 5.239 2 8"/>
+                    <path d="M17 3c2.761 0 5 2.239 5 5"/>
+                    <path d="M7 21c-2.761 0-5-2.239-5-5"/>
+                    <path d="M17 21c2.761 0 5-2.239 5-5"/>
+                    <path d="M9 12a3 3 0 006 0c0-2-1.5-4-3-5.5C10.5 8 9 10 9 12z"/>
+                    <path d="M12 15v2"/>
+                </svg>
+                Entrar con Face ID
+            </button>
         </div>
     </div>
 
@@ -342,6 +356,27 @@
         </div>
     </div>
 
+    <!-- Biometric Enrollment Prompt -->
+    <div class="enroll-prompt hidden" id="enrollPrompt">
+        <div class="enroll-card">
+            <div class="enroll-icon">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#ff6b35" stroke-width="1.5">
+                    <path d="M7 3C4.239 3 2 5.239 2 8"/>
+                    <path d="M17 3c2.761 0 5 2.239 5 5"/>
+                    <path d="M7 21c-2.761 0-5-2.239-5-5"/>
+                    <path d="M17 21c2.761 0 5-2.239 5-5"/>
+                    <path d="M9 12a3 3 0 006 0c0-2-1.5-4-3-5.5C10.5 8 9 10 9 12z"/>
+                    <path d="M12 15v2"/>
+                </svg>
+            </div>
+            <p class="enroll-text">Activa Face ID para iniciar sesion mas rapido</p>
+            <div class="enroll-actions">
+                <button class="enroll-btn-primary" onclick="enrollBiometric()">Activar</button>
+                <button class="enroll-btn-secondary" onclick="dismissEnrollPrompt()">Ahora no</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Legal -->
     <footer class="legal-footer">
         <p class="legal-copyright">&copy; 2026 RDG Consultores. Todos los derechos reservados.</p>
@@ -349,6 +384,7 @@
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@simplewebauthn/browser@11/dist/bundle/index.umd.min.js"></script>
     <script src="{{ url_for('static', filename=js_file) }}?v={{ cache_bust }}"></script>
 </body>
 </html>

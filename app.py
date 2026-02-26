@@ -15,6 +15,23 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import jwt
+import base64
+from webauthn import (
+    generate_registration_options,
+    verify_registration_response,
+    generate_authentication_options,
+    verify_authentication_response,
+    options_to_json,
+)
+from webauthn.helpers.structs import (
+    AuthenticatorAttachment,
+    AuthenticatorSelectionCriteria,
+    PublicKeyCredentialDescriptor,
+    ResidentKeyRequirement,
+    UserVerificationRequirement,
+    AuthenticatorTransport,
+)
+from webauthn.helpers import bytes_to_base64url, base64url_to_bytes
 
 load_dotenv()
 
@@ -80,6 +97,11 @@ JWT_SECRET = os.environ['SECRET_KEY']
 JWT_EXPIRY_HOURS = 24
 NDA_VERSION = 1  # Incrementar cuando cambie el texto del NDA
 
+# WebAuthn / Passkeys config
+RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'epl-cas-etl-2026-staging.up.railway.app')
+RP_NAME = 'EPL CAS 2026'
+RP_ORIGIN = os.environ.get('WEBAUTHN_ORIGIN', 'https://epl-cas-etl-2026-staging.up.railway.app')
+
 # ============ TABLA USUARIOS ============
 def init_usuarios_table():
     """Crea la tabla de usuarios si no existe y siembra el admin inicial"""
@@ -106,6 +128,22 @@ def init_usuarios_table():
             VALUES (:email, :nombre, :hash, 'admin')
         """), {'email': 'admin@epl.mx', 'nombre': 'Administrador', 'hash': admin_hash})
         db.session.commit()
+
+def init_webauthn_table():
+    """Crea la tabla de credenciales WebAuthn si no existe"""
+    db.session.execute(text("""
+        CREATE TABLE IF NOT EXISTS webauthn_credentials (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES usuarios(id),
+            credential_id BYTEA NOT NULL UNIQUE,
+            credential_public_key BYTEA NOT NULL,
+            current_sign_count INTEGER DEFAULT 0,
+            device_name VARCHAR(255),
+            transports TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        )
+    """))
+    db.session.commit()
 
 def init_audit_table():
     """Crea la tabla de audit log si no existe"""
@@ -142,6 +180,7 @@ def audit(evento, email=None, detalle=None):
 with app.app_context():
     try:
         init_usuarios_table()
+        init_webauthn_table()
         init_audit_table()
     except Exception:
         db.session.rollback()
@@ -167,7 +206,7 @@ def verify_jwt(token):
         return None
 
 # Rutas públicas que no requieren JWT
-JWT_PUBLIC_ROUTES = {'/api/health', '/api/auth/login'}
+JWT_PUBLIC_ROUTES = {'/api/health', '/api/auth/login', '/api/webauthn/login/options', '/api/webauthn/login/verify'}
 
 @app.before_request
 def jwt_protect_api():
@@ -320,6 +359,188 @@ def api_nda_accept():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ WEBAUTHN ENDPOINTS ============
+@app.route('/api/webauthn/register/options', methods=['POST'])
+def webauthn_register_options():
+    """Genera opciones para registrar credencial biometrica (requiere JWT)"""
+    payload = getattr(request, 'jwt_payload', None)
+    if not payload:
+        return jsonify({'success': False, 'error': 'Token requerido'}), 401
+    user_id = int(payload.get('sub', 0))
+    email = payload.get('email', '')
+    if not user_id:
+        return jsonify({'success': False, 'error': 'Token invalido'}), 401
+    try:
+        # Obtener credenciales existentes para excluir
+        existing = db.session.execute(text(
+            "SELECT credential_id FROM webauthn_credentials WHERE user_id = :uid"
+        ), {'uid': user_id}).fetchall()
+        exclude_creds = [
+            PublicKeyCredentialDescriptor(id=row[0]) for row in existing
+        ]
+        # Obtener nombre del usuario
+        user_row = db.session.execute(text(
+            "SELECT nombre FROM usuarios WHERE id = :uid"
+        ), {'uid': user_id}).fetchone()
+        display_name = user_row[0] if user_row else email
+
+        options = generate_registration_options(
+            rp_id=RP_ID,
+            rp_name=RP_NAME,
+            user_id=str(user_id).encode(),
+            user_name=email,
+            user_display_name=display_name,
+            authenticator_selection=AuthenticatorSelectionCriteria(
+                authenticator_attachment=AuthenticatorAttachment.PLATFORM,
+                resident_key=ResidentKeyRequirement.PREFERRED,
+                user_verification=UserVerificationRequirement.REQUIRED,
+            ),
+            exclude_credentials=exclude_creds,
+            timeout=60000,
+        )
+        # Guardar challenge en session para verificar despues
+        session['webauthn_register_challenge'] = bytes_to_base64url(options.challenge)
+        session['webauthn_register_user_id'] = user_id
+        return options_to_json(options), 200, {'Content-Type': 'application/json'}
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/webauthn/register/verify', methods=['POST'])
+def webauthn_register_verify():
+    """Verifica y guarda credencial biometrica (requiere JWT)"""
+    payload = getattr(request, 'jwt_payload', None)
+    if not payload:
+        return jsonify({'success': False, 'error': 'Token requerido'}), 401
+    user_id = int(payload.get('sub', 0))
+    email = payload.get('email', '')
+    challenge_b64 = session.pop('webauthn_register_challenge', None)
+    if not challenge_b64:
+        return jsonify({'success': False, 'error': 'Challenge expirado, intenta de nuevo'}), 400
+    try:
+        expected_challenge = base64url_to_bytes(challenge_b64)
+        credential_json = request.get_json()
+        verification = verify_registration_response(
+            credential=credential_json,
+            expected_challenge=expected_challenge,
+            expected_origin=RP_ORIGIN,
+            expected_rp_id=RP_ID,
+            require_user_verification=True,
+        )
+        # Guardar credencial en BD
+        device_name = (request.get_json() or {}).get('device_name', 'Dispositivo')
+        db.session.execute(text("""
+            INSERT INTO webauthn_credentials (user_id, credential_id, credential_public_key, current_sign_count, device_name)
+            VALUES (:uid, :cred_id, :pub_key, :sign_count, :device)
+        """), {
+            'uid': user_id,
+            'cred_id': verification.credential_id,
+            'pub_key': verification.credential_public_key,
+            'sign_count': verification.sign_count,
+            'device': device_name,
+        })
+        db.session.commit()
+        audit('WEBAUTHN_REGISTER', email=email, detalle=f'device={device_name}')
+        return jsonify({'success': True, 'verified': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/webauthn/login/options', methods=['POST'])
+@limiter.limit("10 per minute")
+def webauthn_login_options():
+    """Genera opciones para login biometrico (publico)"""
+    data = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip().lower()
+    if not email:
+        return jsonify({'success': False, 'available': False, 'error': 'Email requerido'}), 400
+    try:
+        # Buscar usuario y sus credenciales
+        user = db.session.execute(text(
+            "SELECT id FROM usuarios WHERE email = :email AND activo = true"
+        ), {'email': email}).fetchone()
+        if not user:
+            return jsonify({'success': True, 'available': False})
+        creds = db.session.execute(text(
+            "SELECT credential_id, transports FROM webauthn_credentials WHERE user_id = :uid"
+        ), {'uid': user[0]}).fetchall()
+        if not creds:
+            return jsonify({'success': True, 'available': False})
+        allow_creds = []
+        for cred in creds:
+            transports_list = []
+            if cred[1]:
+                for t in cred[1].split(','):
+                    t = t.strip()
+                    if t == 'internal':
+                        transports_list.append(AuthenticatorTransport.INTERNAL)
+            allow_creds.append(PublicKeyCredentialDescriptor(
+                id=bytes(cred[0]),
+                transports=transports_list if transports_list else [AuthenticatorTransport.INTERNAL],
+            ))
+        options = generate_authentication_options(
+            rp_id=RP_ID,
+            allow_credentials=allow_creds,
+            user_verification=UserVerificationRequirement.REQUIRED,
+            timeout=60000,
+        )
+        session['webauthn_auth_challenge'] = bytes_to_base64url(options.challenge)
+        session['webauthn_auth_email'] = email
+        return options_to_json(options), 200, {'Content-Type': 'application/json'}
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/webauthn/login/verify', methods=['POST'])
+@limiter.limit("10 per minute")
+def webauthn_login_verify():
+    """Verifica login biometrico y emite JWT (publico)"""
+    challenge_b64 = session.pop('webauthn_auth_challenge', None)
+    auth_email = session.pop('webauthn_auth_email', None)
+    if not challenge_b64:
+        return jsonify({'success': False, 'error': 'Challenge expirado'}), 400
+    try:
+        expected_challenge = base64url_to_bytes(challenge_b64)
+        credential_json = request.get_json()
+        cred_id_bytes = base64url_to_bytes(credential_json['id'])
+        # Buscar credencial en BD
+        stored = db.session.execute(text("""
+            SELECT wc.id, wc.user_id, wc.credential_public_key, wc.current_sign_count,
+                   u.email, u.nombre, u.role, COALESCE(u.nda_accepted_version, 0) as nda_ver
+            FROM webauthn_credentials wc
+            JOIN usuarios u ON wc.user_id = u.id
+            WHERE wc.credential_id = :cred_id AND u.activo = true
+        """), {'cred_id': cred_id_bytes}).fetchone()
+        if not stored:
+            audit('LOGIN_BIOMETRIC_FAIL', email=auth_email, detalle='Credencial no encontrada')
+            return jsonify({'success': False, 'error': 'Credencial no encontrada'}), 400
+        verification = verify_authentication_response(
+            credential=credential_json,
+            expected_challenge=expected_challenge,
+            expected_rp_id=RP_ID,
+            expected_origin=RP_ORIGIN,
+            credential_public_key=bytes(stored[2]),
+            credential_current_sign_count=stored[3],
+            require_user_verification=True,
+        )
+        # Actualizar sign_count
+        db.session.execute(text(
+            "UPDATE webauthn_credentials SET current_sign_count = :sc WHERE id = :wid"
+        ), {'sc': verification.new_sign_count, 'wid': stored[0]})
+        db.session.commit()
+        # Emitir JWT
+        token = generate_jwt(role=stored[6], user_id=stored[1], email=stored[4])
+        nda_accepted = stored[7] >= NDA_VERSION
+        audit('LOGIN_BIOMETRIC', email=stored[4], detalle=f'role={stored[6]}')
+        return jsonify({
+            'success': True,
+            'token': token,
+            'user': {'id': stored[1], 'nombre': stored[5], 'email': stored[4], 'role': stored[6],
+                     'nda_accepted': nda_accepted}
+        })
+    except Exception as e:
+        db.session.rollback()
+        audit('LOGIN_BIOMETRIC_FAIL', email=auth_email, detalle=str(e)[:200])
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 # ============ RUTAS PRINCIPALES ============
 @app.route('/')

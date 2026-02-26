@@ -98,6 +98,119 @@
     cursor: not-allowed;
 }
 
+/* ========== BIOMETRIC LOGIN ========== */
+.biometric-divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: #8e8e93;
+    font-size: 0.8rem;
+}
+.biometric-divider::before,
+.biometric-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+}
+.biometric-divider span {
+    padding: 0 12px;
+}
+.biometric-btn {
+    width: 100%;
+    padding: 14px 16px;
+    background: transparent;
+    border: 1.5px solid rgba(255,107,53,0.4);
+    border-radius: 12px;
+    color: #ff8c5a;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+.biometric-btn:hover {
+    background: rgba(255,107,53,0.08);
+    border-color: #ff6b35;
+}
+.biometric-btn:active {
+    transform: scale(0.98);
+}
+.biometric-btn svg {
+    flex-shrink: 0;
+}
+
+/* ========== ENROLLMENT PROMPT ========== */
+.enroll-prompt {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9990;
+    width: calc(100% - 32px);
+    max-width: 380px;
+    animation: slideUpEnroll 0.3s ease-out;
+}
+.enroll-prompt.hidden {
+    display: none;
+}
+@keyframes slideUpEnroll {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.enroll-card {
+    background: var(--bg-card, #252530);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.enroll-icon {
+    margin-bottom: 8px;
+}
+.enroll-text {
+    color: #c5c5ca;
+    font-size: 0.9rem;
+    margin: 0 0 16px 0;
+}
+.enroll-actions {
+    display: flex;
+    gap: 10px;
+}
+.enroll-btn-primary {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.enroll-btn-primary:hover {
+    transform: translateY(-1px);
+}
+.enroll-btn-secondary {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: #8e8e93;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.enroll-btn-secondary:hover {
+    background: rgba(255,255,255,0.05);
+}
+
 /* ========== NDA OVERLAY ========== */
 .nda-overlay {
     position: fixed;

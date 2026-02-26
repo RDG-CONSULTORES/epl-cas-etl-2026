@@ -106,6 +106,18 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nda_accepted_at TIMESTAMP
 );
 
+-- Credenciales WebAuthn (Face ID / Touch ID / Passkeys)
+CREATE TABLE IF NOT EXISTS webauthn_credentials (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES usuarios(id),
+    credential_id BYTEA NOT NULL UNIQUE,
+    credential_public_key BYTEA NOT NULL,
+    current_sign_count INTEGER DEFAULT 0,
+    device_name VARCHAR(255),
+    transports TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Audit log
 CREATE TABLE IF NOT EXISTS audit_log (
     id SERIAL PRIMARY KEY,

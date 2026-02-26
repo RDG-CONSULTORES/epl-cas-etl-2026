@@ -206,12 +206,20 @@ function handleLogin(e) {
             }
             hideLoginScreen();
             document.getElementById('loginPassword').value = '';
+            // Guardar email para biometrico
+            if (data.user && data.user.email) {
+                localStorage.setItem('last_login_email', data.user.email);
+            }
             // Verificar NDA antes de mostrar dashboard
             if (data.user && data.user.nda_accepted === false) {
                 showNDAScreen();
             } else {
                 initWatermark(data.user ? data.user.email : '');
                 loadPeriodoContexto();
+                // Ofrecer enrollment biometrico si disponible
+                if (_biometricAvailable && shouldShowEnrollPrompt()) {
+                    setTimeout(showEnrollPrompt, 2000);
+                }
             }
         } else {
             errorEl.textContent = data.error || 'Credenciales incorrectas';
@@ -274,6 +282,10 @@ function handleNDAAccept() {
             hideNDAScreen();
             initWatermark(sessionStorage.getItem('user_email') || '');
             loadPeriodoContexto();
+            // Ofrecer enrollment biometrico despues de NDA
+            if (_biometricAvailable && shouldShowEnrollPrompt()) {
+                setTimeout(showEnrollPrompt, 2000);
+            }
         } else {
             if (btn) {
                 btn.textContent = 'Error - Reintentar';
@@ -303,6 +315,223 @@ function initNDAListeners() {
             if (!btn.disabled) handleNDAAccept();
         });
     }
+}
+
+// ========== WEBAUTHN / BIOMETRIC LOGIN ==========
+var _biometricAvailable = false;
+
+function checkBiometricAvailable() {
+    if (!window.PublicKeyCredential) return Promise.resolve(false);
+    try {
+        return PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch(e) { return Promise.resolve(false); }
+}
+
+function showBiometricButton() {
+    var btn = document.getElementById('biometricBtn');
+    var divider = document.getElementById('biometricDivider');
+    if (btn) btn.style.display = 'flex';
+    if (divider) divider.style.display = 'flex';
+}
+
+function hideBiometricButton() {
+    var btn = document.getElementById('biometricBtn');
+    var divider = document.getElementById('biometricDivider');
+    if (btn) btn.style.display = 'none';
+    if (divider) divider.style.display = 'none';
+}
+
+function loginWithBiometric() {
+    var email = document.getElementById('loginEmail').value || localStorage.getItem('biometric_email') || '';
+    if (!email) {
+        var errorEl = document.getElementById('loginError');
+        if (errorEl) {
+            errorEl.textContent = 'Ingresa tu email primero';
+            errorEl.style.display = 'block';
+        }
+        return;
+    }
+
+    var btn = document.getElementById('biometricBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+    }
+
+    // Step 1: Get authentication options
+    fetch('/api/webauthn/login/options', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: email})
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.available === false) {
+            // No biometric credentials registered for this email
+            hideBiometricButton();
+            localStorage.removeItem('biometric_email');
+            var errorEl = document.getElementById('loginError');
+            if (errorEl) {
+                errorEl.textContent = 'Face ID no configurado para este email. Inicia sesion con contrasena.';
+                errorEl.style.display = 'block';
+            }
+            throw new Error('no_credentials');
+        }
+        // Step 2: Start biometric authentication
+        return SimpleWebAuthnBrowser.startAuthentication({optionsJSON: data});
+    })
+    .then(function(assertion) {
+        // Step 3: Verify with server
+        return fetch('/api/webauthn/login/verify', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(assertion)
+        });
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success && data.token) {
+            authToken = data.token;
+            sessionStorage.setItem('jwt_token', data.token);
+            if (data.user) {
+                sessionStorage.setItem('user_name', data.user.nombre);
+                sessionStorage.setItem('user_email', data.user.email);
+                sessionStorage.setItem('nda_accepted', data.user.nda_accepted ? '1' : '0');
+            }
+            hideLoginScreen();
+            // Check NDA
+            if (data.user && data.user.nda_accepted === false) {
+                showNDAScreen();
+            } else {
+                initWatermark(data.user ? data.user.email : '');
+                loadPeriodoContexto();
+            }
+        } else {
+            var errorEl = document.getElementById('loginError');
+            if (errorEl) {
+                errorEl.textContent = data.error || 'Error de autenticacion';
+                errorEl.style.display = 'block';
+            }
+        }
+    })
+    .catch(function(err) {
+        if (err.message === 'no_credentials') return;
+        if (err.name === 'NotAllowedError') {
+            // User cancelled biometric prompt - do nothing
+        } else {
+            var errorEl = document.getElementById('loginError');
+            if (errorEl) {
+                errorEl.textContent = 'Error de Face ID. Usa tu contrasena.';
+                errorEl.style.display = 'block';
+            }
+        }
+    })
+    .finally(function() {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5">' +
+                '<path d="M7 3C4.239 3 2 5.239 2 8"/><path d="M17 3c2.761 0 5 2.239 5 5"/>' +
+                '<path d="M7 21c-2.761 0-5-2.239-5-5"/><path d="M17 21c2.761 0 5-2.239 5-5"/>' +
+                '<path d="M9 12a3 3 0 006 0c0-2-1.5-4-3-5.5C10.5 8 9 10 9 12z"/><path d="M12 15v2"/>' +
+                '</svg> Entrar con Face ID';
+        }
+    });
+}
+
+function enrollBiometric() {
+    var enrollPrompt = document.getElementById('enrollPrompt');
+    var enrollBtn = enrollPrompt ? enrollPrompt.querySelector('.enroll-btn-primary') : null;
+    if (enrollBtn) {
+        enrollBtn.disabled = true;
+        enrollBtn.textContent = 'Activando...';
+    }
+
+    // Step 1: Get registration options
+    authFetch('/api/webauthn/register/options', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        // Step 2: Start biometric registration
+        return SimpleWebAuthnBrowser.startRegistration({optionsJSON: data});
+    })
+    .then(function(credential) {
+        // Step 3: Verify with server
+        return authFetch('/api/webauthn/register/verify', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(credential)
+        });
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success || data.verified) {
+            // Save flag in localStorage
+            var email = sessionStorage.getItem('user_email') || '';
+            localStorage.setItem('biometric_email', email);
+            localStorage.setItem('biometric_enrolled', '1');
+            dismissEnrollPrompt();
+        } else {
+            if (enrollBtn) {
+                enrollBtn.textContent = 'Error - Reintentar';
+                enrollBtn.disabled = false;
+            }
+        }
+    })
+    .catch(function(err) {
+        if (err.name === 'NotAllowedError' || err.name === 'InvalidStateError') {
+            dismissEnrollPrompt();
+        } else {
+            if (enrollBtn) {
+                enrollBtn.textContent = 'Error - Reintentar';
+                enrollBtn.disabled = false;
+            }
+        }
+    });
+}
+
+function showEnrollPrompt() {
+    var prompt = document.getElementById('enrollPrompt');
+    if (prompt) prompt.classList.remove('hidden');
+}
+
+function dismissEnrollPrompt() {
+    var prompt = document.getElementById('enrollPrompt');
+    if (prompt) prompt.classList.add('hidden');
+    // Don't ask again for 30 days
+    localStorage.setItem('biometric_dismissed', Date.now().toString());
+}
+
+function shouldShowEnrollPrompt() {
+    // Don't show if already enrolled
+    if (localStorage.getItem('biometric_enrolled') === '1') return false;
+    // Don't show if dismissed recently (30 days)
+    var dismissed = localStorage.getItem('biometric_dismissed');
+    if (dismissed) {
+        var daysSince = (Date.now() - parseInt(dismissed)) / (1000 * 60 * 60 * 24);
+        if (daysSince < 30) return false;
+    }
+    return true;
+}
+
+function initBiometric() {
+    checkBiometricAvailable().then(function(available) {
+        _biometricAvailable = available;
+        if (available) {
+            // Si tiene email guardado y credencial registrada, mostrar boton Face ID en login
+            var savedEmail = localStorage.getItem('biometric_email');
+            var enrolled = localStorage.getItem('biometric_enrolled') === '1';
+            if (savedEmail && enrolled) {
+                // Pre-llenar email
+                var emailInput = document.getElementById('loginEmail');
+                if (emailInput && !emailInput.value) {
+                    emailInput.value = savedEmail;
+                }
+                showBiometricButton();
+            }
+        }
+    });
 }
 
 // State
@@ -388,6 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initTabs();
     initPeriodSelector();
     initNDAListeners();
+    initBiometric();
     // Verificar si hay token valido antes de cargar datos
     if (authToken) {
         hideLoginScreen();
@@ -1461,3 +1691,6 @@ window.openSucursalModal = openSucursalModal;
 window.toggleAgrupacion = toggleAgrupacion;
 window.loadSupervisionAreas = loadSupervisionAreas;
 window.handleNDAAccept = handleNDAAccept;
+window.loginWithBiometric = loginWithBiometric;
+window.enrollBiometric = enrollBiometric;
+window.dismissEnrollPrompt = dismissEnrollPrompt;
