@@ -11,6 +11,7 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import jwt
@@ -24,6 +25,7 @@ if _missing:
     raise RuntimeError(f"Variables de entorno faltantes: {', '.join(_missing)}")
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.environ['SECRET_KEY']
 
 # Configuración de sesiones seguras
@@ -249,9 +251,18 @@ def calcular_promedio_agrupacion(patron, tipo, periodo_id=None):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('admin_logged_in'):
-            return redirect(url_for('admin_login'))
-        return f(*args, **kwargs)
+        # Check session first
+        if session.get('admin_logged_in'):
+            return f(*args, **kwargs)
+        # For API routes, also accept JWT with admin role
+        if request.path.startswith('/api/'):
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                payload = verify_jwt(auth_header.split(' ', 1)[1])
+                if payload and payload.get('role') == 'admin':
+                    return f(*args, **kwargs)
+            return jsonify({'success': False, 'error': 'Admin access required'}), 403
+        return redirect(url_for('admin_login'))
     return decorated_function
 
 # ============ AUTH ENDPOINTS ============
