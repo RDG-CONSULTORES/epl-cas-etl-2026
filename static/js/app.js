@@ -92,12 +92,14 @@
 // ========== MARCA DE AGUA DINAMICA (CANVAS) ==========
 var _watermarkCanvas = null;
 
+var _watermarkDraw = null; // Referencia global para redibujar al cambiar tema
+
 function initWatermark(userEmail) {
     if (_watermarkCanvas) _watermarkCanvas.remove();
     var canvas = document.createElement('canvas');
     canvas.id = 'watermarkCanvas';
     canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;' +
-        'pointer-events:none;opacity:0.06;';
+        'pointer-events:none;';
     document.body.appendChild(canvas);
     _watermarkCanvas = canvas;
 
@@ -116,8 +118,10 @@ function initWatermark(userEmail) {
                  now.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
         var label = (userEmail || 'usuario') + ' | ' + ts;
 
+        // Color y opacidad segun tema
+        var isDark = getTheme() === 'dark';
         ctx.font = '14px -apple-system, sans-serif';
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
         ctx.rotate(-25 * Math.PI / 180);
 
         var stepX = 280;
@@ -129,6 +133,7 @@ function initWatermark(userEmail) {
         }
     }
 
+    _watermarkDraw = draw;
     draw();
     window.addEventListener('resize', draw);
     // Redibujar cada 5 minutos (actualiza timestamp)
@@ -602,7 +607,8 @@ function toggleTheme() {
     html.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
 
-    console.log('Theme changed to:', newTheme);
+    // Redibujar watermark con colores del nuevo tema
+    if (_watermarkDraw) _watermarkDraw();
 }
 
 function getTheme() {
