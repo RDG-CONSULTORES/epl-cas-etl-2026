@@ -32,7 +32,7 @@ def minify_js():
         result = subprocess.run(
             ['npx', '--yes', 'terser', JS_SRC,
              '--compress', 'drop_console=true,passes=2',
-             '--mangle', 'toplevel,reserved=[handleLogin,handleLogout,openSucursalModal,openGrupoModal,toggleAgrupacion,loadSupervisionAreas]',
+             '--mangle', 'toplevel,reserved=[handleLogin,handleLogout,openSucursalModal,openGrupoModal,toggleAgrupacion,loadSupervisionAreas,handleNDAAccept]',
              '--output', JS_OUT],
             capture_output=True, text=True, timeout=60
         )

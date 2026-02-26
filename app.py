@@ -78,6 +78,7 @@ db = SQLAlchemy(app)
 ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
 JWT_SECRET = os.environ['SECRET_KEY']
 JWT_EXPIRY_HOURS = 24
+NDA_VERSION = 1  # Incrementar cuando cambie el texto del NDA
 
 # ============ TABLA USUARIOS ============
 def init_usuarios_table():
@@ -93,6 +94,8 @@ def init_usuarios_table():
             created_at TIMESTAMP DEFAULT NOW()
         )
     """))
+    db.session.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nda_accepted_version INTEGER DEFAULT 0"))
+    db.session.execute(text("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nda_accepted_at TIMESTAMP"))
     db.session.commit()
     # Crear admin si no existe ningun usuario
     count = db.session.execute(text("SELECT COUNT(*) FROM usuarios")).scalar()
@@ -277,19 +280,46 @@ def api_auth_login():
         return jsonify({'success': False, 'error': 'Email y contrasena requeridos'}), 400
     # Buscar usuario en DB
     user = db.session.execute(text("""
-        SELECT id, email, nombre, password_hash, role
+        SELECT id, email, nombre, password_hash, role,
+               COALESCE(nda_accepted_version, 0) as nda_ver
         FROM usuarios WHERE email = :email AND activo = true
     """), {'email': email}).fetchone()
     if user and check_password_hash(user[3], password):
         token = generate_jwt(role=user[4], user_id=user[0], email=user[1])
         audit('LOGIN_OK', email=user[1], detalle=f'role={user[4]}')
+        nda_accepted = user[5] >= NDA_VERSION
         return jsonify({
             'success': True,
             'token': token,
-            'user': {'id': user[0], 'nombre': user[2], 'email': user[1], 'role': user[4]}
+            'user': {'id': user[0], 'nombre': user[2], 'email': user[1], 'role': user[4],
+                     'nda_accepted': nda_accepted}
         })
     audit('LOGIN_FAIL', email=email, detalle='Credenciales incorrectas')
     return jsonify({'success': False, 'error': 'Credenciales incorrectas'}), 401
+
+# ============ NDA ENDPOINT ============
+@app.route('/api/nda/accept', methods=['POST'])
+def api_nda_accept():
+    """Aceptar el Acuerdo de Confidencialidad (NDA)"""
+    # Requiere JWT
+    payload = getattr(request, 'jwt_payload', None)
+    if not payload:
+        return jsonify({'success': False, 'error': 'Token requerido'}), 401
+    user_id = payload.get('sub')
+    email = payload.get('email', '')
+    if not user_id:
+        return jsonify({'success': False, 'error': 'Token invalido'}), 401
+    try:
+        db.session.execute(text("""
+            UPDATE usuarios SET nda_accepted_version = :version, nda_accepted_at = NOW()
+            WHERE id = :user_id
+        """), {'version': NDA_VERSION, 'user_id': int(user_id)})
+        db.session.commit()
+        audit('NDA_ACCEPT', email=email, detalle=f'version={NDA_VERSION}')
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ RUTAS PRINCIPALES ============
 @app.route('/')

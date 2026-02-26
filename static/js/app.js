@@ -202,11 +202,17 @@ function handleLogin(e) {
             if (data.user) {
                 sessionStorage.setItem('user_name', data.user.nombre);
                 sessionStorage.setItem('user_email', data.user.email);
+                sessionStorage.setItem('nda_accepted', data.user.nda_accepted ? '1' : '0');
             }
             hideLoginScreen();
-            initWatermark(data.user ? data.user.email : '');
             document.getElementById('loginPassword').value = '';
-            loadPeriodoContexto();
+            // Verificar NDA antes de mostrar dashboard
+            if (data.user && data.user.nda_accepted === false) {
+                showNDAScreen();
+            } else {
+                initWatermark(data.user ? data.user.email : '');
+                loadPeriodoContexto();
+            }
         } else {
             errorEl.textContent = data.error || 'Credenciales incorrectas';
             errorEl.style.display = 'block';
@@ -228,8 +234,75 @@ function handleLogout() {
     sessionStorage.removeItem('jwt_token');
     sessionStorage.removeItem('user_name');
     sessionStorage.removeItem('user_email');
+    sessionStorage.removeItem('nda_accepted');
     removeWatermark();
     showLoginScreen();
+}
+
+// ========== NDA SCREEN ==========
+function showNDAScreen() {
+    var overlay = document.getElementById('ndaOverlay');
+    if (overlay) overlay.classList.remove('hidden');
+    // Reset checkbox and button
+    var check = document.getElementById('ndaCheck');
+    var btn = document.getElementById('ndaAcceptBtn');
+    if (check) check.checked = false;
+    if (btn) btn.disabled = true;
+}
+
+function hideNDAScreen() {
+    var overlay = document.getElementById('ndaOverlay');
+    if (overlay) overlay.classList.add('hidden');
+}
+
+function handleNDAAccept() {
+    var btn = document.getElementById('ndaAcceptBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+    }
+
+    authFetch('/api/nda/accept', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            sessionStorage.setItem('nda_accepted', '1');
+            hideNDAScreen();
+            initWatermark(sessionStorage.getItem('user_email') || '');
+            loadPeriodoContexto();
+        } else {
+            if (btn) {
+                btn.textContent = 'Error - Reintentar';
+                btn.disabled = false;
+            }
+        }
+    })
+    .catch(function() {
+        if (btn) {
+            btn.textContent = 'Error de conexion - Reintentar';
+            btn.disabled = false;
+        }
+    });
+}
+
+function initNDAListeners() {
+    var check = document.getElementById('ndaCheck');
+    var btn = document.getElementById('ndaAcceptBtn');
+    if (check && btn) {
+        check.addEventListener('change', function() {
+            btn.disabled = !check.checked;
+            if (check.checked) {
+                btn.textContent = 'Aceptar y Continuar';
+            }
+        });
+        btn.addEventListener('click', function() {
+            if (!btn.disabled) handleNDAAccept();
+        });
+    }
 }
 
 // State
@@ -314,11 +387,18 @@ document.addEventListener('DOMContentLoaded', function() {
     initToggles();
     initTabs();
     initPeriodSelector();
+    initNDAListeners();
     // Verificar si hay token valido antes de cargar datos
     if (authToken) {
         hideLoginScreen();
-        initWatermark(sessionStorage.getItem('user_email') || '');
-        loadPeriodoContexto();
+        // Verificar NDA en reload
+        var ndaAccepted = sessionStorage.getItem('nda_accepted');
+        if (ndaAccepted === '0') {
+            showNDAScreen();
+        } else {
+            initWatermark(sessionStorage.getItem('user_email') || '');
+            loadPeriodoContexto();
+        }
     } else {
         showLoginScreen();
     }
@@ -1380,3 +1460,4 @@ window.openGrupoModal = openGrupoModal;
 window.openSucursalModal = openSucursalModal;
 window.toggleAgrupacion = toggleAgrupacion;
 window.loadSupervisionAreas = loadSupervisionAreas;
+window.handleNDAAccept = handleNDAAccept;

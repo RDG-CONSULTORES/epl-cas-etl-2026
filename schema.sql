@@ -101,7 +101,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
     password_hash VARCHAR(300) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'viewer',
     activo BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    nda_accepted_version INTEGER DEFAULT 0,
+    nda_accepted_at TIMESTAMP
 );
 
 -- Audit log
