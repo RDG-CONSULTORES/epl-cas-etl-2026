@@ -56,7 +56,7 @@ def add_security_headers(response):
         "default-src 'self'; "
         "script-src 'self' https://unpkg.com 'unsafe-inline'; "
         "style-src 'self' https://unpkg.com 'unsafe-inline'; "
-        "img-src 'self' data: https://*.tile.openstreetmap.org; "
+        "img-src 'self' data: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; "
         "connect-src 'self'; "
         "font-src 'self'; "
         "frame-ancestors 'none'"
