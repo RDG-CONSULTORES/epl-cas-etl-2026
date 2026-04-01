@@ -677,26 +677,48 @@ def api_periodo_contexto(tipo):
         hoy = date.today()
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        # 1. Buscar periodo activo (primero por fecha actual, luego por flag activo)
+        # 1. Buscar periodo activo (prioridad: activo incompleto > fecha > activo > último con datos)
         periodo_actual = None
 
-        # Intentar por fecha actual
-        result = db.session.execute(text("""
-            SELECT id, codigo, nombre, fecha_inicio, fecha_fin
-            FROM periodos_cas
-            WHERE fecha_inicio <= :hoy AND fecha_fin >= :hoy
-            ORDER BY fecha_inicio DESC LIMIT 1
-        """), {'hoy': hoy})
+        # Primero: si hay un periodo marcado activo que NO tiene 86/86, mantenerlo
+        result = db.session.execute(text(f"""
+            SELECT p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin,
+                   COUNT(DISTINCT s.sucursal_id) as supervisadas,
+                   (SELECT COUNT(*) FROM sucursales WHERE activo = true) as total
+            FROM periodos_cas p
+            LEFT JOIN {tabla} s ON s.periodo_id = p.id
+            WHERE p.activo = true
+            GROUP BY p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
+            ORDER BY p.fecha_inicio DESC LIMIT 1
+        """))
         row = result.fetchone()
 
-        if row:
+        if row and (row[5] or 0) < (row[6] or 86):
             periodo_actual = {
                 'id': row[0], 'codigo': row[1], 'nombre': row[2],
                 'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
-                'metodo': 'fecha'
+                'metodo': 'activo_incompleto'
             }
-        else:
-            # Si no hay match por fecha, buscar el marcado como activo
+
+        # Si el activo ya tiene 86/86 o no tiene datos, buscar por fecha
+        if not periodo_actual:
+            result = db.session.execute(text("""
+                SELECT id, codigo, nombre, fecha_inicio, fecha_fin
+                FROM periodos_cas
+                WHERE fecha_inicio <= :hoy AND fecha_fin >= :hoy
+                ORDER BY fecha_inicio DESC LIMIT 1
+            """), {'hoy': hoy})
+            row = result.fetchone()
+
+            if row:
+                periodo_actual = {
+                    'id': row[0], 'codigo': row[1], 'nombre': row[2],
+                    'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
+                    'metodo': 'fecha'
+                }
+
+        if not periodo_actual:
+            # Fallback: periodo marcado como activo (sin filtro de progreso)
             result = db.session.execute(text("""
                 SELECT id, codigo, nombre, fecha_inicio, fecha_fin
                 FROM periodos_cas WHERE activo = true
@@ -709,22 +731,23 @@ def api_periodo_contexto(tipo):
                     'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
                     'metodo': 'activo'
                 }
-            else:
-                # Fallback: último periodo con datos
-                result = db.session.execute(text(f"""
-                    SELECT p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
-                    FROM periodos_cas p
-                    JOIN {tabla} s ON s.periodo_id = p.id
-                    GROUP BY p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
-                    ORDER BY p.fecha_inicio DESC LIMIT 1
-                """))
-                row = result.fetchone()
-                if row:
-                    periodo_actual = {
-                        'id': row[0], 'codigo': row[1], 'nombre': row[2],
-                        'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
-                        'metodo': 'ultimo_con_datos'
-                    }
+
+        if not periodo_actual:
+            # Fallback final: último periodo con datos
+            result = db.session.execute(text(f"""
+                SELECT p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
+                FROM periodos_cas p
+                JOIN {tabla} s ON s.periodo_id = p.id
+                GROUP BY p.id, p.codigo, p.nombre, p.fecha_inicio, p.fecha_fin
+                ORDER BY p.fecha_inicio DESC LIMIT 1
+            """))
+            row = result.fetchone()
+            if row:
+                periodo_actual = {
+                    'id': row[0], 'codigo': row[1], 'nombre': row[2],
+                    'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
+                    'metodo': 'ultimo_con_datos'
+                }
 
         # 2. Lista de periodos para el selector (últimos 6)
         result = db.session.execute(text("""
@@ -735,13 +758,14 @@ def api_periodo_contexto(tipo):
                      'fecha_inicio': str(r[3]) if r[3] else '',
                      'fecha_fin': str(r[4]) if r[4] else ''} for r in result]
 
-        # 3. Progreso de sucursales en el periodo actual
+        # 3. Progreso de sucursales (usa periodo_id del query param si viene, si no el actual)
+        progreso_periodo_id = request.args.get('periodo_id') or (periodo_actual['id'] if periodo_actual else None)
         progreso = {'supervisadas': 0, 'total': 86, 'porcentaje': 0}
-        if periodo_actual:
+        if progreso_periodo_id:
             result = db.session.execute(text(f"""
                 SELECT COUNT(DISTINCT sucursal_id) FROM {tabla}
                 WHERE periodo_id = :periodo_id
-            """), {'periodo_id': periodo_actual['id']})
+            """), {'periodo_id': progreso_periodo_id})
             supervisadas = result.scalar() or 0
 
             result = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true"))
