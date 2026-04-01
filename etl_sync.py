@@ -81,6 +81,60 @@ KPI_MAP = {
 # FUNCIONES AUXILIARES
 # ============================================================
 
+def resolver_periodo(cur):
+    """
+    Determina a qué periodo asignar una supervisión nueva.
+    Regla de negocio: el periodo activo no cierra hasta 86/86 supervisadas.
+
+    Prioridad:
+    1. Periodo activo con < 86/86 → asignar ahí
+    2. Periodo activo con 86/86 → asignar al siguiente
+    3. Sin periodo activo → fallback por fecha actual
+    4. Sin match → último periodo existente
+    """
+    # 1. Buscar periodo activo y su progreso
+    cur.execute("""
+        SELECT p.id, p.codigo,
+               COUNT(DISTINCT so.sucursal_id) as supervisadas,
+               (SELECT COUNT(*) FROM sucursales WHERE activo = true) as total
+        FROM periodos_cas p
+        LEFT JOIN supervisiones_operativas so ON so.periodo_id = p.id
+        WHERE p.activo = true
+        GROUP BY p.id, p.codigo
+    """)
+    activo = cur.fetchone()
+
+    if activo:
+        supervisadas = activo['supervisadas'] or 0
+        total = activo['total'] or 86
+
+        if supervisadas < total:
+            return activo['id']
+
+        # Activo completo (86/86) → siguiente periodo
+        cur.execute("""
+            SELECT id FROM periodos_cas
+            WHERE fecha_inicio > (SELECT fecha_inicio FROM periodos_cas WHERE id = %s)
+            ORDER BY fecha_inicio ASC LIMIT 1
+        """, (activo['id'],))
+        siguiente = cur.fetchone()
+        return siguiente['id'] if siguiente else activo['id']
+
+    # 2. Sin periodo activo → fallback por fecha
+    cur.execute("""
+        SELECT id FROM periodos_cas
+        WHERE CURRENT_DATE BETWEEN fecha_inicio AND fecha_fin
+        LIMIT 1
+    """)
+    por_fecha = cur.fetchone()
+    if por_fecha:
+        return por_fecha['id']
+
+    # 3. Fallback absoluto: último periodo
+    cur.execute("SELECT id FROM periodos_cas ORDER BY fecha_inicio DESC LIMIT 1")
+    ultimo = cur.fetchone()
+    return ultimo['id'] if ultimo else None
+
 def log(msg, level='INFO'):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{level}] {msg}")
 
@@ -224,23 +278,26 @@ def sync_operativas(conn, submissions):
         answers = sub.get('answers', [])
         
         calificacion = extract_calificacion_general(answers)
-        
-        cur.execute("""
-            SELECT id FROM periodos_cas 
-            WHERE %s::date BETWEEN fecha_inicio AND fecha_fin LIMIT 1
-        """, (fecha[:10] if fecha else None,))
-        periodo = cur.fetchone()
-        periodo_id = periodo['id'] if periodo else None
-        
+
+        # Resolver sucursal_id
+        cur.execute("SELECT id FROM sucursales WHERE zenput_location_id = %s", (str(loc_id),))
+        sucursal_row = cur.fetchone()
+        if not sucursal_row:
+            log(f"  Sucursal no encontrada para location_id {loc_id}", 'WARN')
+            continue
+        sucursal_id = sucursal_row['id']
+
+        # Asignar periodo por completitud del periodo activo
+        periodo_id = resolver_periodo(cur)
+
         try:
             cur.execute("""
-                INSERT INTO supervisiones_operativas 
-                (zenput_submission_id, sucursal_id, periodo_id, supervisor, 
+                INSERT INTO supervisiones_operativas
+                (zenput_submission_id, sucursal_id, periodo_id, supervisor,
                  fecha_supervision, calificacion_general, lat_entrega, lon_entrega)
-                VALUES (%s, (SELECT id FROM sucursales WHERE zenput_location_id = %s),
-                        %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
-            """, (submission_id, loc_id, periodo_id, supervisor, fecha, calificacion, lat, lon))
+            """, (submission_id, sucursal_id, periodo_id, supervisor, fecha, calificacion, lat, lon))
             
             sup_id = cur.fetchone()['id']
             nuevos += 1
@@ -301,23 +358,26 @@ def sync_seguridad(conn, submissions):
         answers = sub.get('answers', [])
         
         calificacion = extract_calificacion_general(answers)
-        
-        cur.execute("""
-            SELECT id FROM periodos_cas 
-            WHERE %s::date BETWEEN fecha_inicio AND fecha_fin LIMIT 1
-        """, (fecha[:10] if fecha else None,))
-        periodo = cur.fetchone()
-        periodo_id = periodo['id'] if periodo else None
-        
+
+        # Resolver sucursal_id
+        cur.execute("SELECT id FROM sucursales WHERE zenput_location_id = %s", (str(loc_id),))
+        sucursal_row = cur.fetchone()
+        if not sucursal_row:
+            log(f"  Sucursal no encontrada para location_id {loc_id}", 'WARN')
+            continue
+        sucursal_id = sucursal_row['id']
+
+        # Asignar periodo por completitud del periodo activo
+        periodo_id = resolver_periodo(cur)
+
         try:
             cur.execute("""
-                INSERT INTO supervisiones_seguridad 
-                (zenput_submission_id, sucursal_id, periodo_id, supervisor, 
+                INSERT INTO supervisiones_seguridad
+                (zenput_submission_id, sucursal_id, periodo_id, supervisor,
                  fecha_supervision, calificacion_general)
-                VALUES (%s, (SELECT id FROM sucursales WHERE zenput_location_id = %s),
-                        %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
-            """, (submission_id, loc_id, periodo_id, supervisor, fecha, calificacion))
+            """, (submission_id, sucursal_id, periodo_id, supervisor, fecha, calificacion))
             
             sup_id = cur.fetchone()['id']
             nuevos += 1

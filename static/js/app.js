@@ -273,14 +273,17 @@ function selectPeriodo(periodoId) {
 }
 
 function loadPeriodoProgreso() {
-    // Recargar solo el progreso
-    fetch('/api/periodo-contexto/' + currentTipo)
+    // Recargar progreso del periodo seleccionado
+    var url = '/api/periodo-contexto/' + currentTipo;
+    if (currentPeriodoId && currentPeriodoId !== 'all') {
+        url += '?periodo_id=' + currentPeriodoId;
+    }
+    fetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data && data.data.progreso) {
                 var progressText = document.getElementById('progressText');
                 if (progressText) {
-                    // Buscar progreso del periodo actual si es diferente
                     progressText.textContent = data.data.progreso.supervisadas + '/' + data.data.progreso.total;
                 }
             }
