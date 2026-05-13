@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Operación Diaria — EPL CAS</title>
+    <link rel="stylesheet" href="/static/css/operacion.css">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Top bar -->
+        <header class="topbar">
+            <div class="topbar-row">
+                <h1 class="topbar-title" id="topbar-title">Operación Diaria</h1>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
+                    <span class="theme-icon-dark">●</span>
+                    <span class="theme-icon-light">○</span>
+                </button>
+            </div>
+            <nav class="period-bar" id="period-bar">
+                <button class="period-btn active" data-tipo="week" data-offset="0">Esta semana</button>
+                <button class="period-btn" data-tipo="week" data-offset="-1">Semana anterior</button>
+                <button class="period-btn" data-tipo="month" data-offset="0">Mes actual</button>
+                <button class="period-btn" data-tipo="month" data-offset="-1">Mes anterior</button>
+            </nav>
+        </header>
+
+        <main class="content" id="content">
+
+            <!-- KPI cards -->
+            <section class="kpi-grid" id="kpi-grid">
+                <div class="kpi-card" id="kpi-overall">
+                    <div class="kpi-label">Cumplimiento global</div>
+                    <div class="kpi-value" id="kpi-overall-value">—</div>
+                    <div class="kpi-sub" id="kpi-overall-sub">—</div>
+                </div>
+                <div class="kpi-card" data-form="apertura">
+                    <div class="kpi-label">Apertura<br><small>07:00–11:00</small></div>
+                    <div class="kpi-value" data-kpi="apertura">—</div>
+                </div>
+                <div class="kpi-card" data-form="entrega">
+                    <div class="kpi-label">Entrega turno<br><small>14:00–17:00</small></div>
+                    <div class="kpi-value" data-kpi="entrega">—</div>
+                </div>
+                <div class="kpi-card" data-form="cierre">
+                    <div class="kpi-label">Cierre<br><small>19:00–23:00</small></div>
+                    <div class="kpi-value" data-kpi="cierre">—</div>
+                </div>
+            </section>
+
+            <!-- Ranking GO -->
+            <section class="card section">
+                <div class="card-header">
+                    <h2>Grupos Operativos</h2>
+                    <button class="link-btn" id="toggle-ranking-scope">Ver sucursales →</button>
+                </div>
+                <div class="ranking-list" id="ranking-list"></div>
+            </section>
+
+            <!-- Heatmap -->
+            <section class="card section">
+                <div class="card-header">
+                    <h2>Heatmap semanal</h2>
+                </div>
+                <div class="heatmap-wrapper" id="heatmap-wrapper"></div>
+            </section>
+
+            <!-- Histórico -->
+            <section class="card section">
+                <div class="card-header">
+                    <h2>Tendencia (últimas 8 semanas)</h2>
+                </div>
+                <div class="trend-wrapper" id="trend-wrapper"></div>
+            </section>
+
+            <!-- Alertas -->
+            <section class="card section" id="alertas-section">
+                <div class="card-header">
+                    <h2>Alertas</h2>
+                </div>
+                <div id="alertas-content"></div>
+            </section>
+
+        </main>
+
+        <!-- Modal genérico -->
+        <div class="modal-backdrop" id="modal-backdrop" hidden>
+            <div class="modal" id="modal" role="dialog" aria-modal="true">
+                <button class="modal-close" id="modal-close" aria-label="Cerrar">×</button>
+                <div class="modal-content" id="modal-content"></div>
+            </div>
+        </div>
+
+        <!-- Pull-to-refresh indicator -->
+        <div class="ptr-indicator" id="ptr-indicator">↓ Actualizar</div>
+    </div>
+
+    <script src="/static/js/operacion.js"></script>
+</body>
+</html>
