@@ -1,7 +1,8 @@
 """Cron diario 00:30 Monterrey: cierra día anterior.
 
+- Refresca catálogo de sucursales/GOs
 - Captura submissions completas del día anterior
-- Captura tasks archived_incomplete (= missed)
+- Captura submissions archived_incomplete (= missed)
 - Genera rows missed para combinaciones sin registro
 - UPSERT a daily_compliance
 """
@@ -13,17 +14,20 @@ from datetime import datetime, timedelta
 
 import pytz
 
-from etl_v2.operacion_diaria.extract import extract_missed_tasks, extract_submissions
+from etl_v2.operacion_diaria.extract import (
+    extract_missed_submissions,
+    extract_submissions,
+)
 from etl_v2.operacion_diaria.load import (
     existing_keys_for_range,
     upsert_daily_compliance,
 )
 from etl_v2.operacion_diaria.transform import (
     fill_missing_combinations,
+    missed_submissions_to_rows,
     submissions_to_rows,
-    tasks_to_missed_rows,
 )
-from etl_v2.shared.compliance import LOCAL_TZ, PROJECT_BY_FORM_TEMPLATE
+from etl_v2.shared.compliance import LOCAL_TZ
 from etl_v2.shared.config import settings
 from etl_v2.shared.db import log_etl_run
 from etl_v2.shared.locations import get_active_sucursales, sync_dim_sucursales
@@ -42,7 +46,6 @@ async def run() -> int:
     log.info("daily_close yesterday=%s", yesterday)
     total = 0
     try:
-        # Refrescar catálogo de sucursales/GOs por si hubo altas/bajas/cambios
         async with ZenputClient() as zc:
             await sync_dim_sucursales(zc)
 
@@ -56,8 +59,8 @@ async def run() -> int:
         active = get_active_sucursales()
         active_ids = {s["location_id"] for s in active}
 
-        missed_tasks = await extract_missed_tasks(start_dt, end_dt)
-        missed_rows = tasks_to_missed_rows(missed_tasks, active_ids, PROJECT_BY_FORM_TEMPLATE)
+        missed_by_project = await extract_missed_submissions(start_dt, end_dt)
+        missed_rows = missed_submissions_to_rows(missed_by_project, active_ids)
         total += upsert_daily_compliance(missed_rows)
 
         existing = existing_keys_for_range(yesterday, yesterday)
@@ -67,7 +70,7 @@ async def run() -> int:
         log_etl_run("daily_close", "ok", rows_affected=total,
                     metadata={"day": yesterday.isoformat(),
                               "submission_rows": len(sub_rows),
-                              "missed_task_rows": len(missed_rows),
+                              "missed_rows": len(missed_rows),
                               "filled_rows": len(fill_rows)},
                     started_at=started)
         log.info("daily_close OK total=%d", total)

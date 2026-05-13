@@ -32,7 +32,7 @@ Cron en hora local de Monterrey (Railway respeta `TZ=America/Monterrey`).
 
 ```
 DATABASE_URL=${{ Postgres.DATABASE_URL }}
-ZENPUT_API_TOKEN=<token entregado fuera de banda>
+ZENPUT_TOKEN=<token Zenput — mismo que usa el servicio epl-cas-etl-2026 viejo>
 APP_SCHEMA=operacion_diaria
 TZ=America/Monterrey
 LOG_LEVEL=INFO
@@ -121,18 +121,21 @@ railway run -s web-operacion-diaria psql $DATABASE_URL -c \
 #   railway service cron-operacion-weekly-rollup --remove
 ```
 
-## Gotchas de Zenput (documentados aquí porque los pisamos en el camino)
+## Gotchas de Zenput v3 (validados contra el API real, mayo 2026)
 
-1. **`include_future_tasks_v2=true`** es obligatorio en `list_tasks` o
-   subreporta brutalmente.
-2. **Fechas** en milisegundos epoch como string, no `{"$date": ...}`.
-3. **Cap ~10K** por listado → segmentar por semanas.
-4. **`smetadata.parent_project.id`** liga submission al proyecto recurrente.
-5. **GO de sucursal** se resuelve subiendo `team.parent.id` hasta encontrar uno
+1. **API es v3**, no v1. Paths: `/api/v3/{submissions,locations,teams,projects,forms}/`.
+2. **`/api/v3/tasks/` no existe** — los "missed" se obtienen con
+   `/api/v3/submissions/?status=archived_incomplete`.
+3. **Paginación** vía `meta.next` URL absoluta (no `page=N`).
+4. **`meta.count`** puede reportar `10000` como cap; real total se conoce solo iterando.
+5. **Location** de una submission vive en **`smetadata.location.id`**, NO en top-level.
+6. **Fechas** en milisegundos epoch como string para los query params.
+7. **`smetadata.parent_project.id`** liga submission al proyecto recurrente.
+8. **GO de sucursal** se resuelve subiendo `team.parent.id` hasta encontrar uno
    cuyo `parent.id == 115095` (root "El Pollo Loco México").
 
 ## Seguridad
 
-- `ZENPUT_API_TOKEN` y password de `operacion_diaria_app` viven solo en
+- `ZENPUT_TOKEN` y password de `operacion_diaria_app` viven solo en
   Railway variables. **Nunca** commit ni log.
-- El usuario `operacion_diaria_app` no tiene `USAGE` sobre `public`.
+- El usuario `operacion_diaria_app` no puede `CREATE` en `public` (solo lee).

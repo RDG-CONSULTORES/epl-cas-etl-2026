@@ -1,9 +1,13 @@
-"""Cliente HTTPX para Zenput API con retry, paginación y logging.
+"""Cliente HTTPX para Zenput API v3 con retry, paginación (meta.next) y logging.
 
-Gotchas validados (documentar para futuros lectores):
-- /api/v1/tasks/list_tasks/ NECESITA include_future_tasks_v2=true.
-- Fechas: string de milisegundos epoch plano, NO {"$date": ...}.
-- Cap ~10K por listado; segmentar rangos cortos si se requiere más.
+Notas validadas contra el API real (mayo 2026):
+- API real es **v3**, no v1. Paths: /api/v3/{submissions,locations,teams,projects,forms}/
+- Submissions filtrados por `form_template_id` + `start_date` + `end_date` (epoch ms).
+- `status` puede ser `complete`, `incomplete`, `archived_incomplete`.
+- Paginación: `meta.next` es una URL absoluta — usarla directamente para iterar.
+- `meta.count` puede reportar `10000` como cap; real total se conoce solo iterando.
+- Location de una submission vive en `smetadata.location` (no en top-level).
+- Proyecto recurrente padre: `smetadata.parent_project.id`.
 """
 from __future__ import annotations
 
@@ -18,9 +22,10 @@ from etl_v2.shared.config import settings
 
 log = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+DEFAULT_TIMEOUT = httpx.Timeout(45.0, connect=10.0)
 MAX_RETRIES = 3
-PAGE_SIZE = 1000
+DEFAULT_PAGE_SIZE = 200
+SAFETY_CAP = 12_000
 
 
 def _epoch_ms(dt: datetime) -> str:
@@ -29,7 +34,7 @@ def _epoch_ms(dt: datetime) -> str:
 
 class ZenputClient:
     def __init__(self, token: str | None = None, base_url: str | None = None):
-        self.token = token or settings.ZENPUT_API_TOKEN
+        self.token = token or settings.ZENPUT_TOKEN
         self.base_url = (base_url or settings.ZENPUT_BASE_URL).rstrip("/")
         self._client: httpx.AsyncClient | None = None
 
@@ -45,98 +50,95 @@ class ZenputClient:
         if self._client:
             await self._client.aclose()
 
-    async def _request(self, method: str, path: str, **kw) -> dict[str, Any]:
+    async def _request(self, method: str, url: str, **kw) -> dict[str, Any]:
         assert self._client is not None, "ZenputClient must be used as async context manager"
         last_exc: Exception | None = None
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                resp = await self._client.request(method, path, **kw)
-                if resp.status_code >= 500:
-                    raise httpx.HTTPStatusError(f"server {resp.status_code}", request=resp.request, response=resp)
+                resp = await self._client.request(method, url, **kw)
+                if resp.status_code in (502, 503, 504):
+                    raise httpx.HTTPStatusError(f"gateway {resp.status_code}",
+                                                request=resp.request, response=resp)
                 resp.raise_for_status()
                 return resp.json()
             except (httpx.HTTPStatusError, httpx.TransportError) as e:
                 last_exc = e
                 wait = 2 ** attempt
                 log.warning("zenput %s %s intento %d falló: %s — retry en %ss",
-                            method, path, attempt, e, wait)
+                            method, url, attempt, e, wait)
                 if attempt < MAX_RETRIES:
                     await asyncio.sleep(wait)
         assert last_exc is not None
         raise last_exc
 
-    async def _paginate(self, path: str, params: dict, results_key: str = "results") -> AsyncIterator[dict]:
-        total_yielded = 0
-        page = 1
-        while True:
-            p = {**params, "page": page, "page_size": PAGE_SIZE}
-            data = await self._request("GET", path, params=p)
-            items = data.get(results_key) or data.get("data") or []
-            if not items and isinstance(data, list):
-                items = data
+    async def _paginate(self, path: str, params: dict | None = None,
+                        page_size: int = DEFAULT_PAGE_SIZE) -> AsyncIterator[dict]:
+        """Itera todos los items siguiendo meta.next (URL absoluta de v3)."""
+        params = dict(params or {})
+        params.setdefault("page_size", page_size)
+        next_url: str | None = path  # path relativo al base_url
+        seen = 0
+        while next_url:
+            # Si next_url es absoluta, httpx la respeta vía base_url= ignored
+            data = await self._request("GET", next_url, params=params if seen == 0 else None)
+            items = data.get("data") or data.get("results") or []
             for item in items:
                 yield item
-                total_yielded += 1
-            if total_yielded >= 10_000:
-                log.warning("zenput %s alcanzó cap 10K — segmentar rango", path)
-                break
-            if not data.get("next") and len(items) < PAGE_SIZE:
-                break
-            page += 1
-            if page > 50:
-                log.warning("zenput %s safety break en page=50", path)
-                break
+                seen += 1
+                if seen >= SAFETY_CAP:
+                    log.warning("zenput %s safety cap %d alcanzado", path, SAFETY_CAP)
+                    return
+            meta = data.get("meta") or {}
+            next_url = meta.get("next") or None
+            if next_url is None and not items:
+                # Sin paginación (endpoint plano), salida limpia
+                return
 
     # ------------------------------------------------------------
     # Endpoints
     # ------------------------------------------------------------
-    async def list_submissions(self, form_template_id: int, start: datetime, end: datetime
-                               ) -> list[dict]:
+    async def list_submissions(self, form_template_id: int, start: datetime, end: datetime,
+                                status: str | None = None) -> list[dict]:
+        """Submissions de un form_template en rango. status opcional:
+        'complete', 'incomplete', 'archived_incomplete'.
+        """
         params = {
             "form_template_id": form_template_id,
-            "start_date": _epoch_ms(start),
-            "end_date": _epoch_ms(end),
-        }
-        out: list[dict] = []
-        async for sub in self._paginate("/api/v1/submissions/list_submissions/", params):
-            out.append(sub)
-        log.info("zenput submissions form=%s rango=%s..%s → %d",
-                 form_template_id, start.date(), end.date(), len(out))
-        return out
-
-    async def list_tasks(self, start: datetime, end: datetime,
-                         status: str | None = None) -> list[dict]:
-        params = {
-            "include_future_tasks_v2": "true",
             "start_date": _epoch_ms(start),
             "end_date": _epoch_ms(end),
         }
         if status:
             params["status"] = status
         out: list[dict] = []
-        async for task in self._paginate("/api/v1/tasks/list_tasks/", params):
-            out.append(task)
-        log.info("zenput tasks rango=%s..%s status=%s → %d",
-                 start.date(), end.date(), status, len(out))
+        async for sub in self._paginate("/api/v3/submissions/", params):
+            out.append(sub)
+        log.info("zenput v3 submissions form=%s status=%s rango=%s..%s → %d",
+                 form_template_id, status or "*", start.date(), end.date(), len(out))
         return out
+
+    async def list_archived_submissions(self, form_template_id: int,
+                                         start: datetime, end: datetime) -> list[dict]:
+        """Atajo para submissions con status=archived_incomplete (= missed)."""
+        return await self.list_submissions(form_template_id, start, end,
+                                           status="archived_incomplete")
 
     async def list_locations(self) -> list[dict]:
         out: list[dict] = []
-        async for loc in self._paginate("/api/v1/locations/list_locations/", {}):
+        async for loc in self._paginate("/api/v3/locations/"):
             out.append(loc)
-        log.info("zenput locations → %d", len(out))
+        log.info("zenput v3 locations → %d", len(out))
         return out
 
     async def list_teams(self) -> list[dict]:
         out: list[dict] = []
-        async for team in self._paginate("/api/v1/teams/list_teams/", {}):
+        async for team in self._paginate("/api/v3/teams/"):
             out.append(team)
-        log.info("zenput teams → %d", len(out))
+        log.info("zenput v3 teams → %d", len(out))
         return out
 
     async def list_projects(self) -> list[dict]:
         out: list[dict] = []
-        async for prj in self._paginate("/api/v1/projects/list_projects/", {}):
+        async for prj in self._paginate("/api/v3/projects/"):
             out.append(prj)
-        log.info("zenput projects → %d", len(out))
+        log.info("zenput v3 projects → %d", len(out))
         return out

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     DATABASE_URL: str
-    ZENPUT_API_TOKEN: str
+    ZENPUT_TOKEN: str
     APP_SCHEMA: str = "operacion_diaria"
     TZ: str = "America/Monterrey"
     LOG_LEVEL: str = "INFO"
