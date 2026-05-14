@@ -315,7 +315,8 @@ async function openDrillDown(scope, id, nombre) {
         document.getElementById("sucursalModalBody").innerHTML = `<div class="loading">Cargando...</div>`;
         openModal("sucursalModalOverlay");
         try {
-            const data = await api(`/sucursal/${id}?periodo=${getPeriodoQuery()}`);
+            // Pedir 28 días para calendar completo
+            const data = await api(`/sucursal/${id}?dias=28`);
             document.getElementById("sucursalModalBody").innerHTML = renderSucursalDetail(data);
         } catch (e) {
             document.getElementById("sucursalModalBody").innerHTML = `<p style="color:var(--critical);padding:16px">${escapeHtml(e.message)}</p>`;
@@ -368,49 +369,146 @@ function renderGrupoDetail(d) {
 function renderSucursalDetail(d) {
     const totalDays = d.days.length;
     const avgPct = totalDays ? d.days.reduce((a,b) => a + b.pct_day, 0) / totalDays : 0;
-    const cls = pctClass(avgPct);
-    const forms = ["apertura", "entrega", "cierre"];
-    const formLabels = { apertura: "Apert.", entrega: "Entrega", cierre: "Cierre" };
-    const days = d.days.map(day => {
-        const dt = new Date(day.day + "T00:00:00");
-        const dayName = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"][dt.getDay()];
-        const cells = forms.map(fk => {
+    const formLabels = { apertura: "Apertura", entrega: "Entrega", cierre: "Cierre" };
+    const formTimes  = { apertura: "07-11 h", entrega: "14-17 h", cierre: "19-23 h" };
+
+    // Stats 3 col (% por formulario en el periodo completo)
+    const formStats = {};
+    for (const fk of ["apertura","entrega","cierre"]) {
+        let on = 0, late = 0, missed = 0;
+        for (const day of d.days) {
             const f = day.forms[fk];
-            if (!f) return `<td class="day-cell day-empty">—</td>`;
-            const pct = (f.score * 100).toFixed(0);
-            const dcls = pctClass(parseFloat(pct));
-            return `<td class="day-cell day-${dcls}" title="${fk}: ${f.status}">${pct}</td>`;
+            if (!f) { missed++; continue; }
+            if (f.status === "on_time") on++;
+            else if (f.status === "late") late++;
+            else missed++;
+        }
+        const total = on + late + missed;
+        const pct = total ? ((on * 100 + late * 50) / total) : 0;
+        formStats[fk] = { on, late, missed, pct };
+    }
+
+    // Calendar 28 días en filas de 7 (semanas)
+    const dayByDate = Object.fromEntries(d.days.map(x => [x.day, x]));
+    const today = new Date().toISOString().slice(0, 10);
+    const startDate = new Date(d.start + "T00:00:00");
+    const endDate = new Date(d.end + "T00:00:00");
+    // Alinear inicio a lunes
+    let cursor = new Date(startDate);
+    const dow = cursor.getDay(); // 0=dom
+    const lunesOffset = dow === 0 ? -6 : 1 - dow;
+    cursor.setDate(cursor.getDate() + lunesOffset);
+    const weeks = [];
+    while (cursor <= endDate || weeks.length === 0 || cursor.getDay() !== 1) {
+        const week = [];
+        for (let i = 0; i < 7; i++) {
+            const iso = cursor.toISOString().slice(0, 10);
+            week.push({ iso, date: new Date(cursor) });
+            cursor.setDate(cursor.getDate() + 1);
+        }
+        weeks.push(week);
+        if (cursor > endDate && cursor.getDay() === 1) break;
+        if (weeks.length >= 5) break;
+    }
+
+    const weekRows = weeks.map((week, idx) => {
+        const cells = week.map(cell => {
+            const isFuture = cell.iso > today;
+            if (isFuture) return `<div class="cal-cell cell-future"><span class="cell-day">${cell.date.getDate()}</span></div>`;
+            const day = dayByDate[cell.iso];
+            if (!day) return `<div class="cal-cell cell-empty"><span class="cell-day">${cell.date.getDate()}</span></div>`;
+            const pct = day.pct_day;
+            const cls = pct >= 90 ? "cell-excellent" : pct >= 70 ? "cell-good" : pct >= 50 ? "cell-regular" : "cell-critical";
+            const todayCls = cell.iso === today ? " cell-today" : "";
+            return `<div class="cal-cell ${cls}${todayCls}"><span class="cell-day">${cell.date.getDate()}</span><span class="cell-score">${pct.toFixed(0)}</span></div>`;
         }).join("");
-        return `<tr>
-            <td class="day-row-label">${dayName} ${dt.getDate()}</td>
-            ${cells}
-            <td class="day-row-total"><strong>${day.pct_day.toFixed(0)}%</strong></td>
-        </tr>`;
+        return `<div class="cal-row"><span class="cal-week-label">S${idx+1}</span>${cells}</div>`;
     }).join("");
+
+    // Submission list de HOY
+    const todayData = dayByDate[today];
+    let submissionList = `<p style="padding:16px;color:var(--text-secondary);text-align:center">Sin datos de hoy.</p>`;
+    if (todayData) {
+        const items = ["apertura", "entrega", "cierre"].map(fk => {
+            const f = todayData.forms[fk];
+            if (!f) {
+                return `
+                    <div class="sub-item">
+                        <span class="sub-time">—</span>
+                        <div>
+                            <div class="sub-name">${formLabels[fk]}</div>
+                            <div class="sub-meta">Pendiente · ventana ${formTimes[fk]}</div>
+                        </div>
+                        <span class="badge badge-pending">pendiente</span>
+                    </div>`;
+            }
+            const dt = f.completed_at ? new Date(f.completed_at) : null;
+            // Hora local Monterrey (UTC-6)
+            const hh = dt ? String(dt.getUTCHours() - 6 < 0 ? 24 + dt.getUTCHours() - 6 : dt.getUTCHours() - 6).padStart(2, "0") : "—";
+            const mm = dt ? String(dt.getUTCMinutes()).padStart(2, "0") : "—";
+            const horaLocal = dt ? `${hh}:${mm}` : "—";
+            const badgeCls = f.status === "on_time" ? "badge-ontime"
+                          : f.status === "late" ? "badge-late"
+                          : "badge-missed";
+            const badgeText = f.status === "on_time" ? "a tiempo"
+                          : f.status === "late" ? "tardío"
+                          : "faltó";
+            const metaText = f.status === "on_time"
+                ? `Entregado dentro de ventana (${formTimes[fk]})`
+                : f.status === "late"
+                ? `Fuera de ventana ${formTimes[fk]}`
+                : `Sin envío · ventana ${formTimes[fk]}`;
+            return `
+                <div class="sub-item">
+                    <span class="sub-time">${horaLocal}</span>
+                    <div>
+                        <div class="sub-name">${formLabels[fk]}</div>
+                        <div class="sub-meta">${metaText}</div>
+                    </div>
+                    <span class="badge ${badgeCls}">${badgeText}</span>
+                </div>`;
+        }).join("");
+        submissionList = `<div class="submission-list">${items}</div>`;
+    }
+
     return `
         <div class="modal-summary">
             <div class="modal-summary-card main">
                 <span class="modal-summary-value">${avgPct.toFixed(1)}%</span>
-                <span class="modal-summary-label">Promedio</span>
+                <span class="modal-summary-label">Cumplimiento ${totalDays}d</span>
             </div>
             <div class="modal-summary-card">
-                <span class="modal-summary-value">${totalDays}</span>
-                <span class="modal-summary-label">Días</span>
+                <span class="modal-summary-value pct-${pctClass(formStats.apertura.pct)}">${formStats.apertura.pct.toFixed(0)}</span>
+                <span class="modal-summary-label">Apertura<br>07-11h</span>
+            </div>
+            <div class="modal-summary-card">
+                <span class="modal-summary-value pct-${pctClass(formStats.entrega.pct)}">${formStats.entrega.pct.toFixed(0)}</span>
+                <span class="modal-summary-label">Entrega<br>14-17h</span>
+            </div>
+            <div class="modal-summary-card">
+                <span class="modal-summary-value pct-${pctClass(formStats.cierre.pct)}">${formStats.cierre.pct.toFixed(0)}</span>
+                <span class="modal-summary-label">Cierre<br>19-23h</span>
             </div>
         </div>
-        <h3 class="section-title">Por Día</h3>
-        <table class="day-table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Aper.</th>
-                    <th>Ent.</th>
-                    <th>Cierre</th>
-                    <th>Día</th>
-                </tr>
-            </thead>
-            <tbody>${days || `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">Sin datos</td></tr>`}</tbody>
-        </table>
+
+        <h3 class="section-title">Calendario · últimos 28 días</h3>
+        <div class="calendar">
+            <div class="cal-header">
+                <span></span>
+                <div class="cal-day-label">L</div><div class="cal-day-label">M</div><div class="cal-day-label">X</div>
+                <div class="cal-day-label">J</div><div class="cal-day-label">V</div><div class="cal-day-label">S</div><div class="cal-day-label">D</div>
+            </div>
+            ${weekRows}
+            <div class="legend" style="margin-top:12px">
+                <span><span class="legend-dot" style="background:var(--excellent)"></span>≥90</span>
+                <span><span class="legend-dot" style="background:var(--good)"></span>70-89</span>
+                <span><span class="legend-dot" style="background:var(--regular)"></span>50-69</span>
+                <span><span class="legend-dot" style="background:var(--critical)"></span>&lt;50</span>
+            </div>
+        </div>
+
+        <h3 class="section-title">Hoy · ${new Date().toLocaleDateString("es-MX", {weekday:"long", day:"numeric", month:"long"})}</h3>
+        ${submissionList}
     `;
 }
 

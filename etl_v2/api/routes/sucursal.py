@@ -28,8 +28,19 @@ def get_sucursal(
     response: Response,
     location_id: int,
     periodo: str = Query("current-week"),
+    dias: int = Query(0, ge=0, le=60),
 ) -> dict:
-    start, end, is_current = _resolve_period(periodo)
+    """Detalle de sucursal.
+    Si `dias > 0`, sobreescribe el rango del periodo a "últimos N días"
+    (útil para calendario de 28 días en el drill-down).
+    """
+    if dias > 0:
+        today = datetime.now(LOCAL_TZ).date()
+        end = today
+        start = today - timedelta(days=dias - 1)
+        is_current = True
+    else:
+        start, end, is_current = _resolve_period(periodo)
     response.headers["Cache-Control"] = "max-age=60" if is_current else "max-age=300"
 
     suc = fetch_one(
