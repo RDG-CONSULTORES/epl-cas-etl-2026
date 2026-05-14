@@ -1,143 +1,247 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0a0a0f">
     <meta name="color-scheme" content="dark light">
-    <!-- Bloquear Dark Reader y similares que oscurecen demás sitios con tema propio -->
     <meta name="darkreader-lock">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23ff6b35'/%3E%3Ctext x='50' y='62' font-size='52' text-anchor='middle' fill='white' font-family='-apple-system'%3E%E2%9C%93%3C/text%3E%3C/svg%3E">
-    <title>Operación Diaria — EPL CAS</title>
+    <title>EPL CAS · Operación Diaria</title>
     <link rel="stylesheet" href="/static/css/operacion.css">
 </head>
 <body>
-<div class="app">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">EPL CAS 2026</h1>
+                <p class="header-subtitle">Operación Diaria · Cumplimiento 3 formularios</p>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+                    <svg class="icon-sun" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
 
-    <!-- Header -->
-    <div class="header">
-        <div>
-            <h1 class="header-title">EPL CAS 2026</h1>
-            <p class="header-subtitle">Operación diaria</p>
+        <!-- Period Bar -->
+        <div class="period-bar" id="periodBar">
+            <button class="period-selector" id="periodSelector">
+                <span class="period-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </span>
+                <span class="period-name" id="periodName">Cargando...</span>
+                <span class="period-chevron">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </span>
+            </button>
+            <div class="period-progress">
+                <span class="progress-text" id="progressText">-</span>
+                <span class="progress-label">Cumplimiento</span>
+            </div>
         </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">
-            <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
+
+        <!-- Main Toggle: Semana / Mes -->
+        <div class="main-toggle-container">
+            <div class="main-toggle">
+                <button class="toggle-btn active" data-tipo="week">Semana</button>
+                <button class="toggle-btn" data-tipo="month">Mes</button>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <main class="tab-content">
+            <!-- Dashboard Tab -->
+            <section class="tab-panel active" id="dashboard">
+                <!-- KPI Cards -->
+                <div class="kpi-section">
+                    <div class="kpi-grid">
+                        <div class="kpi-card main">
+                            <span class="kpi-value" id="kpiPromedio">-</span>
+                            <span class="kpi-label" id="kpiPromedioLabel">Cumplimiento</span>
+                            <span class="kpi-acumulado" id="kpiAcumulado">vs sem. anterior</span>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-value" id="kpiTotal">-</span>
+                            <span class="kpi-label">Evaluaciones</span>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-value" id="kpiGrupos">-</span>
+                            <span class="kpi-label">A tiempo</span>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-value" id="kpiSucursales">-</span>
+                            <span class="kpi-label">Faltadas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Por formulario -->
+                <div class="distribution-section">
+                    <h3 class="section-title">Cumplimiento por Formulario</h3>
+                    <div class="distribution-bars" id="distributionBars">
+                        <div class="loading">Cargando...</div>
+                    </div>
+                </div>
+
+                <!-- Secondary Toggles -->
+                <div class="secondary-toggles">
+                    <div class="toggle-group">
+                        <button class="sub-toggle active" data-view="grupos">Grupos</button>
+                        <button class="sub-toggle" data-view="sucursales">Sucursales</button>
+                    </div>
+                </div>
+
+                <!-- Ranking List -->
+                <div class="ranking-section">
+                    <h3 class="section-title">Ranking <span id="rankingTitle">de Grupos</span></h3>
+                    <div class="ranking-list" id="rankingList">
+                        <div class="loading">Cargando...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Heatmap Tab (Día por día) -->
+            <section class="tab-panel" id="heatmap">
+                <div class="historico-header">
+                    <h3 class="section-title">Día por Día · 3 Formularios × 7 Días</h3>
+                </div>
+                <div class="heatmap-container" id="heatmapContainer">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </section>
+
+            <!-- Historico Tab -->
+            <section class="tab-panel" id="historico">
+                <div class="historico-header">
+                    <h3 class="section-title">Tendencia Semanal · Últimas 12</h3>
+                </div>
+                <div class="heatmap-container" id="historicoContainer">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </section>
+
+            <!-- Alertas Tab -->
+            <section class="tab-panel" id="alertas">
+                <div class="alertas-summary" id="alertasSummary"></div>
+                <div class="alertas-section">
+                    <h3 class="section-title critical-title">Críticos (&lt;70%)</h3>
+                    <div class="alertas-list" id="alertasCriticos">
+                        <div class="loading">Cargando...</div>
+                    </div>
+                </div>
+                <div class="alertas-section">
+                    <h3 class="section-title warning-title">En Riesgo (70-79%)</h3>
+                    <div class="alertas-list" id="alertasWarning">
+                        <div class="loading">Cargando...</div>
+                    </div>
+                </div>
+                <div class="alertas-section">
+                    <h3 class="section-title">Pendientes Hoy</h3>
+                    <div class="alertas-list" id="alertasPendientes">
+                        <div class="loading">Cargando...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
     </div>
 
-    <!-- Period bar (calendario + rango actual + live indicator) -->
-    <div class="period-bar" id="period-bar">
-        <div class="period-selector">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
+    <!-- Period Sheet Picker (iOS Style) -->
+    <div class="sheet-overlay" id="periodSheetOverlay">
+        <div class="sheet-container" id="periodSheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h3 class="sheet-title">Seleccionar Periodo</h3>
+            </div>
+            <div class="sheet-body" id="periodSheetBody"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Tab Navigation (iOS Style) -->
+    <nav class="bottom-nav">
+        <button class="bottom-tab active" data-tab="dashboard">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
-            <span id="period-range">— — —</span>
-        </div>
-        <div class="period-progress">
-            <span class="live-dot"></span>
-            <span id="period-progress-text">—</span>
-        </div>
-    </div>
-
-    <!-- Main toggle: Sem ant / En curso / Mes / Hist -->
-    <div class="main-toggle" id="main-toggle">
-        <button class="toggle-btn" data-tipo="week" data-offset="-1">Sem ant</button>
-        <button class="toggle-btn active" data-tipo="week" data-offset="0">En curso</button>
-        <button class="toggle-btn" data-tipo="month" data-offset="0">Mes</button>
-        <button class="toggle-btn" data-tipo="hist">Hist</button>
-    </div>
-
-    <!-- KPI grid principal: cumplimiento gradient + sucursales -->
-    <div class="kpi-grid">
-        <div class="kpi-card main" id="kpi-main">
-            <span class="kpi-value" id="kpi-overall-value">—</span>
-            <span class="kpi-label">Cumplimiento</span>
-            <span class="kpi-acumulado" id="kpi-overall-delta">—</span>
-        </div>
-        <div class="kpi-card">
-            <span class="kpi-value" id="kpi-sucursales">68</span>
-            <span class="kpi-label">Sucursales</span>
-            <span class="kpi-sublabel">18 GOs · EPL CAS</span>
-        </div>
-    </div>
-
-    <!-- Triple grid: cumplimiento por formulario -->
-    <h3 class="section-title">Por formulario</h3>
-    <div class="triple-grid">
-        <div class="form-card">
-            <div class="form-name">Apertura</div>
-            <div class="form-value" data-form="apertura">—</div>
-            <div class="form-window">07-11 h</div>
-        </div>
-        <div class="form-card">
-            <div class="form-name">Entrega</div>
-            <div class="form-value" data-form="entrega">—</div>
-            <div class="form-window">14-17 h</div>
-        </div>
-        <div class="form-card">
-            <div class="form-name">Cierre</div>
-            <div class="form-value" data-form="cierre">—</div>
-            <div class="form-window">19-23 h</div>
-        </div>
-    </div>
-
-    <!-- Heat-grid día por día (Apert/Entrega/Cierre × 7 días) -->
-    <h3 class="section-title">Día por día</h3>
-    <div class="week-card">
-        <div class="heat-grid" id="heat-grid"></div>
-        <div class="legend">
-            <span><span class="legend-dot" style="background:#5ac8fa"></span>≥65</span>
-            <span><span class="legend-dot" style="background:#ffd60a"></span>50–64</span>
-            <span><span class="legend-dot" style="background:#ff453a"></span>&lt;50</span>
-            <span><span class="legend-dot" style="background:rgba(255,255,255,0.1);border:0.5px dashed rgba(255,255,255,0.3)"></span>futuro</span>
-        </div>
-    </div>
-
-    <!-- Top GOs -->
-    <div class="section-title-row">
-        <h3 class="section-title">Top grupos operativos</h3>
-        <button class="link-btn" id="ranking-toggle">Ver sucursales →</button>
-    </div>
-    <div class="ranking-list" id="ranking-list"></div>
-
-    <!-- Bottom nav -->
-    <div class="bottom-nav">
-        <button class="bottom-tab" data-tab="dash" title="Resumen">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-            <span>Dash</span>
+            <span class="tab-label">Dashboard</span>
         </button>
-        <button class="bottom-tab active" data-tab="operacion" title="Operación diaria">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Operación</span>
+        <button class="bottom-tab" data-tab="heatmap">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="3" y1="15" x2="21" y2="15"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+                <line x1="15" y1="3" x2="15" y2="21"/>
+            </svg>
+            <span class="tab-label">Día x Día</span>
         </button>
-        <button class="bottom-tab" data-tab="hist" title="Histórico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
-            <span>Hist</span>
+        <button class="bottom-tab" data-tab="historico">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"/>
+                <path d="M18 17l-5-5-4 4-3-3"/>
+            </svg>
+            <span class="tab-label">Histórico</span>
         </button>
-        <button class="bottom-tab" data-tab="alertas" title="Alertas">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-            <span>Alertas</span>
+        <button class="bottom-tab" data-tab="alertas">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+            <span class="tab-label">Alertas</span>
         </button>
-    </div>
+    </nav>
 
-    <!-- Modal drill-down -->
-    <div class="modal-backdrop" id="modal-backdrop" hidden>
-        <div class="modal" id="modal" role="dialog" aria-modal="true">
-            <button class="modal-close" id="modal-close" aria-label="Cerrar">×</button>
-            <div class="modal-content" id="modal-content"></div>
+    <!-- Modal for Drill-downs (GO) -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Detalle</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
-</div>
+    <!-- Sucursal Detail Modal -->
+    <div class="modal-overlay" id="sucursalModalOverlay">
+        <div class="modal-container modal-large">
+            <div class="modal-header">
+                <button class="modal-back" id="modalBack">&larr;</button>
+                <h3 class="modal-title" id="sucursalModalTitle">Sucursal</h3>
+                <button class="modal-close" id="sucursalModalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="sucursalModalBody"></div>
+        </div>
+    </div>
 
-<script src="/static/js/operacion.js"></script>
+    <script src="/static/js/operacion.js"></script>
 </body>
 </html>
