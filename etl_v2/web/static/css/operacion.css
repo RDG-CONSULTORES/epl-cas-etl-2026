@@ -68,21 +68,28 @@ html, body {
 body.scroll-locked { overflow: hidden; }
 
 .app-container {
-    max-width: 720px;
+    max-width: 1200px;
     margin: 0 auto;
     padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* ===== Topbar ===== */
+/* ===== Topbar — glassmorphism sutil, sin blur agresivo en desktop ===== */
 .topbar {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: var(--color-surface);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    background: var(--color-bg);
     border-bottom: 0.5px solid var(--color-separator);
     padding: env(safe-area-inset-top) var(--space-4) var(--space-2);
+}
+
+/* Glassmorphism solo en mobile (donde el efecto se ve bien sobre contenido scrolleable) */
+@media (max-width: 720px) {
+    .topbar {
+        background: var(--color-surface);
+        backdrop-filter: saturate(180%) blur(8px);
+        -webkit-backdrop-filter: saturate(180%) blur(8px);
+    }
 }
 
 .topbar-row {
@@ -173,7 +180,7 @@ body.scroll-locked { overflow: hidden; }
     cursor: pointer;
 }
 
-/* ===== KPI grid ===== */
+/* ===== KPI grid — responsive: 2 cols mobile, 4 cols desktop ===== */
 .kpi-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -181,6 +188,13 @@ body.scroll-locked { overflow: hidden; }
     margin-bottom: var(--space-4);
 }
 .kpi-grid > :first-child { grid-column: span 2; }
+
+@media (min-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+    .kpi-grid > :first-child { grid-column: span 1; }
+}
 
 .kpi-card {
     background: var(--color-bg-elev);
@@ -314,7 +328,6 @@ body.scroll-locked { overflow: hidden; }
 .modal-backdrop {
     position: fixed; inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(4px);
     z-index: 1000;
     display: flex;
     align-items: flex-end;
