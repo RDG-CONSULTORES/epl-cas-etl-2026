@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from etl_v2.api.routes import (
@@ -51,9 +51,23 @@ if WEB_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(WEB_DIR / "static")), name="static")
 
 
+FAVICON_SVG = (
+    b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+    b'<rect width="100" height="100" rx="20" fill="#0a84ff"/>'
+    b'<text x="50" y="62" font-size="52" text-anchor="middle" fill="white" '
+    b'font-family="-apple-system">\xe2\x9c\x93</text></svg>'
+)
+
+
 @app.get("/api/health")
 def health() -> JSONResponse:
     return JSONResponse({"status": "ok", "service": "operacion-diaria"})
+
+
+@app.get("/favicon.ico")
+def favicon() -> Response:
+    return Response(content=FAVICON_SVG, media_type="image/svg+xml",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/")
