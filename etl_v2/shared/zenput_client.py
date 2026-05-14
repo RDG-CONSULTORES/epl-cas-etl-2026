@@ -24,8 +24,8 @@ log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = httpx.Timeout(45.0, connect=10.0)
 MAX_RETRIES = 3
-DEFAULT_PAGE_SIZE = 200
-SAFETY_CAP = 12_000
+DEFAULT_LIMIT = 100  # Zenput v3 acepta 'limit' (no 'page_size'); 100 es el sweet spot
+SAFETY_CAP = 200_000  # tope amplio para backfill grande
 
 
 def _epoch_ms(dt: datetime) -> str:
@@ -72,27 +72,38 @@ class ZenputClient:
         raise last_exc
 
     async def _paginate(self, path: str, params: dict | None = None,
-                        page_size: int = DEFAULT_PAGE_SIZE) -> AsyncIterator[dict]:
-        """Itera todos los items siguiendo meta.next (URL absoluta de v3)."""
+                        limit: int = DEFAULT_LIMIT) -> AsyncIterator[dict]:
+        """Itera items con limit+offset. Zenput v3 cap absoluto en offset=10000:
+        cuando se alcanza ese cap retorna HTTP 400 — se trata como fin grácil.
+        """
         params = dict(params or {})
-        params.setdefault("page_size", page_size)
-        next_url: str | None = path  # path relativo al base_url
+        params["limit"] = limit
+        offset = 0
         seen = 0
-        while next_url:
-            # Si next_url es absoluta, httpx la respeta vía base_url= ignored
-            data = await self._request("GET", next_url, params=params if seen == 0 else None)
+        while True:
+            if offset >= 10000:
+                log.info("zenput %s detenido en offset=10000 (cap del API)", path)
+                return
+            params["offset"] = offset
+            try:
+                data = await self._request("GET", path, params=params)
+            except httpx.HTTPStatusError as e:
+                if e.response is not None and e.response.status_code == 400:
+                    log.info("zenput %s HTTP 400 en offset=%d → fin grácil", path, offset)
+                    return
+                raise
             items = data.get("data") or data.get("results") or []
+            if not items:
+                return
             for item in items:
                 yield item
                 seen += 1
-                if seen >= SAFETY_CAP:
-                    log.warning("zenput %s safety cap %d alcanzado", path, SAFETY_CAP)
-                    return
-            meta = data.get("meta") or {}
-            next_url = meta.get("next") or None
-            if next_url is None and not items:
-                # Sin paginación (endpoint plano), salida limpia
+            if len(items) < limit:
                 return
+            if seen >= SAFETY_CAP:
+                log.warning("zenput %s safety cap %d alcanzado", path, SAFETY_CAP)
+                return
+            offset += limit
 
     # ------------------------------------------------------------
     # Endpoints

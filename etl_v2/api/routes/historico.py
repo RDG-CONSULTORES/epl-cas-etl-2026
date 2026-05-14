@@ -18,11 +18,10 @@ def get_historico(
 ) -> dict:
     response.headers["Cache-Control"] = "max-age=300"
 
-    params: list = [scope, form_key, semanas]
-    where_scope_id = "scope_id IS NULL"
-    if scope_id is not None:
-        where_scope_id = "scope_id = %s"
-        params.insert(2, scope_id)
+    # Sentinel scope_id=0 representa 'global' (PK no acepta NULL).
+    effective_scope_id = scope_id if scope_id is not None else 0
+    params: list = [scope, form_key, effective_scope_id, semanas]
+    where_scope_id = "scope_id = %s"
 
     rows = fetch_all(
         f"""

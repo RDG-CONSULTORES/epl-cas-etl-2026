@@ -110,7 +110,7 @@ def compute_weekly_summary(week_monday: date) -> int:
 
     buckets: dict[tuple[str, int | None, str], list[dict]] = {}
     for r in rows:
-        for scope, scope_id in (("global", None),
+        for scope, scope_id in (("global", 0),
                                 ("go", r["go_id"]),
                                 ("sucursal", r["sucursal_id"])):
             for fk in (r["form_key"], "overall"):
@@ -190,7 +190,7 @@ def compute_monthly_summary(month_first: date) -> int:
 
     buckets: dict[tuple[str, int | None, str], list[dict]] = {}
     for r in rows:
-        for scope, scope_id in (("global", None),
+        for scope, scope_id in (("global", 0),
                                 ("go", r["go_id"]),
                                 ("sucursal", r["sucursal_id"])):
             for fk in (r["form_key"], "overall"):

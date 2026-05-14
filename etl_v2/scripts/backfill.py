@@ -70,7 +70,7 @@ async def run(semanas: int) -> dict:
         log.info("--- día %s ---", cur)
 
         subs_by_project = await extract_submissions(s_dt, e_dt)
-        sub_rows = submissions_to_rows(subs_by_project)
+        sub_rows = submissions_to_rows(subs_by_project, active_ids)
         totals["daily_submissions"] += upsert_daily_compliance(sub_rows)
 
         missed_by_project = await extract_missed_submissions(s_dt, e_dt)

@@ -17,6 +17,7 @@ from etl_v2.operacion_diaria.transform import submissions_to_rows
 from etl_v2.shared.compliance import LOCAL_TZ
 from etl_v2.shared.config import settings
 from etl_v2.shared.db import log_etl_run
+from etl_v2.shared.locations import get_active_sucursales
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
                     format="%(asctime)s %(levelname)s %(name)s :: %(message)s")
@@ -30,7 +31,8 @@ async def run() -> int:
     log.info("hourly start=%s end=%s", start.isoformat(), now_local.isoformat())
     try:
         submissions = await extract_submissions(start, now_local)
-        rows = submissions_to_rows(submissions)
+        active_ids = {s["location_id"] for s in get_active_sucursales()}
+        rows = submissions_to_rows(submissions, active_ids)
         n = upsert_daily_compliance(rows)
         log_etl_run("hourly", "ok", rows_affected=n,
                     metadata={"window_start": start.isoformat(),

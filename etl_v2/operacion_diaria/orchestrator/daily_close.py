@@ -52,12 +52,12 @@ async def run() -> int:
         start_dt = LOCAL_TZ.localize(datetime.combine(yesterday, datetime.min.time()))
         end_dt = LOCAL_TZ.localize(datetime.combine(yesterday, datetime.max.time()))
 
-        submissions = await extract_submissions(start_dt, end_dt)
-        sub_rows = submissions_to_rows(submissions)
-        total += upsert_daily_compliance(sub_rows)
-
         active = get_active_sucursales()
         active_ids = {s["location_id"] for s in active}
+
+        submissions = await extract_submissions(start_dt, end_dt)
+        sub_rows = submissions_to_rows(submissions, active_ids)
+        total += upsert_daily_compliance(sub_rows)
 
         missed_by_project = await extract_missed_submissions(start_dt, end_dt)
         missed_rows = missed_submissions_to_rows(missed_by_project, active_ids)

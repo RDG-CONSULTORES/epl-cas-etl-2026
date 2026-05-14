@@ -17,15 +17,21 @@ from etl_v2.shared.compliance import (
 log = logging.getLogger(__name__)
 
 
-def submissions_to_rows(submissions_by_project: dict[int, list[dict]]
-                        ) -> list[dict[str, Any]]:
-    """Submissions completas → rows on_time/late con UPSERT a daily_compliance."""
+def submissions_to_rows(submissions_by_project: dict[int, list[dict]],
+                         active_sucursal_ids: set[int] | None = None
+                         ) -> list[dict[str, Any]]:
+    """Submissions completas → rows on_time/late.
+
+    Si se pasa active_sucursal_ids, sucursales fuera del set son ignoradas.
+    """
     rows: list[dict[str, Any]] = []
     for project_id, subs in submissions_by_project.items():
         meta = EPL_CAS_PROJECTS[project_id]
         for sub in subs:
             location_id = _extract_location_id(sub)
             if not location_id:
+                continue
+            if active_sucursal_ids is not None and location_id not in active_sucursal_ids:
                 continue
             status, score, completed_at = calcular_score(sub, meta)
             if completed_at is None:
