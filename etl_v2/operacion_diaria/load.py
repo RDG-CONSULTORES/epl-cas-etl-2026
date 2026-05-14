@@ -30,7 +30,11 @@ def upsert_daily_compliance(rows: list[dict[str, Any]],
     ]
 
     # Status priority: on_time(3) > late(2) > missed(1).
-    # Solo actualizamos si el nuevo status tiene >= prioridad que el actual.
+    # El UPSERT solo upgrade status (no downgrade). Es decir:
+    #   existing on_time + new late/missed   → conserva on_time
+    #   existing late    + new missed        → conserva late
+    #   existing missed  + new on_time/late  → upgrade
+    # Esto evita que un "missed" de fill_missing pise un "late" real.
     sql = """
         INSERT INTO daily_compliance
             (sucursal_id, day, form_key, project_id, form_template_id,
@@ -40,13 +44,15 @@ def upsert_daily_compliance(rows: list[dict[str, Any]],
             project_id       = EXCLUDED.project_id,
             form_template_id = EXCLUDED.form_template_id,
             status           = CASE
-                WHEN daily_compliance.status = 'on_time' AND EXCLUDED.status != 'on_time'
-                    THEN daily_compliance.status
+                WHEN (CASE daily_compliance.status WHEN 'on_time' THEN 3 WHEN 'late' THEN 2 ELSE 1 END)
+                   > (CASE EXCLUDED.status         WHEN 'on_time' THEN 3 WHEN 'late' THEN 2 ELSE 1 END)
+                THEN daily_compliance.status
                 ELSE EXCLUDED.status
             END,
             score            = CASE
-                WHEN daily_compliance.status = 'on_time' AND EXCLUDED.status != 'on_time'
-                    THEN daily_compliance.score
+                WHEN (CASE daily_compliance.status WHEN 'on_time' THEN 3 WHEN 'late' THEN 2 ELSE 1 END)
+                   > (CASE EXCLUDED.status         WHEN 'on_time' THEN 3 WHEN 'late' THEN 2 ELSE 1 END)
+                THEN daily_compliance.score
                 ELSE EXCLUDED.score
             END,
             submission_id    = COALESCE(EXCLUDED.submission_id, daily_compliance.submission_id),
