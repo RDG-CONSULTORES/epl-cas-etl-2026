@@ -108,13 +108,20 @@ class ZenputClient:
     # ------------------------------------------------------------
     # Endpoints
     # ------------------------------------------------------------
-    async def list_submissions(self, form_template_id: int, start: datetime, end: datetime,
+    async def list_submissions(self, activity_id: int, start: datetime, end: datetime,
                                 status: str | None = None) -> list[dict]:
-        """Submissions de un form_template en rango. status opcional:
-        'complete', 'incomplete', 'archived_incomplete'.
+        """Submissions de una activity recurrente (= proyecto EPL CAS) en rango.
+
+        Filtramos por activity_id (no form_template_id) porque:
+        - form_template_id retorna submissions de cualquier proyecto que use
+          ese template (incluye otros tenants/proyectos no-EPL CAS).
+        - activity_id es la instancia recurrente concreta del proyecto padre
+          (EPL CAS Apertura tiene activity_id=864763 por ejemplo).
+
+        status puede ser 'complete', 'incomplete', 'archived_incomplete'.
         """
         params = {
-            "form_template_id": form_template_id,
+            "activity_id": activity_id,
             "start_date": _epoch_ms(start),
             "end_date": _epoch_ms(end),
         }
@@ -123,15 +130,23 @@ class ZenputClient:
         out: list[dict] = []
         async for sub in self._paginate("/api/v3/submissions/", params):
             out.append(sub)
-        log.info("zenput v3 submissions form=%s status=%s rango=%s..%s → %d",
-                 form_template_id, status or "*", start.date(), end.date(), len(out))
+        log.info("zenput v3 submissions activity=%s status=%s rango=%s..%s → %d",
+                 activity_id, status or "*", start.date(), end.date(), len(out))
         return out
 
-    async def list_archived_submissions(self, form_template_id: int,
+    async def list_archived_submissions(self, activity_id: int,
                                          start: datetime, end: datetime) -> list[dict]:
         """Atajo para submissions con status=archived_incomplete (= missed)."""
-        return await self.list_submissions(form_template_id, start, end,
+        return await self.list_submissions(activity_id, start, end,
                                            status="archived_incomplete")
+
+    async def list_activities(self) -> list[dict]:
+        """Lista las activities (recurrentes) de la cuenta."""
+        out: list[dict] = []
+        async for act in self._paginate("/api/v3/activities/"):
+            out.append(act)
+        log.info("zenput v3 activities → %d", len(out))
+        return out
 
     async def list_locations(self) -> list[dict]:
         out: list[dict] = []

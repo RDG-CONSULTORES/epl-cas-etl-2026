@@ -17,6 +17,8 @@ EPL_CAS_PROJECTS = {
     511091345: {
         "title": "*APERTURA EPL CAS",
         "form_template_id": 877142,
+        "activity_id": 864763,
+        "activity_name": "APERTURA EPL CAS",
         "window_start": "07:00",
         "window_end": "11:00",
         "key": "apertura",
@@ -24,6 +26,8 @@ EPL_CAS_PROJECTS = {
     511091348: {
         "title": "*ENTREGA DE TURNO EPL CAS",
         "form_template_id": 877140,
+        "activity_id": 864761,
+        "activity_name": "ENTREGA DE TURNO EPL CAS",
         "window_start": "14:00",
         "window_end": "17:00",
         "key": "entrega",
@@ -31,6 +35,8 @@ EPL_CAS_PROJECTS = {
     511091349: {
         "title": "*CIERRE EPL CAS",
         "form_template_id": 877141,
+        "activity_id": 864762,
+        "activity_name": "CIERRE EPL CAS",
         "window_start": "19:00",
         "window_end": "23:00",
         "key": "cierre",

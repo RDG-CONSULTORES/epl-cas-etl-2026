@@ -15,34 +15,39 @@ log = logging.getLogger(__name__)
 
 async def extract_submissions(start: datetime, end: datetime
                               ) -> dict[int, list[dict]]:
-    """Submissions completas de los 3 form templates EPL CAS.
+    """Submissions COMPLETAS de las 3 activities EPL CAS.
 
-    Retorna {project_id: [submissions]}. Filtra por
-    `smetadata.parent_project.id` para asegurar que pertenecen al proyecto recurrente.
+    Filtramos por activity_id (recurrent activity) + status=complete.
+    Esto trae SOLO submissions reales (no drafts/incomplete), evitando el
+    cap de 10K hits del API.
+
+    Retorna {project_id: [submissions]}. Doble check por
+    `smetadata.parent_project.id` por si el API retorna algo de otro proyecto.
     """
     out: dict[int, list[dict]] = {}
     async with ZenputClient() as zc:
         for project_id, meta in EPL_CAS_PROJECTS.items():
-            subs = await zc.list_submissions(meta["form_template_id"], start, end)
+            subs = await zc.list_submissions(
+                meta["activity_id"], start, end, status="complete")
             filtered = [s for s in subs if _belongs_to_project(s, project_id)]
             out[project_id] = filtered
-            log.info("extract project=%s form=%s submissions_total=%d in_scope=%d",
-                     project_id, meta["form_template_id"], len(subs), len(filtered))
+            log.info("extract project=%s activity=%s subs_total=%d in_scope=%d",
+                     project_id, meta["activity_id"], len(subs), len(filtered))
     return out
 
 
 async def extract_missed_submissions(start: datetime, end: datetime
                                       ) -> dict[int, list[dict]]:
-    """Submissions con status=archived_incomplete (= missed) por proyecto."""
+    """Submissions archived_incomplete (= missed) de las 3 activities EPL CAS."""
     out: dict[int, list[dict]] = {}
     async with ZenputClient() as zc:
         for project_id, meta in EPL_CAS_PROJECTS.items():
             subs = await zc.list_archived_submissions(
-                meta["form_template_id"], start, end)
+                meta["activity_id"], start, end)
             filtered = [s for s in subs if _belongs_to_project(s, project_id)]
             out[project_id] = filtered
-            log.info("extract missed project=%s archived=%d in_scope=%d",
-                     project_id, len(subs), len(filtered))
+            log.info("extract missed project=%s activity=%s archived=%d in_scope=%d",
+                     project_id, meta["activity_id"], len(subs), len(filtered))
     return out
 
 
