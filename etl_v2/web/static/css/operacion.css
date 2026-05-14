@@ -2251,3 +2251,12 @@ body.scroll-locked { overflow: hidden; }
 .badge-late    { background: rgba(255,214,10,0.18); color: var(--regular); }
 .badge-missed  { background: rgba(255,69,58,0.18);  color: var(--critical); }
 .badge-pending { background: rgba(142,142,147,0.2); color: var(--text-secondary); }
+
+/* Ranking items sin datos (oscurecido pero visible) */
+.ranking-item.sin-data {
+    opacity: 0.55;
+}
+.ranking-item.sin-data .ranking-pct {
+    color: var(--text-secondary) !important;
+    font-size: 1rem;
+}

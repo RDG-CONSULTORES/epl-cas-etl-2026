@@ -234,21 +234,27 @@ function initSecondaryToggles() {
 async function loadRanking() {
     const scope = state.view === "grupos" ? "go" : "sucursal";
     const data = await api(`/ranking?scope=${scope}&periodo=${getPeriodoQuery()}`);
-    const items = data.items.slice(0, scope === "go" ? 20 : 30);
+    // Mostrar TODOS los items del catálogo (no truncar) — incluye los que tienen 0%
+    const items = data.items;
     const html = items.map(item => {
-        const cls = pctClass(item.pct_compliance);
+        const cls = item.sin_data ? "critical" : pctClass(item.pct_compliance);
         const meta = scope === "go"
-            ? `${item.n_sucursales} sucursales · ${item.n_on_time}/${item.n_total} a tiempo`
-            : `${item.go_nombre || ""} · ${item.n_on_time}/${item.n_total} a tiempo`;
+            ? (item.sin_data
+                ? `${item.n_sucursales} sucursales · sin evaluaciones en periodo`
+                : `${item.n_sucursales} sucursales · ${item.n_on_time}/${item.n_total} a tiempo`)
+            : (item.sin_data
+                ? `${item.go_nombre || ""} · sin evaluaciones`
+                : `${item.go_nombre || ""} · ${item.n_on_time}/${item.n_total} a tiempo`);
+        const pctText = item.sin_data ? "—" : `${item.pct_compliance.toFixed(1)}%`;
         return `
-            <div class="ranking-item" data-id="${item.id}" data-scope="${scope}" data-name="${escapeHtml(item.nombre || "")}">
+            <div class="ranking-item ${item.sin_data ? "sin-data" : ""}" data-id="${item.id}" data-scope="${scope}" data-name="${escapeHtml(item.nombre || "")}">
                 <div class="ranking-rank">${item.rank}</div>
                 <div class="ranking-info">
                     <div class="ranking-name">${escapeHtml(item.nombre || "—")}</div>
                     <div class="ranking-meta">${escapeHtml(meta)}</div>
                 </div>
                 <div class="ranking-score">
-                    <span class="ranking-pct pct-${cls}">${item.pct_compliance.toFixed(1)}%</span>
+                    <span class="ranking-pct pct-${cls}">${pctText}</span>
                 </div>
             </div>
         `;

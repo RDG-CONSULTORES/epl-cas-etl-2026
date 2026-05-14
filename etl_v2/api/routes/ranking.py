@@ -1,4 +1,8 @@
-"""GET /ranking?scope=go|sucursal&periodo=current-week → ranking ordenado."""
+"""GET /ranking?scope=go|sucursal&periodo=current-week → ranking ordenado.
+
+LEFT JOIN desde el catálogo (dim_grupos_operativos / dim_sucursales) para que
+GOs y sucursales SIN actividad en el periodo aparezcan con 0% (no se excluyen).
+"""
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
@@ -40,38 +44,52 @@ def get_ranking(
     response.headers["Cache-Control"] = "max-age=60" if is_current else "max-age=300"
 
     if scope == "go":
+        # LEFT JOIN desde dim_grupos_operativos: los 18 GOs aparecen siempre,
+        # los que no tienen evaluaciones quedan en 0%.
         rows = fetch_all(
             """
-            SELECT s.go_id AS id, MAX(s.go_nombre) AS nombre,
-                   COUNT(DISTINCT s.location_id) AS n_sucursales,
-                   COUNT(*) AS n_total,
-                   SUM(CASE WHEN d.status='on_time' THEN 1 ELSE 0 END) AS n_on_time,
-                   SUM(CASE WHEN d.status='late' THEN 1 ELSE 0 END) AS n_late,
-                   SUM(CASE WHEN d.status='missed' THEN 1 ELSE 0 END) AS n_missed,
+            SELECT g.go_id AS id,
+                   g.nombre AS nombre,
+                   g.n_sucursales,
+                   COUNT(d.*) AS n_total,
+                   COALESCE(SUM(CASE WHEN d.status='on_time' THEN 1 ELSE 0 END), 0) AS n_on_time,
+                   COALESCE(SUM(CASE WHEN d.status='late' THEN 1 ELSE 0 END), 0) AS n_late,
+                   COALESCE(SUM(CASE WHEN d.status='missed' THEN 1 ELSE 0 END), 0) AS n_missed,
                    COALESCE(SUM(d.score), 0)::float AS sum_score
-            FROM daily_compliance d
-            JOIN dim_sucursales s ON s.location_id = d.sucursal_id
-            WHERE d.day BETWEEN %s AND %s AND s.is_active = TRUE
-            GROUP BY s.go_id
-            ORDER BY (CASE WHEN COUNT(*)=0 THEN 0 ELSE SUM(d.score)/COUNT(*) END) DESC
+            FROM operacion_diaria.dim_grupos_operativos g
+            LEFT JOIN operacion_diaria.dim_sucursales s
+                ON s.go_id = g.go_id AND s.is_active = TRUE
+            LEFT JOIN operacion_diaria.daily_compliance d
+                ON d.sucursal_id = s.location_id AND d.day BETWEEN %s AND %s
+            WHERE g.is_epl_cas = TRUE
+            GROUP BY g.go_id, g.nombre, g.n_sucursales
+            ORDER BY (CASE WHEN COUNT(d.*) = 0 THEN -1
+                           ELSE SUM(d.score)::float / COUNT(d.*) END) DESC,
+                     g.nombre
             """,
             (start, end),
         )
     else:
+        # LEFT JOIN desde dim_sucursales activas
         rows = fetch_all(
             """
-            SELECT s.location_id AS id, s.nombre AS nombre,
-                   s.go_id, s.go_nombre,
-                   COUNT(*) AS n_total,
-                   SUM(CASE WHEN d.status='on_time' THEN 1 ELSE 0 END) AS n_on_time,
-                   SUM(CASE WHEN d.status='late' THEN 1 ELSE 0 END) AS n_late,
-                   SUM(CASE WHEN d.status='missed' THEN 1 ELSE 0 END) AS n_missed,
+            SELECT s.location_id AS id,
+                   s.nombre AS nombre,
+                   s.go_id,
+                   s.go_nombre,
+                   COUNT(d.*) AS n_total,
+                   COALESCE(SUM(CASE WHEN d.status='on_time' THEN 1 ELSE 0 END), 0) AS n_on_time,
+                   COALESCE(SUM(CASE WHEN d.status='late' THEN 1 ELSE 0 END), 0) AS n_late,
+                   COALESCE(SUM(CASE WHEN d.status='missed' THEN 1 ELSE 0 END), 0) AS n_missed,
                    COALESCE(SUM(d.score), 0)::float AS sum_score
-            FROM daily_compliance d
-            JOIN dim_sucursales s ON s.location_id = d.sucursal_id
-            WHERE d.day BETWEEN %s AND %s AND s.is_active = TRUE
+            FROM operacion_diaria.dim_sucursales s
+            LEFT JOIN operacion_diaria.daily_compliance d
+                ON d.sucursal_id = s.location_id AND d.day BETWEEN %s AND %s
+            WHERE s.is_active = TRUE
             GROUP BY s.location_id, s.nombre, s.go_id, s.go_nombre
-            ORDER BY (CASE WHEN COUNT(*)=0 THEN 0 ELSE SUM(d.score)/COUNT(*) END) DESC
+            ORDER BY (CASE WHEN COUNT(d.*) = 0 THEN -1
+                           ELSE SUM(d.score)::float / COUNT(d.*) END) DESC,
+                     s.nombre
             """,
             (start, end),
         )
@@ -89,6 +107,7 @@ def get_ranking(
             "n_missed": r["n_missed"] or 0,
             "n_total": nt,
             "pct_compliance": pct,
+            "sin_data": nt == 0,
         }
         if scope == "go":
             item["n_sucursales"] = r.get("n_sucursales") or 0
@@ -97,6 +116,10 @@ def get_ranking(
             item["go_nombre"] = r.get("go_nombre")
         out.append(item)
 
-    return {"scope": scope, "periodo": periodo,
-            "start": start.isoformat(), "end": end.isoformat(),
-            "items": out}
+    return {
+        "scope": scope,
+        "periodo": periodo,
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "items": out,
+    }
