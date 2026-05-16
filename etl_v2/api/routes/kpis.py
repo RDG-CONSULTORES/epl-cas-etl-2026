@@ -54,7 +54,10 @@ def get_kpis(
     ) or {}
 
     n_total = overall.get("n_total") or 0
-    pct = round((overall.get("sum_score") or 0) / n_total * 100, 2) if n_total else 0.0
+    # Project Completion (Zenput) = (on_time + late) / total — cuenta como
+    # "completado" cualquier task que se terminó, sin importar si fue tarde.
+    n_complete = (overall.get("n_on_time") or 0) + (overall.get("n_late") or 0)
+    pct = round(n_complete / n_total * 100, 2) if n_total else 0.0
 
     per_form = fetch_all(
         """
@@ -74,13 +77,14 @@ def get_kpis(
     per_form_out = []
     for r in per_form:
         nt = r["n_total"] or 0
+        nc = (r["n_on_time"] or 0) + (r["n_late"] or 0)
         per_form_out.append({
             "form_key": r["form_key"],
             "n_on_time": r["n_on_time"] or 0,
             "n_late": r["n_late"] or 0,
             "n_missed": r["n_missed"] or 0,
             "n_total": nt,
-            "pct_compliance": round((r["sum_score"] or 0) / nt * 100, 2) if nt else 0.0,
+            "pct_compliance": round(nc / nt * 100, 2) if nt else 0.0,
         })
 
     return {

@@ -64,7 +64,7 @@ def get_ranking(
             WHERE g.is_epl_cas = TRUE
             GROUP BY g.go_id, g.nombre, g.n_sucursales
             ORDER BY (CASE WHEN COUNT(d.*) = 0 THEN -1
-                           ELSE SUM(d.score)::float / COUNT(d.*) END) DESC,
+                           ELSE (SUM(CASE WHEN d.status IN ('on_time','late') THEN 1 ELSE 0 END)::float / COUNT(d.*)) END) DESC,
                      g.nombre
             """,
             (start, end),
@@ -88,7 +88,7 @@ def get_ranking(
             WHERE s.is_active = TRUE
             GROUP BY s.location_id, s.nombre, s.go_id, s.go_nombre
             ORDER BY (CASE WHEN COUNT(d.*) = 0 THEN -1
-                           ELSE SUM(d.score)::float / COUNT(d.*) END) DESC,
+                           ELSE (SUM(CASE WHEN d.status IN ('on_time','late') THEN 1 ELSE 0 END)::float / COUNT(d.*)) END) DESC,
                      s.nombre
             """,
             (start, end),
@@ -97,7 +97,9 @@ def get_ranking(
     out = []
     for i, r in enumerate(rows, 1):
         nt = r.get("n_total") or 0
-        pct = round((r.get("sum_score") or 0) / nt * 100, 2) if nt else 0.0
+        # Project Completion (Zenput) = (on_time + late) / total
+        nc = (r.get("n_on_time") or 0) + (r.get("n_late") or 0)
+        pct = round(nc / nt * 100, 2) if nt else 0.0
         item = {
             "rank": i,
             "id": r["id"],
