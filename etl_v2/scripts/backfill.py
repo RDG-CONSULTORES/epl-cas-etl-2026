@@ -69,8 +69,14 @@ async def run(semanas: int) -> dict:
         e_dt = LOCAL_TZ.localize(datetime.combine(cur, datetime.max.time()))
         log.info("--- día %s ---", cur)
 
-        subs_by_project = await extract_submissions(s_dt, e_dt)
+        # Pedimos un rango más amplio porque el API filtra por date_modified,
+        # no por date_due. Después filtramos por date_due_local en transform.
+        wider_start = s_dt - timedelta(days=14)
+        wider_end = e_dt + timedelta(days=1)
+        subs_by_project = await extract_submissions(wider_start, wider_end)
         sub_rows = submissions_to_rows(subs_by_project, active_ids)
+        # Filtrar por día exacto (cur)
+        sub_rows = [r for r in sub_rows if r["day"] == cur]
         totals["daily_submissions"] += upsert_daily_compliance(sub_rows)
 
         missed_by_project = await extract_missed_submissions(s_dt, e_dt)

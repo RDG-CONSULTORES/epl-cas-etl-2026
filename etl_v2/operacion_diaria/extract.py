@@ -1,6 +1,13 @@
-"""Extract: descarga submissions de Zenput v3 para los 3 form templates EPL CAS.
+"""Extract: descarga TASKS (no submissions) de Zenput.
 
-Incluye submissions completas (on_time/late) y archived_incomplete (missed).
+Una task = asignación recurrente para una sucursal en un día específico.
+Esto es lo que Zenput usa para su reporte 'Project Completion'.
+
+Status de tasks:
+- current_state='complete' + is_completed_late=0  → on_time  (score 1.0)
+- current_state='complete' + is_completed_late=1  → late      (score 0.5)
+- current_state in ('overdue','unavailable','archived_incomplete') → missed (score 0.0)
+- current_state='open'  → no se cuenta (aún en ventana)
 """
 from __future__ import annotations
 
@@ -13,47 +20,29 @@ from etl_v2.shared.zenput_client import ZenputClient
 log = logging.getLogger(__name__)
 
 
-async def extract_submissions(start: datetime, end: datetime
-                              ) -> dict[int, list[dict]]:
-    """Submissions COMPLETAS de las 3 activities EPL CAS.
+async def extract_tasks(start: datetime, end: datetime) -> dict[int, list[dict]]:
+    """Tasks de las 3 activities EPL CAS en el rango.
 
-    Filtramos por activity_id (recurrent activity) + status=complete.
-    Esto trae SOLO submissions reales (no drafts/incomplete), evitando el
-    cap de 10K hits del API.
-
-    Retorna {project_id: [submissions]}. Doble check por
-    `smetadata.parent_project.id` por si el API retorna algo de otro proyecto.
+    Retorna {project_id: [tasks]}. Las tasks vienen del endpoint v1
+    /api/v1/tasks/list_tasks/ con `is_completed_late` y `current_state`.
     """
     out: dict[int, list[dict]] = {}
     async with ZenputClient() as zc:
         for project_id, meta in EPL_CAS_PROJECTS.items():
-            subs = await zc.list_submissions(
-                meta["activity_id"], start, end, status="complete")
-            filtered = [s for s in subs if _belongs_to_project(s, project_id)]
-            out[project_id] = filtered
-            log.info("extract project=%s activity=%s subs_total=%d in_scope=%d",
-                     project_id, meta["activity_id"], len(subs), len(filtered))
+            tasks = await zc.list_tasks(meta["activity_id"], start, end)
+            out[project_id] = tasks
+            log.info("extract tasks project=%s activity=%s tasks=%d",
+                     project_id, meta["activity_id"], len(tasks))
     return out
+
+
+# Compatibilidad backward: alias para que el resto del módulo siga importando
+extract_submissions = extract_tasks
 
 
 async def extract_missed_submissions(start: datetime, end: datetime
                                       ) -> dict[int, list[dict]]:
-    """Submissions archived_incomplete (= missed) de las 3 activities EPL CAS."""
-    out: dict[int, list[dict]] = {}
-    async with ZenputClient() as zc:
-        for project_id, meta in EPL_CAS_PROJECTS.items():
-            subs = await zc.list_archived_submissions(
-                meta["activity_id"], start, end)
-            filtered = [s for s in subs if _belongs_to_project(s, project_id)]
-            out[project_id] = filtered
-            log.info("extract missed project=%s activity=%s archived=%d in_scope=%d",
-                     project_id, meta["activity_id"], len(subs), len(filtered))
-    return out
-
-
-def _belongs_to_project(submission: dict, project_id: int) -> bool:
-    """Liga submission al proyecto padre via smetadata.parent_project.id."""
-    md = submission.get("smetadata") or {}
-    parent = md.get("parent_project") or {}
-    pid = parent.get("id") if isinstance(parent, dict) else None
-    return pid == project_id
+    """DEPRECATED: ahora todo viene en extract_tasks (las tasks incluyen
+    los missed via current_state). Se deja como no-op para no romper imports.
+    """
+    return {pid: [] for pid in EPL_CAS_PROJECTS}

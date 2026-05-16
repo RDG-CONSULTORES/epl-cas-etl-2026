@@ -148,6 +148,56 @@ class ZenputClient:
         log.info("zenput v3 activities → %d", len(out))
         return out
 
+    async def list_tasks(self, activity_id: int, start: datetime, end: datetime
+                          ) -> list[dict]:
+        """Lista TASKS (asignaciones recurrentes) de una activity con sus
+        states reales. ESTO es lo que Zenput usa para 'Project Completion'.
+
+        Una task tiene account.id, date_due_local, current_state, is_completed_late.
+
+        Endpoint v1. NO usamos include_future_tasks_v2 (trae 10K+ tasks
+        futuras que no nos sirven y satura). Para histórico necesitamos solo
+        las tasks ya vencidas en el rango.
+        """
+        params = {
+            "activity_id": activity_id,
+            "start_date": _epoch_ms(start),
+            "end_date": _epoch_ms(end),
+            "limit": DEFAULT_LIMIT,
+        }
+        out: list[dict] = []
+        seen_ids: set = set()
+        offset = 0
+        expected_count: int | None = None
+        while True:
+            if offset >= 10000:
+                log.info("zenput tasks cap offset=10000")
+                break
+            params["offset"] = offset
+            try:
+                data = await self._request("GET", "/api/v1/tasks/list_tasks/", params=params)
+            except httpx.HTTPStatusError as e:
+                if e.response is not None and e.response.status_code == 400:
+                    break
+                raise
+            items = data.get("results") or data.get("data") or []
+            if not items:
+                break
+            if expected_count is None:
+                expected_count = data.get("count")
+            new_items = [t for t in items if t.get("id") not in seen_ids]
+            for t in new_items:
+                seen_ids.add(t["id"])
+            out.extend(new_items)
+            if expected_count and len(out) >= expected_count:
+                break
+            if len(items) < DEFAULT_LIMIT:
+                break
+            offset += DEFAULT_LIMIT
+        log.info("zenput v1 tasks activity=%s rango=%s..%s → %d (count_meta=%s)",
+                 activity_id, start.date(), end.date(), len(out), expected_count)
+        return out
+
     async def list_locations(self) -> list[dict]:
         out: list[dict] = []
         async for loc in self._paginate("/api/v3/locations/"):

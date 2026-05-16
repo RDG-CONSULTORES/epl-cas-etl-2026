@@ -1,171 +1,150 @@
-"""Transform: convierte submissions Zenput v3 → rows daily_compliance."""
+"""Transform: convierte TASKS de Zenput v1 → rows daily_compliance.
+
+Cada task tiene:
+- account.id  → sucursal_id
+- date_due_local → epoch ms (millis local) — fecha de vencimiento
+- current_state → 'complete' / 'overdue' / 'unavailable' / 'archived_*' / 'open'
+- is_completed_late → 0/1 (solo cuando complete)
+- date_submitted → cuando se completó (epoch ms UTC)
+
+Mapping:
+- complete + is_completed_late=0  → on_time (1.0)
+- complete + is_completed_late=1  → late    (0.5)
+- overdue / unavailable / archived_incomplete → missed (0.0)
+- open (todavía en ventana) → skip (no row)
+"""
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 import pytz
 
-from etl_v2.shared.compliance import (
-    EPL_CAS_PROJECTS,
-    LOCAL_TZ,
-    calcular_score,
-    expected_day_for_submission,
-)
+from etl_v2.shared.compliance import EPL_CAS_PROJECTS, LOCAL_TZ
 
 log = logging.getLogger(__name__)
 
 
-def submissions_to_rows(submissions_by_project: dict[int, list[dict]],
-                         active_sucursal_ids: set[int] | None = None
-                         ) -> list[dict[str, Any]]:
-    """Submissions completas → rows on_time/late.
+def _epoch_ms_to_local_date(ms: int | dict | None) -> date | None:
+    """date_due_local viene como {'$date': epoch_ms} o int."""
+    if ms is None:
+        return None
+    if isinstance(ms, dict):
+        ms = ms.get("$date")
+    if ms is None:
+        return None
+    try:
+        # date_due_local ya está en hora local "encoded" (no es UTC realmente,
+        # es timestamp en local TZ). Decodificar como UTC y NO convertir.
+        dt = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+        return dt.date()
+    except (ValueError, TypeError, OSError):
+        return None
 
-    Si se pasa active_sucursal_ids, sucursales fuera del set son ignoradas.
+
+def _epoch_ms_to_utc(ms: int | dict | None) -> datetime | None:
+    if ms is None:
+        return None
+    if isinstance(ms, dict):
+        ms = ms.get("$date")
+    if ms is None:
+        return None
+    try:
+        return datetime.fromtimestamp(ms / 1000, tz=pytz.UTC)
+    except (ValueError, TypeError, OSError):
+        return None
+
+
+def _task_status(task: dict) -> tuple[str | None, float | None]:
+    """Retorna (status, score) o (None, None) para tasks que se deben skipear."""
+    state = (task.get("current_state") or "").lower()
+    is_late = task.get("is_completed_late") or 0
+    if state == "complete":
+        if is_late:
+            return ("late", 0.5)
+        return ("on_time", 1.0)
+    if state in ("overdue", "unavailable", "archived_incomplete", "archived"):
+        return ("missed", 0.0)
+    if state == "open":
+        # Ventana aún activa — no se cuenta aún
+        return (None, None)
+    # estados desconocidos: tratar como missed por conservador
+    log.debug("task state desconocido: %s id=%s", state, task.get("id"))
+    return ("missed", 0.0)
+
+
+def tasks_to_rows(tasks_by_project: dict[int, list[dict]],
+                   active_sucursal_ids: set[int],
+                   day_range: tuple[date, date] | None = None
+                   ) -> list[dict[str, Any]]:
+    """Tasks → rows para daily_compliance.
+
+    Solo incluye sucursales en active_sucursal_ids. Skipea tasks 'open'.
+    Si `day_range` se pasa, filtra tasks cuyo date_due_local NO está en el rango
+    (el API de Zenput filtra por date_modified, no date_due, así que hace falta).
     """
     rows: list[dict[str, Any]] = []
-    for project_id, subs in submissions_by_project.items():
+    skipped_open = 0
+    skipped_no_loc = 0
+    skipped_oos = 0
+    skipped_oot = 0  # out of date_due range
+    for project_id, tasks in tasks_by_project.items():
         meta = EPL_CAS_PROJECTS[project_id]
-        for sub in subs:
-            location_id = _extract_location_id(sub)
-            if not location_id:
+        for t in tasks:
+            account = t.get("account") or {}
+            loc_id = account.get("id")
+            if not loc_id:
+                skipped_no_loc += 1
                 continue
-            if active_sucursal_ids is not None and location_id not in active_sucursal_ids:
+            if loc_id not in active_sucursal_ids:
+                skipped_oos += 1
                 continue
-            status, score, completed_at = calcular_score(sub, meta)
-            if completed_at is None:
+            day = _epoch_ms_to_local_date(t.get("date_due_local"))
+            if not day:
                 continue
-            day = expected_day_for_submission(completed_at)
+            if day_range and (day < day_range[0] or day > day_range[1]):
+                skipped_oot += 1
+                continue
+            status, score = _task_status(t)
+            if status is None:
+                skipped_open += 1
+                continue
+            completed_at = None
+            if status in ("on_time", "late"):
+                completed_at = _epoch_ms_to_utc(t.get("date_submitted") or t.get("date_modified"))
             rows.append({
-                "sucursal_id": location_id,
+                "sucursal_id": loc_id,
                 "day": day,
                 "form_key": meta["key"],
                 "project_id": project_id,
                 "form_template_id": meta["form_template_id"],
                 "status": status,
                 "score": score,
-                "submission_id": str(sub.get("id") or ""),
-                "task_id": _extract_task_id(sub),
-                "completed_at": completed_at.astimezone(pytz.UTC),
+                "submission_id": None,
+                "task_id": t.get("id"),
+                "completed_at": completed_at,
             })
-    log.info("transform submissions → %d rows", len(rows))
+    log.info("transform tasks → %d rows (skipped open=%d no_loc=%d oos=%d out_of_day_range=%d)",
+             len(rows), skipped_open, skipped_no_loc, skipped_oos, skipped_oot)
     return rows
 
 
-def missed_submissions_to_rows(missed_by_project: dict[int, list[dict]],
-                                active_sucursal_ids: set[int]
-                                ) -> list[dict[str, Any]]:
-    """Submissions archived_incomplete (= missed) → rows con status=missed, score=0."""
-    rows: list[dict[str, Any]] = []
-    for project_id, subs in missed_by_project.items():
-        meta = EPL_CAS_PROJECTS[project_id]
-        for sub in subs:
-            location_id = _extract_location_id(sub)
-            if not location_id or location_id not in active_sucursal_ids:
-                continue
-            day = _extract_missed_day(sub)
-            if not day:
-                continue
-            rows.append({
-                "sucursal_id": location_id,
-                "day": day,
-                "form_key": meta["key"],
-                "project_id": project_id,
-                "form_template_id": meta["form_template_id"],
-                "status": "missed",
-                "score": 0.0,
-                "submission_id": str(sub.get("id") or ""),
-                "task_id": _extract_task_id(sub),
-                "completed_at": None,
-            })
-    log.info("transform missed submissions → %d rows", len(rows))
-    return rows
+# Compatibilidad backward: alias
+def submissions_to_rows(tasks_by_project: dict[int, list[dict]],
+                         active_sucursal_ids: set[int] | None = None
+                         ) -> list[dict[str, Any]]:
+    return tasks_to_rows(tasks_by_project, active_sucursal_ids or set())
 
 
-def fill_missing_combinations(active_sucursales: list[dict],
-                              start_day: date,
-                              end_day: date,
-                              existing_keys: set[tuple[int, date, str]]
-                              ) -> list[dict[str, Any]]:
-    """Para cada sucursal×día×form sin registro, genera row missed."""
-    rows: list[dict[str, Any]] = []
-    forms = list(EPL_CAS_PROJECTS.values())
-    day = start_day
-    while day <= end_day:
-        for suc in active_sucursales:
-            sid = suc["location_id"]
-            for meta in forms:
-                key = (sid, day, meta["key"])
-                if key in existing_keys:
-                    continue
-                project_id = next(
-                    pid for pid, m in EPL_CAS_PROJECTS.items() if m["key"] == meta["key"]
-                )
-                rows.append({
-                    "sucursal_id": sid,
-                    "day": day,
-                    "form_key": meta["key"],
-                    "project_id": project_id,
-                    "form_template_id": meta["form_template_id"],
-                    "status": "missed",
-                    "score": 0.0,
-                    "submission_id": None,
-                    "task_id": None,
-                    "completed_at": None,
-                })
-        day += timedelta(days=1)
-    log.info("fill_missing_combinations rango=%s..%s → %d rows missed",
-             start_day, end_day, len(rows))
-    return rows
+def missed_submissions_to_rows(*args, **kwargs) -> list[dict[str, Any]]:
+    # No-op: las tasks ya incluyen los missed (state='overdue'/'unavailable')
+    return []
 
 
-# ------------------------------------------------------------
-# Helpers de extracción de campos para Zenput v3 (location vive
-# dentro de smetadata, no en top-level).
-# ------------------------------------------------------------
-
-def _extract_location_id(submission: dict) -> int | None:
-    md = submission.get("smetadata") or {}
-    loc = md.get("location")
-    if isinstance(loc, dict):
-        return loc.get("id")
-    if isinstance(loc, int):
-        return loc
-    # Fallback: en algunos endpoints viene en top-level
-    loc2 = submission.get("location")
-    if isinstance(loc2, dict):
-        return loc2.get("id")
-    if isinstance(loc2, int):
-        return loc2
-    return None
-
-
-def _extract_task_id(submission: dict) -> int | None:
-    md = submission.get("smetadata") or {}
-    t = md.get("task")
-    if isinstance(t, dict):
-        return t.get("id")
-    if isinstance(t, int):
-        return t
-    return None
-
-
-def _extract_missed_day(submission: dict) -> date | None:
-    """Para una submission archived_incomplete, ¿a qué día calendario pertenece?
-
-    Preferencia: date_completed_local > date_submitted_local > date_created_local.
+def fill_missing_combinations(*args, **kwargs) -> list[dict[str, Any]]:
+    """No-op: las tasks YA representan todas las combinaciones esperadas.
+    Si Zenput no creó task para (sucursal, día, form), entonces no había
+    expectativa — no debemos inventar un missed.
     """
-    md = submission.get("smetadata") or {}
-    for key in ("date_completed_local", "date_submitted_local", "date_created_local"):
-        raw = md.get(key)
-        if not raw:
-            continue
-        try:
-            dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-            if dt.tzinfo is None:
-                dt = LOCAL_TZ.localize(dt)
-            return dt.astimezone(LOCAL_TZ).date()
-        except (ValueError, AttributeError):
-            continue
-    return None
+    return []
