@@ -78,6 +78,47 @@ def existing_keys_for_range(start_day: date, end_day: date
     return {(r["sucursal_id"], r["day"], r["form_key"]) for r in rows}
 
 
+def delete_daily_compliance_range(start_day: date, end_day: date) -> int:
+    """Borra rows EPL CAS (apertura/entrega/cierre) en el rango [start,end] para
+    sucursales activas. Usado por daily_close en modo DELETE+INSERT — esto
+    permite que un downgrade (ej. on_time → missed) sí pegue (vs UPSERT que
+    solo upgrade)."""
+    from etl_v2.shared.db import execute
+    return execute(
+        """
+        DELETE FROM daily_compliance
+        WHERE day BETWEEN %s AND %s
+          AND form_key IN ('apertura','entrega','cierre')
+          AND sucursal_id IN (
+              SELECT location_id FROM dim_sucursales WHERE has_epl_cas_tag = TRUE
+          )
+        """,
+        (start_day, end_day),
+    )
+
+
+def insert_daily_compliance(rows: list[dict[str, Any]]) -> int:
+    """INSERT plano (sin UPSERT). Asume que ya borraste las rows del rango.
+    Si hay conflicto de PK, falla — eso indica bug de doble-extract."""
+    if not rows:
+        return 0
+    params = [
+        (r["sucursal_id"], r["day"], r["form_key"], r["project_id"],
+         r["form_template_id"], r["status"], r["score"], r["submission_id"],
+         r["task_id"], r["completed_at"])
+        for r in rows
+    ]
+    sql = """
+        INSERT INTO daily_compliance
+            (sucursal_id, day, form_key, project_id, form_template_id,
+             status, score, submission_id, task_id, completed_at, last_updated_at)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
+    """
+    n = execute_many(sql, params)
+    log.info("insert_daily_compliance rows=%d", n)
+    return n
+
+
 # ------------------------------------------------------------
 # Rollups
 # ------------------------------------------------------------

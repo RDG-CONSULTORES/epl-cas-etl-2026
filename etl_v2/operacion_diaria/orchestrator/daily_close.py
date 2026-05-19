@@ -1,10 +1,17 @@
-"""Cron diario 00:30 Monterrey: cierra día anterior.
+"""Cron diario 00:30 Monterrey: cierra día anterior con DELETE+INSERT.
 
-- Refresca catálogo de sucursales/GOs
-- Captura submissions completas del día anterior
-- Captura submissions archived_incomplete (= missed)
-- Genera rows missed para combinaciones sin registro
-- UPSERT a daily_compliance
+Por qué DELETE+INSERT y no UPSERT:
+- El UPSERT en load.py tiene priority on_time > late > missed. No permite
+  downgrade. Si una task quedó on_time en hourly de ayer pero al final del día
+  Zenput la marcó archived_incomplete, el daily_close debe poder bajarla a
+  missed. DELETE+INSERT es la forma limpia.
+
+Pasos:
+1. Sync dim_sucursales (refresca catálogo + tags EPL CAS)
+2. Extract submissions v3 con date_created_local = ayer
+3. Transform a rows (clasificación por hora vs ventana)
+4. DELETE rows EPL CAS de ayer
+5. INSERT rows nuevas
 """
 from __future__ import annotations
 
@@ -14,19 +21,12 @@ from datetime import datetime, timedelta
 
 import pytz
 
-from etl_v2.operacion_diaria.extract import (
-    extract_missed_submissions,
-    extract_submissions,
-)
+from etl_v2.operacion_diaria.extract import extract_submissions
 from etl_v2.operacion_diaria.load import (
-    existing_keys_for_range,
-    upsert_daily_compliance,
+    delete_daily_compliance_range,
+    insert_daily_compliance,
 )
-from etl_v2.operacion_diaria.transform import (
-    fill_missing_combinations,
-    missed_submissions_to_rows,
-    submissions_to_rows,
-)
+from etl_v2.operacion_diaria.transform import submissions_to_rows
 from etl_v2.shared.compliance import LOCAL_TZ
 from etl_v2.shared.config import settings
 from etl_v2.shared.db import log_etl_run
@@ -42,39 +42,38 @@ async def run() -> int:
     started = datetime.now(pytz.UTC)
     now_local = datetime.now(LOCAL_TZ)
     yesterday = (now_local - timedelta(days=1)).date()
-
     log.info("daily_close yesterday=%s", yesterday)
-    total = 0
+
     try:
         async with ZenputClient() as zc:
             await sync_dim_sucursales(zc)
 
+        # Rango: día completo ayer en zona local
         start_dt = LOCAL_TZ.localize(datetime.combine(yesterday, datetime.min.time()))
         end_dt = LOCAL_TZ.localize(datetime.combine(yesterday, datetime.max.time()))
 
         active = get_active_sucursales()
         active_ids = {s["location_id"] for s in active}
 
-        submissions = await extract_submissions(start_dt, end_dt)
-        sub_rows = submissions_to_rows(submissions, active_ids)
-        total += upsert_daily_compliance(sub_rows)
+        subs_by_project = await extract_submissions(start_dt, end_dt)
+        rows = submissions_to_rows(subs_by_project, active_ids,
+                                    day_range=(yesterday, yesterday))
 
-        missed_by_project = await extract_missed_submissions(start_dt, end_dt)
-        missed_rows = missed_submissions_to_rows(missed_by_project, active_ids)
-        total += upsert_daily_compliance(missed_rows)
+        deleted = delete_daily_compliance_range(yesterday, yesterday)
+        inserted = insert_daily_compliance(rows)
 
-        existing = existing_keys_for_range(yesterday, yesterday)
-        fill_rows = fill_missing_combinations(active, yesterday, yesterday, existing)
-        total += upsert_daily_compliance(fill_rows)
-
-        log_etl_run("daily_close", "ok", rows_affected=total,
-                    metadata={"day": yesterday.isoformat(),
-                              "submission_rows": len(sub_rows),
-                              "missed_rows": len(missed_rows),
-                              "filled_rows": len(fill_rows)},
-                    started_at=started)
-        log.info("daily_close OK total=%d", total)
-        return total
+        log_etl_run(
+            "daily_close", "ok", rows_affected=inserted,
+            metadata={
+                "day": yesterday.isoformat(),
+                "submissions_pulled": sum(len(v) for v in subs_by_project.values()),
+                "rows_deleted": deleted,
+                "rows_inserted": inserted,
+            },
+            started_at=started,
+        )
+        log.info("daily_close OK deleted=%d inserted=%d", deleted, inserted)
+        return inserted
     except Exception as e:
         log.exception("daily_close FAIL")
         log_etl_run("daily_close", "error", error_message=str(e), started_at=started)
