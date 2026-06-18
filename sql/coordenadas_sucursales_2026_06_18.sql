@@ -15,3 +15,4 @@ UPDATE sucursales SET latitud = 25.694986029391533, longitud = -100.173385570972
 -- Correcciones de coordenadas mal ubicadas (provistas por el usuario 2026-06-18).
 UPDATE sucursales SET latitud = 25.592885852506583, longitud = -100.00160683772692 WHERE numero = 26;  -- Cadereyta
 UPDATE sucursales SET latitud = 25.744332844388120, longitud = -100.30065889821458 WHERE numero =  9;  -- Anahuac
+UPDATE sucursales SET latitud = 25.659053129298304, longitud = -100.35634853373679 WHERE numero = 38;  -- Gomez Morin
