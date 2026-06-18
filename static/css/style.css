@@ -1053,6 +1053,24 @@ body {
     border-bottom: none;
 }
 
+/* Fila resaltada "Promedio EPL CAS" (siempre primero) */
+.heatmap-row.heatmap-total {
+    border-bottom: 2px solid var(--accent, #0a84ff);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.heatmap-row.heatmap-total .heatmap-entity {
+    font-weight: 800;
+    color: var(--accent, #0a84ff);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+}
+.heatmap-row.heatmap-total .heatmap-cell {
+    font-weight: 800;
+}
+
 .heatmap-entity {
     min-width: 120px;
     padding: 10px 8px;

@@ -1257,15 +1257,30 @@ def api_historico(tipo):
         # Ordenar por promedio general
         grupos_list = sorted(grupos_data.values(), key=lambda x: x['promedio_general'], reverse=True)
 
-        # Calcular promedio EPL CAS por período
+        # Promedio EPL CAS por período = peso igual por SUCURSAL (no por grupo),
+        # para que cuadre EXACTO con el número del header (M1). Solo activas, año en curso.
         epl_cas = {'nombre': 'EPL CAS', 'periodos': {}}
-        for periodo in periodos:
-            nombre = periodo[1]
-            promedios = [g['periodos'].get(nombre, {}).get('promedio') for g in grupos_list
-                        if g['periodos'].get(nombre, {}).get('promedio') is not None]
-            if promedios:
-                prom = round(sum(promedios) / len(promedios), 2)
-                epl_cas['periodos'][nombre] = {'promedio': prom, 'color': get_color_class(prom)}
+        epl_result = db.session.execute(text(f"""
+            WITH ult AS (
+                SELECT so.sucursal_id, so.periodo_id,
+                       AVG(so.calificacion_general) AS cg
+                FROM {tabla} so
+                JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
+                JOIN periodos_cas p ON so.periodo_id = p.id
+                WHERE EXTRACT(YEAR FROM p.fecha_inicio) = :anio
+                GROUP BY so.sucursal_id, so.periodo_id
+            )
+            SELECT p.nombre, AVG(u.cg) AS prom
+            FROM periodos_cas p
+            LEFT JOIN ult u ON u.periodo_id = p.id
+            WHERE EXTRACT(YEAR FROM p.fecha_inicio) = :anio
+            GROUP BY p.nombre, p.fecha_inicio
+            ORDER BY p.fecha_inicio
+        """), {'anio': anio})
+        for row in epl_result:
+            if row[1] is not None:
+                prom = round(float(row[1]), 2)
+                epl_cas['periodos'][row[0]] = {'promedio': prom, 'color': get_color_class(prom)}
 
         return jsonify({
             'success': True,

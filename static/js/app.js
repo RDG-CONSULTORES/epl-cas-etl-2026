@@ -1043,6 +1043,7 @@ function loadHistorico() {
             if (data.success && data.data) {
                 var periodos = data.data.periodos || [];
                 var grupos = data.data.grupos || [];
+                var eplCas = data.data.epl_cas || null;
 
                 if (grupos.length === 0) {
                     container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
@@ -1053,18 +1054,31 @@ function loadHistorico() {
                     return '<div class="heatmap-period">' + ((p.nombre || '').substring(0, 12)) + '</div>';
                 }).join('');
 
-                var bodyHtml = grupos.slice(0, 15).map(function(g) {
-                    var cellsHtml = periodos.map(function(p) {
-                        var periodoData = g.periodos[p.nombre] || {};
-                        var val = periodoData.promedio;
-                        var colorClass = periodoData.color || getColorClass(val);
+                // Helper: celdas de una entidad por cada periodo
+                function rowCells(periodosData) {
+                    return periodos.map(function(p) {
+                        var pd = (periodosData && periodosData[p.nombre]) || {};
+                        var val = pd.promedio;
+                        var colorClass = pd.color || getColorClass(val);
                         var display = (val !== null && val !== undefined) ? val : '-';
                         return '<div class="heatmap-cell ' + colorClass + '">' + display + '</div>';
                     }).join('');
+                }
 
+                // 1) Fila "Promedio EPL CAS" SIEMPRE primero, resaltada
+                var eplHtml = '';
+                if (eplCas) {
+                    eplHtml = '<div class="heatmap-row heatmap-total">' +
+                        '<div class="heatmap-entity">Promedio EPL CAS</div>' +
+                        rowCells(eplCas.periodos) +
+                        '</div>';
+                }
+
+                // 2) Todos los grupos (sin límite), ya vienen ordenados mayor->menor
+                var bodyHtml = grupos.map(function(g) {
                     return '<div class="heatmap-row">' +
                         '<div class="heatmap-entity">' + g.nombre + '</div>' +
-                        cellsHtml +
+                        rowCells(g.periodos) +
                         '</div>';
                 }).join('');
 
@@ -1073,7 +1087,7 @@ function loadHistorico() {
                     '<div class="heatmap-corner">Grupo</div>' +
                     headerHtml +
                     '</div>' +
-                    '<div class="heatmap-body">' + bodyHtml + '</div>' +
+                    '<div class="heatmap-body">' + eplHtml + bodyHtml + '</div>' +
                     '</div>';
             } else {
                 container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
