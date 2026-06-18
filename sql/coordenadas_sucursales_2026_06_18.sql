@@ -11,3 +11,7 @@ UPDATE sucursales SET latitud = 25.785663914621654, longitud = -100.280052894478
 UPDATE sucursales SET latitud = 25.873991350822152, longitud = -100.22864182626080 WHERE numero = 84;  -- Aeropuerto del Norte
 UPDATE sucursales SET latitud = 25.752639340451612, longitud = -100.25402613468229 WHERE numero = 85;  -- Diego Diaz
 UPDATE sucursales SET latitud = 25.694986029391533, longitud = -100.17338557097243 WHERE numero = 86;  -- Miguel de la Madrid
+
+-- Correcciones de coordenadas mal ubicadas (provistas por el usuario 2026-06-18).
+UPDATE sucursales SET latitud = 25.592885852506583, longitud = -100.00160683772692 WHERE numero = 26;  -- Cadereyta
+UPDATE sucursales SET latitud = 25.744332844388120, longitud = -100.30065889821458 WHERE numero =  9;  -- Anahuac
