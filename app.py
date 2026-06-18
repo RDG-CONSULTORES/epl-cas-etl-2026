@@ -62,28 +62,50 @@ GRUPOS_AGRUPACIONES = {
     }
 }
 
+def _ult_cte(tabla, con_periodo):
+    """
+    CTE 'ult' = ÚLTIMA evaluación por sucursal dentro del alcance.
+
+    Métrica oficial (decidida 2026-06-18): el % de una sucursal en un periodo
+    es su supervisión MÁS RECIENTE, no el promedio de todas sus supervisiones.
+    Los %  de grupo/agrupación se construyen promediando estas últimas evals
+    (peso igual por sucursal), no por supervisión.
+    """
+    filtro = "WHERE so.periodo_id = :periodo_id" if con_periodo else ""
+    return f"""
+        ult AS (
+            SELECT DISTINCT ON (so.sucursal_id)
+                   so.sucursal_id, so.calificacion_general
+            FROM {tabla} so
+            {filtro}
+            ORDER BY so.sucursal_id, so.fecha_supervision DESC, so.id DESC
+        )
+    """
+
 def calcular_promedio_agrupacion(patron, tipo, periodo_id=None):
     """
-    Calcula promedio de una agrupación usando TODAS las supervisiones
-    de los grupos que coinciden con el patrón (promedio ponderado correcto)
+    Promedio de una agrupación = promedio de la ÚLTIMA evaluación de cada
+    sucursal de los grupos que coinciden con el patrón (peso igual por sucursal).
     """
     tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+    con_periodo = bool(periodo_id and periodo_id != 'all')
 
     query = f"""
-        SELECT AVG(sup.calificacion_general) as promedio,
-               COUNT(sup.id) as total_supervisiones,
+        WITH {_ult_cte(tabla, con_periodo)}
+        SELECT AVG(u.calificacion_general) as promedio,
+               COUNT(u.sucursal_id) as total_evaluadas,
                COUNT(DISTINCT g.id) as total_grupos,
-               COUNT(DISTINCT s.id) as total_sucursales
-        FROM grupos_operativos g
-        JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
-        JOIN {tabla} sup ON s.id = sup.sucursal_id
-        WHERE g.activo = true
-          AND g.nombre LIKE :patron
+               (SELECT COUNT(*) FROM sucursales s2
+                  JOIN grupos_operativos g2 ON s2.grupo_operativo_id = g2.id
+                  WHERE s2.activo = true AND g2.activo = true
+                    AND g2.nombre LIKE :patron) as total_sucursales
+        FROM ult u
+        JOIN sucursales s ON u.sucursal_id = s.id AND s.activo = true
+        JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+        WHERE g.activo = true AND g.nombre LIKE :patron
     """
     params = {'patron': patron}
-
-    if periodo_id and periodo_id != 'all':
-        query += " AND sup.periodo_id = :periodo_id"
+    if con_periodo:
         params['periodo_id'] = periodo_id
 
     return db.session.execute(text(query), params).fetchone()
@@ -373,16 +395,19 @@ def api_kpis(tipo):
         params = {}
         params_periodo = {}
 
-        # Promedio del periodo (si hay periodo_id)
-        if periodo_id and periodo_id != 'all':
-            query_prom = f"SELECT AVG(calificacion_general) FROM {tabla} WHERE periodo_id = :periodo_id"
+        con_periodo = bool(periodo_id and periodo_id != 'all')
+
+        # Promedio del periodo = promedio de la ÚLTIMA evaluación de cada sucursal
+        if con_periodo:
             params_periodo['periodo_id'] = periodo_id
-            promedio_periodo = db.session.execute(text(query_prom), params_periodo).scalar() or 0
+            query_prom = f"WITH {_ult_cte(tabla, True)} SELECT AVG(calificacion_general) FROM ult"
+            promedio_periodo = db.session.execute(text(query_prom), params_periodo).scalar()
         else:
             promedio_periodo = None
 
-        # Promedio acumulado (siempre histórico total)
-        promedio_acumulado = db.session.execute(text(f"SELECT AVG(calificacion_general) FROM {tabla}")).scalar() or 0
+        # Promedio acumulado = última evaluación histórica de cada sucursal
+        query_acum = f"WITH {_ult_cte(tabla, False)} SELECT AVG(calificacion_general) FROM ult"
+        promedio_acumulado = db.session.execute(text(query_acum)).scalar() or 0
 
         # Total supervisiones
         if periodo_id and periodo_id != 'all':
@@ -407,17 +432,17 @@ def api_kpis(tipo):
         # Cobertura
         cobertura = round((sucursales_supervisadas / total_sucursales * 100) if total_sucursales > 0 else 0, 1)
 
-        # Distribución por rendimiento
+        # Distribución por rendimiento (cuenta cada sucursal una vez, por su última eval)
         query_dist = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
             SELECT
                 SUM(CASE WHEN calificacion_general >= 90 THEN 1 ELSE 0 END) as excelente,
                 SUM(CASE WHEN calificacion_general >= 80 AND calificacion_general < 90 THEN 1 ELSE 0 END) as bueno,
                 SUM(CASE WHEN calificacion_general >= 70 AND calificacion_general < 80 THEN 1 ELSE 0 END) as regular,
                 SUM(CASE WHEN calificacion_general < 70 THEN 1 ELSE 0 END) as critico
-            FROM {tabla}
+            FROM ult
         """
-        if periodo_id and periodo_id != 'all':
-            query_dist += " WHERE periodo_id = :periodo_id"
+        if con_periodo:
             dist_result = db.session.execute(text(query_dist), params_periodo).fetchone()
         else:
             dist_result = db.session.execute(text(query_dist)).fetchone()
@@ -429,13 +454,15 @@ def api_kpis(tipo):
             'critico': dist_result[3] or 0
         }
 
-        # Promedio a mostrar: del periodo si existe, si no acumulado
-        promedio_mostrar = promedio_periodo if promedio_periodo is not None else promedio_acumulado
+        # Promedio a mostrar: si hay periodo seleccionado se muestra el del periodo
+        # (aunque sea None = sin datos en el periodo); solo en modo "Todos" se usa el acumulado.
+        # No hay fallback silencioso periodo->acumulado (causaba el "no se mueve").
+        promedio_mostrar = promedio_periodo if con_periodo else promedio_acumulado
 
         return jsonify({
             'success': True,
             'data': {
-                'promedio': float(round(promedio_mostrar, 2)),
+                'promedio': float(round(promedio_mostrar, 2)) if promedio_mostrar is not None else None,
                 'promedio_periodo': float(round(promedio_periodo, 2)) if promedio_periodo is not None else None,
                 'promedio_acumulado': float(round(promedio_acumulado, 2)),
                 'color': get_color_class(promedio_mostrar),
@@ -465,35 +492,24 @@ def api_ranking_grupos(tipo):
 
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        # Query que incluye todos los grupos
-        if periodo_id and periodo_id != 'all':
-            query = f"""
-                SELECT g.id, g.nombre,
-                       AVG(sup.calificacion_general) as promedio,
-                       COUNT(DISTINCT s.id) as total_sucursales,
-                       COUNT(sup.id) as total_supervisiones
-                FROM grupos_operativos g
-                LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
-                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = :periodo_id
-                WHERE g.activo = true
-                GROUP BY g.id, g.nombre
-                ORDER BY promedio DESC NULLS LAST, g.nombre ASC
-            """
-            params = {'periodo_id': periodo_id}
-        else:
-            query = f"""
-                SELECT g.id, g.nombre,
-                       AVG(sup.calificacion_general) as promedio,
-                       COUNT(DISTINCT s.id) as total_sucursales,
-                       COUNT(sup.id) as total_supervisiones
-                FROM grupos_operativos g
-                LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
-                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
-                WHERE g.activo = true
-                GROUP BY g.id, g.nombre
-                ORDER BY promedio DESC NULLS LAST, g.nombre ASC
-            """
-            params = {}
+        # Query que incluye todos los grupos.
+        # promedio = promedio de la última eval de cada sucursal del grupo.
+        # total_supervisiones aquí = nº de sucursales con evaluación (denominador del promedio).
+        con_periodo = bool(periodo_id and periodo_id != 'all')
+        query = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
+            SELECT g.id, g.nombre,
+                   AVG(u.calificacion_general) as promedio,
+                   COUNT(DISTINCT s.id) as total_sucursales,
+                   COUNT(u.sucursal_id) as total_supervisiones
+            FROM grupos_operativos g
+            LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+            LEFT JOIN ult u ON u.sucursal_id = s.id
+            WHERE g.activo = true
+            GROUP BY g.id, g.nombre
+            ORDER BY promedio DESC NULLS LAST, g.nombre ASC
+        """
+        params = {'periodo_id': periodo_id} if con_periodo else {}
 
         result = db.session.execute(text(query), params)
         rows = list(result)
@@ -555,20 +571,22 @@ def api_ranking_grupos(tipo):
                 if not grupos_filtrados_ids:
                     continue
 
-                # Query para promedio filtrado por grupos específicos
+                # Promedio (última eval por sucursal) filtrado por grupos específicos
+                con_periodo_agrup = bool(periodo_id and periodo_id != 'all')
                 query_agrup = f"""
-                    SELECT AVG(sup.calificacion_general) as promedio,
-                           COUNT(sup.id) as total_supervisiones,
+                    WITH {_ult_cte(tabla, con_periodo_agrup)}
+                    SELECT AVG(u.calificacion_general) as promedio,
+                           COUNT(u.sucursal_id) as total_evaluadas,
                            COUNT(DISTINCT g.id) as total_grupos,
-                           COUNT(DISTINCT s.id) as total_sucursales
-                    FROM grupos_operativos g
-                    JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
-                    JOIN {tabla} sup ON s.id = sup.sucursal_id
+                           (SELECT COUNT(*) FROM sucursales s2
+                              WHERE s2.activo = true AND s2.grupo_operativo_id IN :grupo_ids) as total_sucursales
+                    FROM ult u
+                    JOIN sucursales s ON u.sucursal_id = s.id AND s.activo = true
+                    JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
                     WHERE g.activo = true AND g.id IN :grupo_ids
                 """
                 params_agrup = {'grupo_ids': tuple(grupos_filtrados_ids)}
-                if periodo_id and periodo_id != 'all':
-                    query_agrup += " AND sup.periodo_id = :periodo_id"
+                if con_periodo_agrup:
                     params_agrup['periodo_id'] = periodo_id
                 agrup_data = db.session.execute(text(query_agrup), params_agrup).fetchone()
             else:
@@ -685,32 +703,25 @@ def api_ranking_sucursales(tipo):
 
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        # Query que incluye TODAS las sucursales
-        if periodo_id and periodo_id != 'all':
-            query = f"""
-                SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
-                       s.clasificacion,
-                       AVG(sup.calificacion_general) as promedio,
-                       COUNT(sup.id) as total_supervisiones
-                FROM sucursales s
-                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = :periodo_id
-                WHERE s.activo = true
-            """
-        else:
-            query = f"""
-                SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
-                       s.clasificacion,
-                       AVG(sup.calificacion_general) as promedio,
-                       COUNT(sup.id) as total_supervisiones
-                FROM sucursales s
-                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
-                WHERE s.activo = true
-            """
+        # Query que incluye TODAS las sucursales.
+        # promedio = ÚLTIMA evaluación de la sucursal en el alcance (no promedio de todas).
+        con_periodo = bool(periodo_id and periodo_id != 'all')
+        cnt_filtro = "AND x.periodo_id = :periodo_id" if con_periodo else ""
+        query = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
+            SELECT s.id, s.nombre, g.nombre as grupo_nombre, g.id as grupo_id,
+                   s.clasificacion,
+                   u.calificacion_general as promedio,
+                   (SELECT COUNT(*) FROM {tabla} x
+                      WHERE x.sucursal_id = s.id {cnt_filtro}) as total_supervisiones
+            FROM sucursales s
+            LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+            LEFT JOIN ult u ON u.sucursal_id = s.id
+            WHERE s.activo = true
+        """
 
         params = {}
-        if periodo_id and periodo_id != 'all':
+        if con_periodo:
             params['periodo_id'] = periodo_id
 
         if grupo_id:
@@ -724,7 +735,6 @@ def api_ranking_sucursales(tipo):
             elif territorio == 'foranea':
                 query += " AND s.clasificacion = 'foraneo'"
 
-        query += " GROUP BY s.id, s.nombre, g.nombre, g.id, s.clasificacion"
         query += " ORDER BY promedio DESC NULLS LAST, s.nombre ASC"
 
         result = db.session.execute(text(query), params)
@@ -792,32 +802,35 @@ def api_grupo_detalle(grupo_id, tipo):
         if not grupo:
             return jsonify({'success': False, 'error': 'Grupo no encontrado'}), 404
 
-        # Promedio del grupo
-        query_prom = f"""
-            SELECT AVG(sup.calificacion_general)
-            FROM {tabla} sup
-            JOIN sucursales s ON sup.sucursal_id = s.id
-            WHERE s.grupo_operativo_id = :grupo_id
-        """
+        # con_periodo: evita el bug de comparar periodo_id = 'all' contra un int
+        con_periodo = bool(periodo_id and periodo_id != 'all')
         params = {'grupo_id': grupo_id}
-        if periodo_id:
-            query_prom += " AND sup.periodo_id = :periodo_id"
+        if con_periodo:
             params['periodo_id'] = periodo_id
 
+        # Promedio del grupo = promedio de la última eval de cada sucursal
+        query_prom = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
+            SELECT AVG(u.calificacion_general)
+            FROM ult u
+            JOIN sucursales s ON u.sucursal_id = s.id
+            WHERE s.grupo_operativo_id = :grupo_id
+        """
         promedio = db.session.execute(text(query_prom), params).scalar() or 0
 
-        # Sucursales del grupo
+        # Sucursales del grupo (cada una con su última eval del alcance)
+        cnt_filtro = "AND x.periodo_id = :periodo_id" if con_periodo else ""
         query_suc = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
             SELECT s.id, s.nombre,
-                   COALESCE(AVG(sup.calificacion_general), 0) as promedio,
-                   COUNT(sup.id) as supervisiones
+                   COALESCE(u.calificacion_general, 0) as promedio,
+                   (SELECT COUNT(*) FROM {tabla} x
+                      WHERE x.sucursal_id = s.id {cnt_filtro}) as supervisiones
             FROM sucursales s
-            LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
+            LEFT JOIN ult u ON u.sucursal_id = s.id
             WHERE s.grupo_operativo_id = :grupo_id AND s.activo = true
+            ORDER BY promedio DESC
         """
-        if periodo_id:
-            query_suc += " AND (sup.periodo_id = :periodo_id OR sup.periodo_id IS NULL)"
-        query_suc += " GROUP BY s.id, s.nombre ORDER BY promedio DESC"
 
         result = db.session.execute(text(query_suc), params)
         sucursales = []
@@ -873,7 +886,7 @@ def api_sucursal_detalle(sucursal_id, tipo):
                 WHERE so.sucursal_id = :sucursal_id
             """
             params = {'sucursal_id': sucursal_id}
-            if periodo_id:
+            if periodo_id and periodo_id != 'all':
                 query += " AND so.periodo_id = :periodo_id"
                 params['periodo_id'] = periodo_id
             query += " ORDER BY so.fecha_supervision DESC LIMIT 1"
@@ -905,7 +918,7 @@ def api_sucursal_detalle(sucursal_id, tipo):
                 WHERE ss.sucursal_id = :sucursal_id
             """
             params = {'sucursal_id': sucursal_id}
-            if periodo_id:
+            if periodo_id and periodo_id != 'all':
                 query += " AND ss.periodo_id = :periodo_id"
                 params['periodo_id'] = periodo_id
             query += " ORDER BY ss.fecha_supervision DESC LIMIT 1"
@@ -1090,35 +1103,24 @@ def api_mapa(tipo):
         periodo_id = request.args.get('periodo_id')
         tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
 
-        # Query que incluye TODAS las sucursales con coordenadas fijas
-        if periodo_id and periodo_id != 'all':
-            query = f"""
-                SELECT s.id, s.nombre, g.nombre as grupo_nombre,
-                       s.latitud as lat, s.longitud as lng,
-                       AVG(sup.calificacion_general) as promedio,
-                       COUNT(sup.id) as supervisiones
-                FROM sucursales s
-                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = :periodo_id
-                WHERE s.activo = true AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL
-                GROUP BY s.id, s.nombre, g.nombre, s.latitud, s.longitud
-                ORDER BY promedio DESC NULLS LAST
-            """
-            params = {'periodo_id': periodo_id}
-        else:
-            query = f"""
-                SELECT s.id, s.nombre, g.nombre as grupo_nombre,
-                       s.latitud as lat, s.longitud as lng,
-                       AVG(sup.calificacion_general) as promedio,
-                       COUNT(sup.id) as supervisiones
-                FROM sucursales s
-                LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-                LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id
-                WHERE s.activo = true AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL
-                GROUP BY s.id, s.nombre, g.nombre, s.latitud, s.longitud
-                ORDER BY promedio DESC NULLS LAST
-            """
-            params = {}
+        # Query que incluye TODAS las sucursales con coordenadas fijas.
+        # promedio = última eval de la sucursal en el alcance.
+        con_periodo = bool(periodo_id and periodo_id != 'all')
+        cnt_filtro = "AND x.periodo_id = :periodo_id" if con_periodo else ""
+        query = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
+            SELECT s.id, s.nombre, g.nombre as grupo_nombre,
+                   s.latitud as lat, s.longitud as lng,
+                   u.calificacion_general as promedio,
+                   (SELECT COUNT(*) FROM {tabla} x
+                      WHERE x.sucursal_id = s.id {cnt_filtro}) as supervisiones
+            FROM sucursales s
+            LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+            LEFT JOIN ult u ON u.sucursal_id = s.id
+            WHERE s.activo = true AND s.latitud IS NOT NULL AND s.longitud IS NOT NULL
+            ORDER BY promedio DESC NULLS LAST
+        """
+        params = {'periodo_id': periodo_id} if con_periodo else {}
 
         result = db.session.execute(text(query), params)
         markers = []
@@ -1161,14 +1163,22 @@ def api_historico(tipo):
             SELECT id, nombre FROM periodos_cas ORDER BY fecha_inicio
         """)).fetchall()
 
-        # Obtener datos por grupo y período
+        # Datos por grupo y período = promedio de la última eval de cada sucursal
+        # dentro de cada periodo (peso igual por sucursal).
         result = db.session.execute(text(f"""
-            SELECT g.id, g.nombre, p.nombre as periodo_nombre, AVG(sup.calificacion_general) as promedio,
-                   COUNT(sup.id) as evaluaciones
+            WITH ult AS (
+                SELECT DISTINCT ON (so.sucursal_id, so.periodo_id)
+                       so.sucursal_id, so.periodo_id, so.calificacion_general
+                FROM {tabla} so
+                ORDER BY so.sucursal_id, so.periodo_id, so.fecha_supervision DESC, so.id DESC
+            )
+            SELECT g.id, g.nombre, p.nombre as periodo_nombre,
+                   AVG(u.calificacion_general) as promedio,
+                   COUNT(u.sucursal_id) as evaluaciones
             FROM grupos_operativos g
             CROSS JOIN periodos_cas p
             LEFT JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
-            LEFT JOIN {tabla} sup ON s.id = sup.sucursal_id AND sup.periodo_id = p.id
+            LEFT JOIN ult u ON u.sucursal_id = s.id AND u.periodo_id = p.id
             WHERE g.activo = true
             GROUP BY g.id, g.nombre, p.nombre, p.fecha_inicio
             ORDER BY g.nombre, p.fecha_inicio
@@ -1246,19 +1256,21 @@ def api_alertas(tipo):
 
         alertas = []
 
-        # Alertas críticas (< 70%)
-        query_criticos = f"""
-            SELECT s.id, s.nombre, g.nombre as grupo, AVG(sup.calificacion_general) as promedio
-            FROM sucursales s
-            JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
-            JOIN {tabla} sup ON s.id = sup.sucursal_id
-            WHERE s.activo = true
-        """
+        con_periodo = bool(periodo_id and periodo_id != 'all')
         params = {}
-        if periodo_id:
-            query_criticos += " AND sup.periodo_id = :periodo_id"
+        if con_periodo:
             params['periodo_id'] = periodo_id
-        query_criticos += " GROUP BY s.id, s.nombre, g.nombre HAVING AVG(sup.calificacion_general) < 70 ORDER BY promedio"
+
+        # Alertas críticas: sucursales cuya ÚLTIMA evaluación está < 70%
+        query_criticos = f"""
+            WITH {_ult_cte(tabla, con_periodo)}
+            SELECT s.id, s.nombre, g.nombre as grupo, u.calificacion_general as promedio
+            FROM ult u
+            JOIN sucursales s ON u.sucursal_id = s.id AND s.activo = true
+            JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+            WHERE u.calificacion_general < 70
+            ORDER BY promedio
+        """
 
         result = db.session.execute(text(query_criticos), params)
         for row in result:
@@ -1270,17 +1282,18 @@ def api_alertas(tipo):
                 'promedio': round(row[3], 2)
             })
 
-        # Alertas warning (caída de rendimiento - grupos bajo 80%)
+        # Alertas warning: grupos cuyo promedio (de últimas evals) está entre 70 y 80%
         query_warning = f"""
-            SELECT g.id, g.nombre, AVG(sup.calificacion_general) as promedio
+            WITH {_ult_cte(tabla, con_periodo)}
+            SELECT g.id, g.nombre, AVG(u.calificacion_general) as promedio
             FROM grupos_operativos g
-            JOIN sucursales s ON g.id = s.grupo_operativo_id
-            JOIN {tabla} sup ON s.id = sup.sucursal_id
+            JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+            JOIN ult u ON u.sucursal_id = s.id
             WHERE g.activo = true
+            GROUP BY g.id, g.nombre
+            HAVING AVG(u.calificacion_general) < 80 AND AVG(u.calificacion_general) >= 70
+            ORDER BY promedio
         """
-        if periodo_id:
-            query_warning += " AND sup.periodo_id = :periodo_id"
-        query_warning += " GROUP BY g.id, g.nombre HAVING AVG(sup.calificacion_general) < 80 AND AVG(sup.calificacion_general) >= 70 ORDER BY promedio"
 
         result = db.session.execute(text(query_warning), params)
         for row in result:
