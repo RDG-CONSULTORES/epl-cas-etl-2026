@@ -162,12 +162,12 @@ function openPeriodSheet() {
     // Generar opciones - empezar con "Todos"
     var html = '';
 
-    // Opción "Todos los periodos"
+    // Opción "Acumulado del Año" = promedio de los trimestres del año en curso
     var isAllSelected = currentPeriodoId === 'all';
     html += '<div class="period-option ' + (isAllSelected ? 'selected' : '') + '" data-id="all">' +
         '<div class="period-option-info">' +
-            '<span class="period-option-name">Todos</span>' +
-            '<span class="period-option-dates">Historico acumulado</span>' +
+            '<span class="period-option-name">Acumulado del Año</span>' +
+            '<span class="period-option-dates">Promedio de los trimestres de este año</span>' +
         '</div>' +
         '<div class="period-option-check">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
@@ -232,21 +232,21 @@ function selectPeriodo(periodoId) {
     var periodName = document.getElementById('periodName');
 
     if (periodoId === 'all') {
-        // Seleccionar "Todos"
+        // Seleccionar "Acumulado del Año"
         currentPeriodoId = 'all';
         currentPeriodo = null;
 
         if (periodName) {
-            periodName.textContent = 'Todos';
+            periodName.textContent = 'Acumulado del Año';
         }
 
         // Cerrar sheet y recargar
         closePeriodSheet();
         loadDashboard();
-        // No actualizamos progreso porque es acumulado
+        // En modo año mostramos avance del año (revisadas / activas)
         var progressText = document.getElementById('progressText');
         if (progressText) {
-            progressText.textContent = 'Acumulado';
+            progressText.textContent = 'Año';
         }
         return;
     }
@@ -406,17 +406,26 @@ function loadKPIs() {
                     promEl.className = 'kpi-value ' + (d.color || 'gray');
                 }
 
-                // Label y acumulado
+                // Label y acumulado (etiquetas claras, sin tecnicismos)
+                var nombreAcum = d.nombre_acumulado || 'Acumulado del Año';
                 if (currentPeriodoId === 'all') {
-                    // Modo "Todos" - solo mostrar acumulado
-                    if (promLabelEl) promLabelEl.textContent = 'Promedio Acumulado';
+                    // Modo "Acumulado del Año" - promedio de los trimestres del año en curso
+                    if (promLabelEl) promLabelEl.textContent = nombreAcum;
                     if (acumEl) acumEl.style.display = 'none';
                 } else {
-                    // Modo periodo específico - mostrar ambos
-                    if (promLabelEl) promLabelEl.textContent = 'Promedio Periodo';
+                    // Modo trimestre específico
+                    var periodoTxt = (currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre';
+                    var revisadas = d.sucursales_supervisadas || 0;
+                    var totalSuc = d.total_sucursales || 86;
+                    var enCurso = revisadas < totalSuc;
+                    // Badge "En curso (x/y)" cuando el trimestre aún no llega a 86/86
+                    if (promLabelEl) {
+                        promLabelEl.textContent = 'Calificación ' + periodoTxt +
+                            (enCurso ? ' · En curso (' + revisadas + '/' + totalSuc + ')' : '');
+                    }
                     if (acumEl) {
                         acumEl.style.display = 'block';
-                        acumEl.textContent = 'Acum: ' + (d.promedio_acumulado ? d.promedio_acumulado + '%' : '-');
+                        acumEl.textContent = nombreAcum + ': ' + (d.promedio_acumulado ? d.promedio_acumulado + '%' : '-');
                     }
                 }
 
