@@ -671,6 +671,39 @@ function openGrupoModal(grupoId) {
                         '</div>';
                 }).join('');
 
+                // Tendencia por trimestre: chips que se "prenden" + flecha ↑/↓/▬
+                var tendenciaHtml = '';
+                if (g.tendencia && g.tendencia.length) {
+                    var chips = g.tendencia.map(function(t) {
+                        var qLabel = (t.codigo || '').split('-')[0];
+                        var score = t.tiene_dato ? t.promedio : '—';
+                        var arrow = '';
+                        if (t.direccion === 'up') arrow = '<span class="trend-arrow up">▲</span>';
+                        else if (t.direccion === 'down') arrow = '<span class="trend-arrow down">▼</span>';
+                        else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat">▬</span>';
+                        var deltaTxt = (t.delta !== null && t.delta !== undefined)
+                            ? ((t.delta > 0 ? '+' : '') + t.delta) : '';
+                        var cls = t.tiene_dato ? t.color : 'off';
+                        return '<div class="trend-chip ' + cls + '" title="' + (t.nombre || '') +
+                                (deltaTxt ? ' · ' + deltaTxt + ' vs trim. anterior' : '') + '">' +
+                            '<span class="trend-q">' + qLabel + '</span>' +
+                            '<span class="trend-score">' + score + '</span>' +
+                            arrow +
+                            '</div>';
+                    }).join('');
+                    var anioTxt = g.anio || '';
+                    var promAnioHtml = '';
+                    if (g.promedio_anio !== null && g.promedio_anio !== undefined) {
+                        promAnioHtml = '<span class="trend-anio ' + (g.color_anio || 'gray') + '">' +
+                            'Acumulado del Año ' + anioTxt + ': <strong>' + g.promedio_anio + '%</strong></span>';
+                    }
+                    tendenciaHtml = '<div class="trend-head">' +
+                        '<h4 class="modal-section-title">Tendencia por trimestre</h4>' +
+                        promAnioHtml +
+                        '</div>' +
+                        '<div class="trend-chips">' + chips + '</div>';
+                }
+
                 body.innerHTML = '<div class="modal-kpi">' +
                     '<span class="modal-kpi-value ' + colorClass + '">' + g.promedio + '</span>' +
                     '<span class="modal-kpi-label">Promedio ' + (currentTipo === 'operativas' ? 'Operativo' : 'Seguridad') + '</span>' +
@@ -679,6 +712,7 @@ function openGrupoModal(grupoId) {
                     '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">Supervisiones</span></div>' +
                     '<div class="modal-stat"><span class="stat-value">' + (g.total_sucursales || 0) + '</span><span class="stat-label">Sucursales</span></div>' +
                     '</div>' +
+                    tendenciaHtml +
                     '<h4 class="modal-section-title">Sucursales del Grupo</h4>' +
                     '<div class="modal-list">' + sucursalesHtml + '</div>';
 

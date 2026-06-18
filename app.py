@@ -866,14 +866,76 @@ def api_grupo_detalle(grupo_id, tipo):
                 'supervisiones': row[3]
             })
 
+        # Tendencia por trimestre del grupo (Q1..Q4 del año en curso).
+        # promedio = peso igual por sucursal (consistente con M1). Flecha vs el
+        # trimestre anterior CON dato: up / down / flat (estable si |Δ| < 0.5).
+        tend_rows = db.session.execute(text(f"""
+            WITH ult AS (
+                SELECT so.sucursal_id, so.periodo_id,
+                       AVG(so.calificacion_general) AS cg
+                FROM {tabla} so
+                JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
+                JOIN periodos_cas p ON so.periodo_id = p.id
+                WHERE EXTRACT(YEAR FROM p.fecha_inicio) = {int(anio)}
+                  AND sa.grupo_operativo_id = :grupo_id
+                GROUP BY so.sucursal_id, so.periodo_id
+            )
+            SELECT p.codigo, p.nombre, AVG(u.cg) AS prom
+            FROM periodos_cas p
+            LEFT JOIN ult u ON u.periodo_id = p.id
+            WHERE EXTRACT(YEAR FROM p.fecha_inicio) = {int(anio)}
+            GROUP BY p.codigo, p.nombre, p.fecha_inicio
+            ORDER BY p.fecha_inicio
+        """), {'grupo_id': grupo_id})
+
+        tendencia = []
+        prev = None
+        for r in tend_rows:
+            prom = round(float(r[2]), 2) if r[2] is not None else None
+            tiene = prom is not None
+            direccion, delta = None, None
+            if tiene and prev is not None:
+                delta = round(prom - prev, 2)
+                if delta > 0.5:
+                    direccion = 'up'
+                elif delta < -0.5:
+                    direccion = 'down'
+                else:
+                    direccion = 'flat'
+            tendencia.append({
+                'codigo': r[0], 'nombre': r[1],
+                'promedio': prom,
+                'tiene_dato': tiene,
+                'color': get_color_class(prom) if tiene else 'gray',
+                'delta': delta,
+                'direccion': direccion
+            })
+            if tiene:
+                prev = prom
+
+        # Acumulado del Año del grupo = peso igual por sucursal (consistente con M3)
+        query_anio = f"""
+            WITH {_score_cte(tabla, False, anio)}
+            SELECT AVG(u.calificacion_general)
+            FROM ult u
+            JOIN sucursales s ON u.sucursal_id = s.id
+            WHERE s.grupo_operativo_id = :grupo_id
+        """
+        promedio_anio = db.session.execute(text(query_anio), {'grupo_id': grupo_id}).scalar()
+        promedio_anio = round(float(promedio_anio), 2) if promedio_anio is not None else None
+
         return jsonify({
             'success': True,
             'data': {
                 'grupo': {'id': grupo[0], 'nombre': grupo[1]},
                 'promedio': round(promedio, 2),
                 'color': get_color_class(promedio),
+                'anio': int(anio),
+                'promedio_anio': promedio_anio,
+                'color_anio': get_color_class(promedio_anio),
                 'total_sucursales': len(sucursales),
                 'total_supervisiones': sum(s['supervisiones'] for s in sucursales),
+                'tendencia': tendencia,
                 'sucursales': sucursales
             }
         })
