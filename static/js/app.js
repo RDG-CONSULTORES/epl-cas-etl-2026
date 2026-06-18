@@ -633,7 +633,12 @@ function openGrupoModal(grupoId) {
     // Forzar repaint para iOS
     forceRepaint(container);
 
-    fetch('/api/grupo/' + grupoId + '/' + currentTipo)
+    // Pasar el trimestre seleccionado para que el drill-down COINCIDA con el
+    // ranking y el mapa (antes mostraba el histórico de todos los años).
+    var grupoUrl = '/api/grupo/' + grupoId + '/' + currentTipo;
+    if (currentPeriodoId) grupoUrl += '?periodo_id=' + currentPeriodoId;
+
+    fetch(grupoUrl)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
@@ -643,14 +648,17 @@ function openGrupoModal(grupoId) {
                 var colorClass = g.color || getColorClass(g.promedio);
 
                 var sucursalesHtml = (g.sucursales || []).map(function(s, i) {
-                    var sColorClass = s.color || getColorClass(s.promedio);
+                    var pendiente = !s.supervisiones;
+                    var sColorClass = pendiente ? 'gray' : (s.color || getColorClass(s.promedio));
+                    var scoreTxt = pendiente ? '—' : s.promedio;
+                    var metaTxt = pendiente ? 'Sin revision este trimestre' : ((s.supervisiones || 0) + ' revision' + ((s.supervisiones || 0) === 1 ? '' : 'es'));
                     return '<div class="modal-list-item" onclick="openSucursalModal(' + s.id + ')">' +
                         '<span class="ranking-pos pos-' + (i + 1) + '">' + (i + 1) + '</span>' +
                         '<div class="ranking-info">' +
                         '<span class="ranking-name">' + s.nombre + '</span>' +
-                        '<span class="ranking-meta">' + (s.supervisiones || 0) + ' supervisiones</span>' +
+                        '<span class="ranking-meta">' + metaTxt + '</span>' +
                         '</div>' +
-                        '<span class="ranking-score ' + sColorClass + '">' + s.promedio + '</span>' +
+                        '<span class="ranking-score ' + sColorClass + '">' + scoreTxt + '</span>' +
                         '</div>';
                 }).join('');
 
@@ -713,9 +721,14 @@ function openSucursalModal(sucursalId) {
         forceRepaint(overlay);
     }, 10);
 
+    // El número/áreas reflejan el trimestre seleccionado (coincide con ranking/mapa).
+    // La tendencia SÍ va sin periodo: muestra la historia trimestre a trimestre.
+    var sucUrl = '/api/sucursal/' + sucursalId + '/' + currentTipo;
+    if (currentPeriodoId) sucUrl += '?periodo_id=' + currentPeriodoId;
+
     // Cargar datos de sucursal y tendencia en paralelo
     Promise.all([
-        fetch('/api/sucursal/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); }),
+        fetch(sucUrl).then(function(r) { return r.json(); }),
         fetch('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); })
     ]).then(function(results) {
         var sucData = results[0];
@@ -784,11 +797,18 @@ function openSucursalModal(sucursalId) {
                     '</div>';
             }
 
-            body.innerHTML = '<div class="modal-kpi">' +
-                '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '%</span>' +
-                '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
-                (s.fecha_supervision ? '<span class="modal-kpi-date">Ultima: ' + s.fecha_supervision.split(' ')[0] + '</span>' : '') +
-                '</div>' +
+            // Si NO hubo revisión en el trimestre seleccionado, no mostrar "0%" (rojo)
+            var sinRevision = !s.fecha_supervision;
+            var kpiHtml = sinRevision
+                ? '<div class="modal-kpi"><span class="modal-kpi-value gray">—</span>' +
+                  '<span class="modal-kpi-label">Sin revision en este trimestre</span></div>'
+                : '<div class="modal-kpi">' +
+                  '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '%</span>' +
+                  '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
+                  '<span class="modal-kpi-date">' + s.fecha_supervision.split(' ')[0] + '</span>' +
+                  '</div>';
+
+            body.innerHTML = kpiHtml +
                 infoHtml +
                 '<div class="modal-stats">' +
                 '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '-') + '</span><span class="stat-label">Supervisor</span></div>' +
