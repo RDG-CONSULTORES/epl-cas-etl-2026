@@ -1053,6 +1053,111 @@ body {
     border-bottom: none;
 }
 
+/* Fila resaltada "Promedio EPL CAS" (siempre primero) */
+.heatmap-row.heatmap-total {
+    border-bottom: 2px solid var(--accent, #0a84ff);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.heatmap-row.heatmap-total .heatmap-entity {
+    font-weight: 800;
+    color: var(--accent, #0a84ff);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+}
+.heatmap-row.heatmap-total .heatmap-cell {
+    font-weight: 800;
+}
+
+/* ===== Tendencia por trimestre (modal de grupo) ===== */
+.trend-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; flex-wrap: wrap; margin-top: 14px;
+}
+.trend-anio {
+    font-size: 0.72rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; background: var(--bg-card);
+}
+.trend-chips { display: flex; gap: 8px; margin: 8px 0 4px; }
+.trend-chip {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; padding: 10px 6px; border-radius: 12px;
+    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s ease;
+}
+.trend-chip .trend-q { font-size: 0.65rem; font-weight: 700; opacity: 0.7; letter-spacing: 0.5px; }
+.trend-chip .trend-score { font-size: 1rem; font-weight: 800; }
+.trend-chip .trend-arrow { font-size: 0.7rem; line-height: 1; }
+.trend-arrow.up { color: var(--excellent); }
+.trend-arrow.down { color: var(--critical); }
+.trend-arrow.flat { color: var(--text-secondary); }
+/* "prendido" segun semaforo */
+.trend-chip.excellent { background: rgba(48,209,88,0.18); border-color: rgba(48,209,88,0.35); }
+.trend-chip.excellent .trend-score { color: var(--excellent); }
+.trend-chip.good { background: rgba(90,200,250,0.18); border-color: rgba(90,200,250,0.35); }
+.trend-chip.good .trend-score { color: var(--good); }
+.trend-chip.regular { background: rgba(255,214,10,0.18); border-color: rgba(255,214,10,0.35); }
+.trend-chip.regular .trend-score { color: var(--regular); }
+.trend-chip.critical { background: rgba(255,69,58,0.18); border-color: rgba(255,69,58,0.35); }
+.trend-chip.critical .trend-score { color: var(--critical); }
+/* apagado (sin dato / trimestre futuro) */
+.trend-chip.off { opacity: 0.4; }
+.trend-chip.off .trend-score { color: var(--text-secondary); }
+
+/* M4 Tendencia en la tarjeta principal del header */
+.kpi-trend {
+    display: inline-block; margin-top: 2px;
+    font-size: 0.78rem; font-weight: 700;
+}
+.kpi-trend.up { color: var(--excellent); }
+.kpi-trend.down { color: var(--critical); }
+.kpi-trend.flat { color: var(--text-secondary); }
+.kpi-trend .prelim-tag {
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-secondary);
+    background: rgba(255,255,255,0.08); padding: 1px 6px;
+    border-radius: 8px; margin-left: 4px; vertical-align: middle;
+}
+
+/* Botón ⓘ informativo */
+.info-i {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; margin-left: 6px; padding: 0;
+    border: none; border-radius: 50%; cursor: pointer;
+    background: var(--text-secondary); color: var(--bg-card);
+    font-size: 0.62rem; font-weight: 800; font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif; line-height: 1;
+    vertical-align: middle;
+}
+.info-i:active { transform: scale(0.9); }
+
+/* Popup informativo (encima de los modales) */
+.info-popup-overlay {
+    position: fixed; inset: 0; z-index: 4000;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.info-popup {
+    background: var(--bg-card); border-radius: 16px; max-width: 340px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45); overflow: hidden;
+    animation: infoPopIn 0.18s ease;
+}
+@keyframes infoPopIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.info-popup-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; font-weight: 700; font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.info-popup-close {
+    border: none; background: none; color: var(--text-secondary);
+    font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0 4px;
+}
+.info-popup-body {
+    padding: 16px; font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);
+}
+
 .heatmap-entity {
     min-width: 120px;
     padding: 10px 8px;
