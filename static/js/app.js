@@ -435,6 +435,23 @@ function loadKPIs() {
                 }
 
                 // Label y acumulado (etiquetas claras, sin tecnicismos)
+                // M4 Tendencia: flecha ▲/▼/▬ + Δ vs trimestre anterior (en la tarjeta principal)
+                var trendEl = document.getElementById('kpiTrend');
+                if (trendEl) {
+                    var t = (currentPeriodoId !== 'all') ? d.tendencia : null;
+                    if (t && t.direccion) {
+                        var arrow = t.direccion === 'up' ? '▲' : (t.direccion === 'down' ? '▼' : '▬');
+                        var deltaTxt = (t.delta > 0 ? '+' : '') + t.delta;
+                        trendEl.className = 'kpi-trend ' + t.direccion;
+                        trendEl.innerHTML = arrow + ' ' + deltaTxt + ' vs ' + t.vs +
+                            (t.preliminar ? ' <span class="prelim-tag">preliminar</span>' : '');
+                        trendEl.style.display = '';
+                    } else {
+                        trendEl.style.display = 'none';
+                        trendEl.innerHTML = '';
+                    }
+                }
+
                 var nombreAcum = d.nombre_acumulado || 'Acumulado del Año';
                 if (currentPeriodoId === 'all') {
                     // Modo "Acumulado del Año" - promedio de los trimestres del año en curso

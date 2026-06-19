@@ -1106,6 +1106,21 @@ body {
 .trend-chip.off { opacity: 0.4; }
 .trend-chip.off .trend-score { color: var(--text-secondary); }
 
+/* M4 Tendencia en la tarjeta principal del header */
+.kpi-trend {
+    display: inline-block; margin-top: 2px;
+    font-size: 0.78rem; font-weight: 700;
+}
+.kpi-trend.up { color: var(--excellent); }
+.kpi-trend.down { color: var(--critical); }
+.kpi-trend.flat { color: var(--text-secondary); }
+.kpi-trend .prelim-tag {
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-secondary);
+    background: rgba(255,255,255,0.08); padding: 1px 6px;
+    border-radius: 8px; margin-left: 4px; vertical-align: middle;
+}
+
 /* Botón ⓘ informativo */
 .info-i {
     display: inline-flex; align-items: center; justify-content: center;

@@ -503,6 +503,31 @@ def api_kpis(tipo):
         # No hay fallback silencioso periodo->acumulado (causaba el "no se mueve").
         promedio_mostrar = promedio_periodo if con_periodo else promedio_acumulado
 
+        # M4 Tendencia (Δ vs trimestre anterior del MISMO año). Solo con trimestre
+        # seleccionado y que tenga uno previo en el año. 'preliminar' si el trimestre
+        # actual aún no llega a 86/86 (comparar parcial vs cerrado no es definitivo).
+        tendencia = None
+        if con_periodo and promedio_periodo is not None:
+            prev = db.session.execute(text("""
+                SELECT id, codigo FROM periodos_cas
+                WHERE fecha_inicio < (SELECT fecha_inicio FROM periodos_cas WHERE id = :pid)
+                  AND EXTRACT(YEAR FROM fecha_inicio) = :anio
+                ORDER BY fecha_inicio DESC LIMIT 1
+            """), {'pid': periodo_id, 'anio': anio}).fetchone()
+            if prev:
+                prev_prom = db.session.execute(
+                    text(f"WITH {_score_cte(tabla, True)} SELECT AVG(calificacion_general) FROM ult"),
+                    {'periodo_id': prev[0]}).scalar()
+                if prev_prom is not None:
+                    delta = round(float(promedio_periodo) - float(prev_prom), 2)
+                    direccion = 'up' if delta > 0.5 else ('down' if delta < -0.5 else 'flat')
+                    tendencia = {
+                        'delta': delta,
+                        'direccion': direccion,
+                        'vs': (prev[1] or '').split('-')[0],
+                        'preliminar': bool(sucursales_supervisadas < total_sucursales)
+                    }
+
         return jsonify({
             'success': True,
             'data': {
@@ -511,6 +536,7 @@ def api_kpis(tipo):
                 'promedio_acumulado': float(round(promedio_acumulado, 2)),
                 'anio': int(anio),
                 'nombre_acumulado': f'Acumulado del Año {anio}',
+                'tendencia': tendencia,
                 'color': get_color_class(promedio_mostrar),
                 'total_supervisiones': int(total_supervisiones),
                 'sucursales_supervisadas': int(sucursales_supervisadas),
