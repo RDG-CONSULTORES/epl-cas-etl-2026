@@ -48,6 +48,34 @@ function forceRepaint(element) {
     }
 }
 
+// ========== POPUP INFORMATIVO (reutilizable) ==========
+function showInfoPopup(title, html) {
+    var ov = document.createElement('div');
+    ov.className = 'info-popup-overlay';
+    ov.innerHTML = '<div class="info-popup">' +
+        '<div class="info-popup-head"><span>' + title + '</span>' +
+        '<button class="info-popup-close" aria-label="Cerrar">&times;</button></div>' +
+        '<div class="info-popup-body">' + html + '</div></div>';
+    document.body.appendChild(ov);
+    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    ov.addEventListener('click', function(e) { if (e.target === ov) close(); });
+    ov.querySelector('.info-popup-close').addEventListener('click', close);
+}
+
+// Explica cómo se calcula el "Acumulado del Año" según el contexto
+function showAcumuladoInfo(scope, anio) {
+    var como;
+    if (scope === 'sucursal') {
+        como = 'Es el <strong>promedio</strong> de las calificaciones de esta sucursal en los trimestres del año ' + anio + ' (una visita por trimestre).';
+    } else if (scope === 'grupo') {
+        como = 'Es el <strong>promedio</strong> de las calificaciones de las sucursales del grupo durante los trimestres del año ' + anio + '. Cada sucursal pesa igual.';
+    } else {
+        como = 'Es el <strong>promedio</strong> de las calificaciones de los trimestres del año ' + anio + '. Cada sucursal pesa igual.';
+    }
+    showInfoPopup('¿Cómo se calcula el Acumulado del Año?',
+        como + '<br><br>Solo cuenta lo de <strong>' + anio + '</strong> — no incluye años anteriores. Se reinicia cada 1 de enero.');
+}
+
 // ========== THEME TOGGLE ==========
 function initTheme() {
     // Cargar tema guardado o usar dark por defecto
@@ -695,7 +723,8 @@ function openGrupoModal(grupoId) {
                     var promAnioHtml = '';
                     if (g.promedio_anio !== null && g.promedio_anio !== undefined) {
                         promAnioHtml = '<span class="trend-anio ' + (g.color_anio || 'gray') + '">' +
-                            'Acumulado del Año ' + anioTxt + ': <strong>' + g.promedio_anio + '%</strong></span>';
+                            'Acumulado del Año ' + anioTxt + ': <strong>' + g.promedio_anio + '%</strong>' +
+                            '<button class="info-i" onclick="showAcumuladoInfo(\'grupo\', ' + (anioTxt || 0) + ')" aria-label="Cómo se calcula">i</button></span>';
                     }
                     tendenciaHtml = '<div class="trend-head">' +
                         '<h4 class="modal-section-title">Tendencia por trimestre</h4>' +
@@ -811,6 +840,35 @@ function openSucursalModal(sucursalId) {
                     '</div>';
             }
 
+            // Tendencia por trimestre (chips que se prenden + flecha), igual que el grupo
+            var trendQHtml = '';
+            if (s.tendencia && s.tendencia.length) {
+                var sChips = s.tendencia.map(function(t) {
+                    var qLabel = (t.codigo || '').split('-')[0];
+                    var score = t.tiene_dato ? t.promedio : '—';
+                    var arrow = '';
+                    if (t.direccion === 'up') arrow = '<span class="trend-arrow up">▲</span>';
+                    else if (t.direccion === 'down') arrow = '<span class="trend-arrow down">▼</span>';
+                    else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat">▬</span>';
+                    var deltaTxt = (t.delta !== null && t.delta !== undefined) ? ((t.delta > 0 ? '+' : '') + t.delta) : '';
+                    var cls = t.tiene_dato ? t.color : 'off';
+                    return '<div class="trend-chip ' + cls + '" title="' + (t.nombre || '') +
+                            (deltaTxt ? ' · ' + deltaTxt + ' vs trim. anterior' : '') + '">' +
+                        '<span class="trend-q">' + qLabel + '</span>' +
+                        '<span class="trend-score">' + score + '</span>' + arrow +
+                        '</div>';
+                }).join('');
+                var sPromAnioHtml = '';
+                if (s.promedio_anio !== null && s.promedio_anio !== undefined) {
+                    sPromAnioHtml = '<span class="trend-anio ' + (s.color_anio || 'gray') + '">' +
+                        'Acumulado del Año ' + (s.anio || '') + ': <strong>' + s.promedio_anio + '%</strong>' +
+                        '<button class="info-i" onclick="showAcumuladoInfo(\'sucursal\', ' + (s.anio || 0) + ')" aria-label="Cómo se calcula">i</button></span>';
+                }
+                trendQHtml = '<div class="trend-head">' +
+                    '<h4 class="modal-section-title">Tendencia por trimestre</h4>' + sPromAnioHtml +
+                    '</div><div class="trend-chips">' + sChips + '</div>';
+            }
+
             // Construir HTML de áreas/KPIs (en contenedor actualizable)
             var areasHtml = '';
             var areasTypeLabel = currentTipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
@@ -857,6 +915,7 @@ function openSucursalModal(sucursalId) {
                 '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '-') + '</span><span class="stat-label">Supervisor</span></div>' +
                 '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '-') + '</span><span class="stat-label">Grupo</span></div>' +
                 '</div>' +
+                trendQHtml +
                 tendenciaHtml +
                 areasHtml;
 

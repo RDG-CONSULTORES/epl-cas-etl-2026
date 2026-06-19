@@ -1029,6 +1029,44 @@ def api_sucursal_detalle(sucursal_id, tipo):
                         'color': get_color_class(float(row[1]) if row[1] else 0)
                     })
 
+        # Tendencia por trimestre de la sucursal (Q1..Q4 del año en curso), igual
+        # que en el drill-down de grupo: prende el trimestre con dato + flecha vs anterior.
+        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        anio = _anio_actual()
+        tend_rows = db.session.execute(text(f"""
+            SELECT p.codigo, p.nombre, AVG(so.calificacion_general) AS prom
+            FROM periodos_cas p
+            LEFT JOIN {tabla} so ON so.periodo_id = p.id AND so.sucursal_id = :sid
+            WHERE EXTRACT(YEAR FROM p.fecha_inicio) = {int(anio)}
+            GROUP BY p.codigo, p.nombre, p.fecha_inicio
+            ORDER BY p.fecha_inicio
+        """), {'sid': sucursal_id})
+        tendencia = []
+        prev = None
+        for r in tend_rows:
+            prom = round(float(r[2]), 2) if r[2] is not None else None
+            tiene = prom is not None
+            direccion, delta = None, None
+            if tiene and prev is not None:
+                delta = round(prom - prev, 2)
+                direccion = 'up' if delta > 0.5 else ('down' if delta < -0.5 else 'flat')
+            tendencia.append({
+                'codigo': r[0], 'nombre': r[1], 'promedio': prom,
+                'tiene_dato': tiene, 'color': get_color_class(prom) if tiene else 'gray',
+                'delta': delta, 'direccion': direccion
+            })
+            if tiene:
+                prev = prom
+
+        # Acumulado del Año de la sucursal (promedio de sus trimestres del año)
+        prom_anio = db.session.execute(text(f"""
+            SELECT AVG(so.calificacion_general)
+            FROM {tabla} so
+            JOIN periodos_cas p ON so.periodo_id = p.id
+            WHERE so.sucursal_id = :sid AND EXTRACT(YEAR FROM p.fecha_inicio) = {int(anio)}
+        """), {'sid': sucursal_id}).scalar()
+        prom_anio = round(float(prom_anio), 2) if prom_anio is not None else None
+
         return jsonify({
             'success': True,
             'data': {
@@ -1043,6 +1081,10 @@ def api_sucursal_detalle(sucursal_id, tipo):
                 },
                 'promedio': round(promedio, 2),
                 'color': get_color_class(promedio),
+                'anio': int(anio),
+                'promedio_anio': prom_anio,
+                'color_anio': get_color_class(prom_anio),
+                'tendencia': tendencia,
                 'fecha_supervision': str(sup[2]) if sup and sup[2] else None,
                 'supervisor': sup[3] if sup else None,
                 'areas': areas

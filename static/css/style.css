@@ -1106,6 +1106,43 @@ body {
 .trend-chip.off { opacity: 0.4; }
 .trend-chip.off .trend-score { color: var(--text-secondary); }
 
+/* Botón ⓘ informativo */
+.info-i {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; margin-left: 6px; padding: 0;
+    border: none; border-radius: 50%; cursor: pointer;
+    background: var(--text-secondary); color: var(--bg-card);
+    font-size: 0.62rem; font-weight: 800; font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif; line-height: 1;
+    vertical-align: middle;
+}
+.info-i:active { transform: scale(0.9); }
+
+/* Popup informativo (encima de los modales) */
+.info-popup-overlay {
+    position: fixed; inset: 0; z-index: 4000;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.info-popup {
+    background: var(--bg-card); border-radius: 16px; max-width: 340px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45); overflow: hidden;
+    animation: infoPopIn 0.18s ease;
+}
+@keyframes infoPopIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.info-popup-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; font-weight: 700; font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.info-popup-close {
+    border: none; background: none; color: var(--text-secondary);
+    font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0 4px;
+}
+.info-popup-body {
+    padding: 16px; font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);
+}
+
 .heatmap-entity {
     min-width: 120px;
     padding: 10px 8px;
