@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
+<title>Cumplimiento PLOG</title>
+<style>
+  :root{
+    --bg:#0a0a0f; --bg-2:#14141b; --card:#1e1e27; --card-2:#26262f; --line:#2c2c38;
+    --ink:#f4f4f7; --ink-2:#a4a4b4; --ink-3:#6d6d7e;
+    --accent:#ff6b35; --accent-2:#ff8c5a;
+    --ok:#34d399; --ok-dim:#0f3d31; --late:#fbbf24; --late-dim:#3d3212; --miss:#f0526a; --miss-dim:#3d1620; --pend:#3a3a48;
+    --r:16px; --r-sm:11px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --shadow:0 6px 20px -6px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  body{max-width:460px;margin:0 auto;min-height:100dvh;position:relative;overflow-x:clip}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* Login */
+  #login{display:none;min-height:100dvh;flex-direction:column;justify-content:center;padding:32px 26px;gap:18px}
+  #login.on{display:flex}
+  #login .mark{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:grid;place-items:center;color:#1a0d06;font-weight:800;font-size:22px;box-shadow:var(--shadow);margin-bottom:6px}
+  #login h1{font-size:22px;font-weight:750;letter-spacing:-.02em}
+  #login p{color:var(--ink-3);font-size:13.5px;margin-top:-10px}
+  #login input{width:100%;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    color:var(--ink);font-size:15px;font-family:inherit}
+  #login input:focus{outline:none;border-color:var(--accent)}
+  #login button{width:100%;padding:14px;background:var(--accent);color:#1a0d06;border:0;border-radius:12px;
+    font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+  #login button:disabled{opacity:.5}
+  #login .err{color:var(--miss);font-size:13px;min-height:16px}
+
+  #app{display:none}
+  #app.on{display:block}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg) 62%,transparent);
+    padding:14px 18px 12px;backdrop-filter:blur(8px)}
+  .h-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;letter-spacing:-.02em;min-width:0}
+  .brand .mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:grid;place-items:center;color:#1a0d06;font-weight:800;font-size:13px;flex-shrink:0}
+  .brand .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fresh{font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:5px;flex-shrink:0;white-space:nowrap;cursor:pointer}
+  .fresh .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-dim)}
+  .zones{display:flex;gap:7px;margin-top:13px;overflow-x:auto;scrollbar-width:none}
+  .zones::-webkit-scrollbar{display:none}
+  .zchip{flex:0 0 auto;padding:7px 13px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+    font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:.16s;white-space:nowrap}
+  .zchip.on{background:var(--accent);border-color:var(--accent);color:#1a0d06}
+
+  main{padding:4px 18px 100px}
+  .view{display:none;animation:rise .34s cubic-bezier(.16,1,.3,1)}
+  .view.on{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+  h2.sec{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin:22px 2px 11px}
+  h2.sec:first-child{margin-top:8px}
+  .loading{color:var(--ink-3);font-size:13px;text-align:center;padding:30px}
+
+  .hero{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:20px;box-shadow:var(--shadow)}
+  .gauge{position:relative;width:104px;height:104px;flex:0 0 auto}
+  .gauge svg{transform:rotate(-90deg)}
+  .gauge .val{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .gauge .val b{font-size:29px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .gauge .val span{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em}
+  .hero-meta{flex:1;min-width:0}
+  .hero-meta .lead{font-size:14px;color:var(--ink-2);line-height:1.45;margin-bottom:13px}
+  .hero-meta .lead b{color:var(--ink);font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px}
+  .lg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .lg i{width:9px;height:9px;border-radius:3px}
+  .i-ok{background:var(--ok)} .i-late{background:var(--late)} .i-miss{background:var(--miss)} .i-pend{background:var(--pend)}
+
+  .kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:11px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 12px}
+  .kpi .z{font-size:11px;color:var(--ink-3);font-weight:600;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .p{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .kpi .bar{height:4px;border-radius:2px;background:var(--card-2);margin-top:9px;overflow:hidden}
+  .kpi .bar i{display:block;height:100%;border-radius:2px}
+
+  .store{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:.15s}
+  .store:active{background:var(--card-2);transform:scale(.99)}
+  .store .name{flex:1;min-width:0}
+  .store .name b{font-size:14.5px;font-weight:650;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .store .name small{font-size:11.5px;color:var(--ink-3)}
+  .pctpill{font-size:14px;font-weight:750;font-variant-numeric:tabular-nums;padding:3px 9px;border-radius:8px;min-width:52px;text-align:center}
+  .chev{color:var(--ink-3);flex:0 0 auto}
+
+  .matriz-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 10px 12px;overflow-x:auto;box-shadow:var(--shadow)}
+  table.mx{border-collapse:separate;border-spacing:4px;width:100%}
+  table.mx th{font-size:10.5px;color:var(--ink-3);font-weight:600;padding:0 0 6px;text-align:center}
+  table.mx td.rowh{text-align:left;font-size:12px;color:var(--ink-2);font-weight:600;white-space:nowrap;padding-right:8px;position:sticky;left:0;background:var(--card)}
+  .cell{width:34px;height:32px;border-radius:7px;display:grid;place-content:center;font-size:11px;font-weight:700;color:#0a0a0f;font-variant-numeric:tabular-nums}
+  .cell.na{background:var(--pend);color:var(--ink-3);font-weight:500}
+
+  .form-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:7px;cursor:pointer}
+  .form-row .fn{flex:1;min-width:0}
+  .form-row .fn b{font-size:13.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .form-row .fn small{font-size:11px;color:var(--ink-3)}
+  .minibar{height:6px;width:56px;border-radius:3px;background:var(--card-2);overflow:hidden;flex:0 0 auto}
+  .minibar i{display:block;height:100%}
+
+  .detail-hero{background:linear-gradient(160deg,var(--card-2),var(--card));border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+  .detail-hero .dt{font-size:17px;font-weight:750;letter-spacing:-.02em}
+  .detail-hero .ds{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+  .detail-hero .big{font-size:40px;font-weight:800;letter-spacing:-.03em;margin-top:12px;line-height:1}
+  .detail-hero .big small{font-size:14px;color:var(--ink-2);font-weight:600;margin-left:3px}
+  .area{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+  .area:last-child{border-bottom:0}
+  .area .an{flex:1;font-size:13.5px;font-weight:550}
+  .area .abar{width:96px;height:7px;border-radius:4px;background:var(--card-2);overflow:hidden;flex:0 0 auto}
+  .area .abar i{display:block;height:100%;border-radius:4px}
+  .area .ap{width:46px;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:4px}
+  .cal .d{aspect-ratio:1;border-radius:8px;display:grid;place-content:center;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;color:#0a0a0f;position:relative}
+  .cal .d.na{background:var(--pend);color:var(--ink-3)}
+  .cal .d small{position:absolute;top:3px;left:5px;font-size:8px;opacity:.55;font-weight:600}
+  .caldow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:5px}
+  .caldow span{text-align:center;font-size:10px;color:var(--ink-3);font-weight:600}
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-size:13px;font-weight:600;margin:6px 0 2px;cursor:pointer;background:none;border:0}
+
+  nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;z-index:30;background:rgba(16,16,22,.86);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  nav button{flex:1;background:none;border:0;color:var(--ink-3);display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 0;font-size:10.5px;font-weight:600;cursor:pointer}
+  nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9}
+  nav button.on{color:var(--accent)}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<section id="login">
+  <div class="mark">PL</div>
+  <h1>Cumplimiento PLOG</h1>
+  <p>Acceso para directores y equipo operativo</p>
+  <input id="u" placeholder="Usuario" autocapitalize="none" autocomplete="username">
+  <input id="p" type="password" placeholder="Contraseña" autocomplete="current-password">
+  <div class="err" id="loginErr"></div>
+  <button id="btnLogin">Entrar</button>
+</section>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="h-top">
+      <div class="brand"><span class="mark">PL</span><span class="t">Cumplimiento PLOG</span></div>
+      <div class="fresh" id="fresh" title="Cerrar sesión"><span class="dot"></span> <span id="corte">—</span></div>
+    </div>
+    <div class="zones" id="zones"></div>
+  </header>
+  <main>
+    <section class="view on" id="v-hoy"><div class="loading">Cargando…</div></section>
+    <section class="view" id="v-semana"><div class="loading">Cargando…</div></section>
+    <section class="view" id="v-suc"></section>
+    <section class="view" id="v-form"></section>
+  </main>
+  <nav id="nav">
+    <button class="on" data-v="hoy"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>Hoy</button>
+    <button data-v="semana"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Semana</button>
+    <button data-v="suc"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg>Sucursales</button>
+  </nav>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const api = (path) => fetch(path, {credentials:'same-origin'}).then(r => r.ok ? r.json() : Promise.reject(r.status));
+const cvar = p => p==null?'var(--pend)':p>=90?'var(--ok)':p>=70?'var(--late)':'var(--miss)';
+const pbg  = p => p==null?'var(--card-2)':p>=90?'var(--ok-dim)':p>=70?'var(--late-dim)':'var(--miss-dim)';
+const pfg  = p => p==null?'var(--ink-3)':p>=90?'var(--ok)':p>=70?'var(--late)':'var(--miss)';
+const ZN = {nuevo_leon:'Nuevo León', laguna:'Laguna', queretaro:'Querétaro'};
+function isoAgo(days){const d=new Date();d.setDate(d.getDate()-days);return d.toISOString().slice(0,10);}
+function rango(){return `desde=${isoAgo(7)}&hasta=${isoAgo(0)}`;}
+
+let ME=null, ZONA=null; // ZONA null = todas las que ve
+
+// ---- Login ----
+async function doLogin(){
+  $('#loginErr').textContent='';
+  $('#btnLogin').disabled=true;
+  try{
+    const r = await fetch('/api/login',{method:'POST',credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({usuario:$('#u').value.trim(), password:$('#p').value})});
+    if(!r.ok){ $('#loginErr').textContent='Usuario o contraseña incorrectos'; $('#btnLogin').disabled=false; return; }
+    boot();
+  }catch(e){ $('#loginErr').textContent='Error de conexión'; $('#btnLogin').disabled=false; }
+}
+$('#btnLogin').onclick=doLogin;
+$('#p').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+async function logout(){ await fetch('/api/logout',{method:'POST',credentials:'same-origin'}); location.reload(); }
+$('#fresh').onclick=()=>{ if(confirm('¿Cerrar sesión?')) logout(); };
+
+// ---- Boot ----
+async function boot(){
+  try{ ME = await api('/api/me'); }
+  catch(e){ $('#app').classList.remove('on'); $('#login').classList.add('on'); return; }
+  $('#login').classList.remove('on'); $('#app').classList.add('on');
+  $('#btnLogin').disabled=false;
+  // chips de zona (solo las que ve)
+  const zonas = ME.zonas.includes('todas') ? ['nuevo_leon','laguna','queretaro'] : ME.zonas;
+  const chips = (zonas.length>1 ? [['',`Todas · ${zonas.length} zonas`]] : []).concat(zonas.map(z=>[z,ZN[z]||z]));
+  $('#zones').innerHTML = chips.map((c,i)=>`<div class="zchip ${i===0?'on':''}" data-z="${c[0]}">${c[1]}</div>`).join('');
+  $('#zones').querySelectorAll('.zchip').forEach(ch=>ch.onclick=()=>{
+    $('#zones').querySelectorAll('.zchip').forEach(x=>x.classList.remove('on'));
+    ch.classList.add('on'); ZONA = ch.dataset.z||null; render();
+  });
+  ZONA = zonas.length>1 ? null : zonas[0];
+  api('/api/freshness').then(f=>{ if(f.corte){ const d=new Date(f.corte); $('#corte').textContent='Corte '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});}});
+  render();
+}
+
+function zonaFiltra(arr){ return ZONA ? arr.filter(x=>x.zona===ZONA) : arr; }
+
+// ---- V1 Hoy ----
+async function renderHoy(){
+  const r = await api(`/api/resumen?${rango()}`);
+  const zonas = zonaFiltra(r.zonas);
+  const pct = ZONA ? (zonas[0]?.pct ?? null) : r.pct;
+  const off = 282.7*(1-(pct||0)/100);
+  $('#v-hoy').innerHTML = `
+    <div class="hero">
+      <div class="gauge"><svg width="104" height="104" viewBox="0 0 104 104">
+        <circle cx="52" cy="52" r="45" fill="none" stroke="#26262f" stroke-width="10"/>
+        <circle cx="52" cy="52" r="45" fill="none" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="${off.toFixed(1)}"/>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b35"/><stop offset="1" stop-color="#ff8c5a"/></linearGradient></defs>
+      </svg><div class="val"><b class="num">${pct==null?'—':Math.round(pct)+'%'}</b><span>SEMANA</span></div></div>
+      <div class="hero-meta"><div class="lead"><b>${r.ot}</b> a tiempo · <b>${r.ms}</b> faltaron de lo esperado esta semana.</div>
+        <div class="legend"><span class="lg"><i class="i-ok"></i>${r.ot} a tiempo</span><span class="lg"><i class="i-late"></i>${r.lt} tarde</span><span class="lg"><i class="i-miss"></i>${r.ms} faltó</span><span class="lg"><i class="i-pend"></i>${r.pd} pend.</span></div></div>
+    </div>
+    ${!ZONA && zonas.length>1 ? `<h2 class="sec">Cumplimiento por zona</h2><div class="kpis">${zonas.map(z=>`
+      <div class="kpi"><div class="z">${ZN[z.zona]||z.zona}</div><div class="p num">${z.pct==null?'—':Math.round(z.pct)+'%'}</div>
+        <div class="bar"><i style="width:${z.pct||0}%;background:${cvar(z.pct)}"></i></div></div>`).join('')}</div>` : ''}
+    <h2 class="sec">Sucursales · semana</h2><div id="hoy-stores"><div class="loading">Cargando…</div></div>`;
+  const sr = await api(`/api/sucursales?${rango()}`);
+  $('#hoy-stores').innerHTML = zonaFiltra(sr.sucursales).map(s=>`
+    <div class="store" onclick="abreSucursal(${s.location_id},'${s.nombre.replace(/'/g,'')}','${s.zona}')">
+      <div class="name"><b>${s.nombre}</b><small>${ZN[s.zona]||s.zona}${s.es_comisariato?' · comisariato':''}</small></div>
+      <div class="pctpill num" style="background:${pbg(s.pct)};color:${pfg(s.pct)}">${s.pct==null?'—':Math.round(s.pct)+'%'}</div>
+      <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+    </div>`).join('') || '<div class="loading">Sin sucursales en esta zona.</div>';
+}
+
+// ---- V2 Semana (matriz por sucursal, últimos 7 días) ----
+async function renderSemana(){
+  const sr = await api(`/api/sucursales?${rango()}`);
+  const sucs = zonaFiltra(sr.sucursales);
+  $('#v-semana').innerHTML = `<h2 class="sec">Cumplimiento por sucursal · 7 días</h2>
+    <div class="matriz-wrap"><table class="mx"><tbody>${sucs.map(s=>`
+      <tr><td class="rowh">${s.nombre}</td><td><div class="cell ${s.pct==null?'na':''}" style="background:${cvar(s.pct)}">${s.pct==null?'·':Math.round(s.pct)}</div></td>
+      <td style="width:100%;padding-left:6px"><div style="height:8px;border-radius:4px;background:var(--card-2);overflow:hidden"><i style="display:block;height:100%;width:${s.pct||0}%;background:${cvar(s.pct)}"></i></div></td></tr>`).join('')}</tbody></table></div>
+    <div class="legend" style="margin-top:14px;padding:0 2px"><span class="lg"><i class="i-ok"></i>≥90%</span><span class="lg"><i class="i-late"></i>70–89%</span><span class="lg"><i class="i-miss"></i>&lt;70%</span></div>`;
+}
+
+// ---- V3 Sucursal ----
+window.abreSucursal = async function(id,nombre,zona){
+  go('suc');
+  $('#v-suc').innerHTML='<div class="loading">Cargando…</div>';
+  const d = await api(`/api/sucursal/${id}?${rango()}`);
+  $('#v-suc').innerHTML = `
+    <button class="back" onclick="go('hoy')">‹ Sucursales</button>
+    <div class="detail-hero"><div class="dt">${d.nombre}</div>
+      <div class="ds">${ZN[d.zona]||d.zona}${d.director?' · '+d.director:''}</div></div>
+    <h2 class="sec">Formularios · semana</h2>
+    <div>${(d.formularios||[]).map(f=>`
+      <div class="form-row" onclick="abreForm('${f.familia}',${id},'${d.nombre.replace(/'/g,'')}')">
+        <div class="fn"><b>${nombreForm(f.familia)}</b><small>${f.faltas} faltas</small></div>
+        <div class="minibar"><i style="width:${f.pct||0}%;background:${cvar(f.pct)}"></i></div>
+        <div class="pctpill num" style="background:${pbg(f.pct)};color:${pfg(f.pct)};min-width:44px">${f.pct==null?'—':Math.round(f.pct)+'%'}</div>
+      </div>`).join('') || '<div class="loading">Sin formularios activos.</div>'}</div>`;
+}
+
+// ---- V4 Formulario detalle ----
+window.abreForm = async function(familia,id,nombreSuc){
+  go('form');
+  $('#v-form').innerHTML='<div class="loading">Cargando…</div>';
+  const d = await api(`/api/formulario/${familia}/sucursal/${id}?desde=${isoAgo(30)}&hasta=${isoAgo(0)}`);
+  const cal = d.calificacion;
+  let areasHTML='';
+  if(cal && cal.areas && cal.areas.length){
+    areasHTML = `<h2 class="sec">Calificación por área</h2><div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:6px 16px">${
+      cal.areas.filter(a=>a.pct!=null).map(a=>`<div class="area"><span class="an">${a.area}</span>
+        <div class="abar"><i style="width:${a.pct}%;background:${cvar(a.pct)}"></i></div>
+        <span class="ap num" style="color:${pfg(a.pct)}">${Math.round(a.pct)}%</span></div>`).join('')}</div>`;
+  }
+  // calendario simple de los días
+  const dias = d.dias||[];
+  const cells = dias.map(x=>{
+    const bg = x.estado==='on_time'?'var(--ok)':x.estado==='late'?'var(--late)':x.estado==='missed'?'var(--miss)':'var(--pend)';
+    const mk = x.estado==='on_time'?'✓':x.estado==='late'?'~':x.estado==='missed'?'✕':'';
+    const dd = new Date(x.dia).getUTCDate();
+    return `<div class="d" style="background:${bg};color:${x.estado==='pending'?'var(--ink-3)':'#0a0a0f'}"><small>${dd}</small>${mk}</div>`;
+  }).join('');
+  $('#v-form').innerHTML = `
+    <button class="back" onclick="go('suc')">‹ ${nombreSuc}</button>
+    <div class="detail-hero"><div class="dt">${nombreForm(familia)}</div>
+      <div class="ds">${cal?('Última calificación: '+Math.round(cal.score_total)+'%'):'Cumplimiento diario'}</div>
+      ${cal?`<div class="big num">${Math.round(cal.score_total)}<small>% calificación</small></div>`:''}</div>
+    ${areasHTML}
+    <h2 class="sec">Cumplimiento · último mes</h2>
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px">
+      <div class="cal">${cells||'<div class="loading" style="grid-column:1/-1">Sin ventanas en el periodo.</div>'}</div>
+      <div class="legend" style="margin-top:14px"><span class="lg"><i class="i-ok"></i>a tiempo</span><span class="lg"><i class="i-late"></i>tarde</span><span class="lg"><i class="i-miss"></i>faltó</span></div>
+    </div>`;
+}
+
+const NOMBRES={alistamiento_diario:'Alistamiento Diario',rl1_entrega_t1:'RL1 Entrega 1er Turno',rl2_entrega_t2:'RL2 Entrega 2º Turno',checklist_cierre:'Checklist de Cierre',deposito_valores:'Depósito de Valores',alistamiento_servir:'Alistamiento SERVIR',alistamiento_hornos:'Alistamiento Hornos',autogestion_calidad:'Autogestión de Calidad',pro_suc_1:'PRO-SUC-1 Evaluación',pro_suc_3:'PRO-SUC-3 Procesos',pro_suc_4_autoeval:'PRO-SUC-4 Autoevaluación',do_supervision_operativa:'DO Supervisión Operativa',vcal_calidad_integral:'VCAL Verificación Calidad',visita_negocio:'Visita de Negocio',rh1_visita:'RH-1 Visita',recorrido_comisariato:'Recorrido Comisariato',comisariato_evaluacion:'Evaluación Comisariato',mtto_mensual:'Mtto Mensual',mtto_trimestral:'Mtto Trimestral',mtto_semestral:'Mtto Semestral'};
+function nombreForm(f){return NOMBRES[f]||f;}
+
+function render(){ renderHoy(); renderSemana(); }
+function go(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('on'));
+  $('#v-'+v).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+boot();
+</script>
+</body>
+</html>

@@ -10,14 +10,18 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from pathlib import Path
+
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from etl_plog.api import auth, scoping
 from etl_plog.shared.db import conn
 
 app = FastAPI(title="Cumplimiento PLOG", docs_url="/api/docs", openapi_url="/api/openapi.json")
 COOKIE = "plog_sesion"
+_WEB = Path(__file__).resolve().parents[1] / "web"
 
 
 # ── Auth dependency ──────────────────────────────────────────────────────
@@ -167,3 +171,22 @@ def health():
     with conn() as c:
         c.execute("SELECT 1")
     return {"ok": True}
+
+
+# ── PWA (mismo origen para que la cookie de sesión aplique) ──────────────
+@app.get("/")
+def root():
+    return FileResponse(_WEB / "index.html")
+
+
+@app.get("/manifest.json")
+def manifest():
+    return FileResponse(_WEB / "manifest.json")
+
+
+@app.get("/sw.js")
+def service_worker():
+    return FileResponse(_WEB / "sw.js", media_type="application/javascript")
+
+
+app.mount("/static", StaticFiles(directory=_WEB), name="static")
