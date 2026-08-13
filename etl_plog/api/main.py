@@ -10,6 +10,9 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+import asyncio
+import logging
+import os
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -19,10 +22,37 @@ from fastapi.staticfiles import StaticFiles
 from etl_plog.api import admin, auth, scoping
 from etl_plog.shared.db import conn
 
+log = logging.getLogger("plog")
 app = FastAPI(title="Cumplimiento PLOG", docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.include_router(admin.router)
 COOKIE = "plog_sesion"
 _WEB = Path(__file__).resolve().parents[1] / "web"
+
+# Scheduler interno de refresco (1 réplica). Cada REFRESH_HORAS corre sync incremental
+# + recompute reciente + calificaciones. Desactivable con REFRESH_HORAS=0.
+REFRESH_HORAS = float(os.environ.get("REFRESH_HORAS", "3"))
+
+
+@app.on_event("startup")
+async def _arranca_scheduler():
+    if REFRESH_HORAS <= 0:
+        return
+
+    def _refresh():
+        from etl_plog.scripts.refresh import run
+        return run()
+
+    async def loop():
+        while True:
+            await asyncio.sleep(REFRESH_HORAS * 3600)
+            try:
+                res = await asyncio.get_event_loop().run_in_executor(None, _refresh)
+                log.info("refresh automático OK: %s", res)
+            except Exception as e:  # noqa: BLE001
+                log.error("refresh automático falló: %s", e)
+
+    asyncio.create_task(loop())
+    log.info("scheduler de refresco cada %sh activo", REFRESH_HORAS)
 
 
 @app.get("/admin")
