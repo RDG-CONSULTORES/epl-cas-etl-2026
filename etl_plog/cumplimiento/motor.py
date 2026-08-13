@@ -200,9 +200,11 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                     continue
                 if (row["familia"], suc["location_id"], ini) in frozen:
                     continue  # congelada: no tocar
+                # membresía por fecha_local dentro del PERIODO [ini,fin] (NO extendido por
+                # gracia) → cada submission cuenta para UNA sola ventana (evita doble conteo
+                # entre periodos adyacentes). La gracia solo afecta el deadline en _estado.
                 candidatas = [(f, t, tpl) for f, tpl, t in hist
-                              if ini <= f <= fin + timedelta(days=row["dias_gracia"])
-                              and (ft is None or tpl == ft)]
+                              if ini <= f <= fin and (ft is None or tpl == ft)]
                 sub_ts = min((t for _, t, _ in candidatas), default=None)
                 ft_ok = candidatas[0][2] if candidatas else None
                 est = _estado(fin, row["hora_limite"], dia_sig,

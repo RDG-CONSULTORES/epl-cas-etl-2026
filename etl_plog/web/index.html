@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -168,6 +168,16 @@
 <script>
 const $ = s => document.querySelector(s);
 const api = (path) => fetch(path, {credentials:'same-origin'}).then(r => r.ok ? r.json() : Promise.reject(r.status));
+// A5: envuelve una carga async; ante error muestra estado con Reintentar; 401 → login.
+async function guard(elSel, fn){
+  try{ await fn(); }
+  catch(e){
+    if(e===401){ ME=null; $('#app').classList.remove('on'); $('#login').classList.add('on'); return; }
+    $(elSel).innerHTML=`<div class="loading">No se pudieron cargar los datos.<br><button class="rowbtn" style="margin-top:10px" onclick="render()">Reintentar</button></div>`;
+  }
+}
+// A4: glifo redundante al color (accesible para daltónicos)
+const glifo = p => p==null?'':p>=90?'✓':p>=70?'~':'✕';
 const cvar = p => p==null?'var(--pend)':p>=90?'var(--ok)':p>=70?'var(--late)':'var(--miss)';
 const pbg  = p => p==null?'var(--card-2)':p>=90?'var(--ok-dim)':p>=70?'var(--late-dim)':'var(--miss-dim)';
 const pfg  = p => p==null?'var(--ink-3)':p>=90?'var(--ok)':p>=70?'var(--late)':'var(--miss)';
@@ -217,7 +227,8 @@ async function boot(){
 function zonaFiltra(arr){ return ZONA ? arr.filter(x=>x.zona===ZONA) : arr; }
 
 // ---- V1 Hoy ----
-async function renderHoy(){
+async function renderHoy(){ await guard('#v-hoy', _renderHoy); }
+async function _renderHoy(){
   const r = await api(`/api/resumen?${rango()}`);
   const zonas = zonaFiltra(r.zonas);
   const pct = ZONA ? (zonas[0]?.pct ?? null) : r.pct;
@@ -238,28 +249,34 @@ async function renderHoy(){
     <h2 class="sec">Sucursales · semana</h2><div id="hoy-stores"><div class="loading">Cargando…</div></div>`;
   const sr = await api(`/api/sucursales?${rango()}`);
   $('#hoy-stores').innerHTML = zonaFiltra(sr.sucursales).map(s=>`
-    <div class="store" onclick="abreSucursal(${s.location_id},'${s.nombre.replace(/'/g,'')}','${s.zona}')">
+    <div class="store" data-suc="${s.location_id}" data-nom="${enc(s.nombre)}" data-zona="${s.zona}">
       <div class="name"><b>${s.nombre}</b><small>${ZN[s.zona]||s.zona}${s.es_comisariato?' · comisariato':''}</small></div>
-      <div class="pctpill num" style="background:${pbg(s.pct)};color:${pfg(s.pct)}">${s.pct==null?'—':Math.round(s.pct)+'%'}</div>
+      <div class="pctpill num" style="background:${pbg(s.pct)};color:${pfg(s.pct)}" aria-label="${s.pct==null?'sin dato':Math.round(s.pct)+' por ciento'}">${glifo(s.pct)} ${s.pct==null?'—':Math.round(s.pct)+'%'}</div>
       <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
     </div>`).join('') || '<div class="loading">Sin sucursales en esta zona.</div>';
 }
+// A6: delegación con data-* en vez de onclick inline (sin escape frágil / inyección)
+const enc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+document.addEventListener('click', e=>{
+  const st=e.target.closest('.store[data-suc]'); if(st){abreSucursal(+st.dataset.suc, st.dataset.nom, st.dataset.zona); return;}
+  const fr=e.target.closest('.form-row[data-fam]'); if(fr){abreForm(fr.dataset.fam, +fr.dataset.suc, fr.dataset.nom);}
+});
 
 // ---- V2 Semana (matriz por sucursal, últimos 7 días) ----
-async function renderSemana(){
+async function renderSemana(){ await guard('#v-semana', _renderSemana); }
+async function _renderSemana(){
   const sr = await api(`/api/sucursales?${rango()}`);
   const sucs = zonaFiltra(sr.sucursales);
   $('#v-semana').innerHTML = `<h2 class="sec">Cumplimiento por sucursal · 7 días</h2>
     <div class="matriz-wrap"><table class="mx"><tbody>${sucs.map(s=>`
-      <tr><td class="rowh">${s.nombre}</td><td><div class="cell ${s.pct==null?'na':''}" style="background:${cvar(s.pct)}">${s.pct==null?'·':Math.round(s.pct)}</div></td>
+      <tr><td class="rowh">${s.nombre}</td><td><div class="cell ${s.pct==null?'na':''}" style="background:${cvar(s.pct)}" title="${s.pct==null?'sin dato':Math.round(s.pct)+'%'}">${s.pct==null?'·':Math.round(s.pct)}</div></td>
       <td style="width:100%;padding-left:6px"><div style="height:8px;border-radius:4px;background:var(--card-2);overflow:hidden"><i style="display:block;height:100%;width:${s.pct||0}%;background:${cvar(s.pct)}"></i></div></td></tr>`).join('')}</tbody></table></div>
     <div class="legend" style="margin-top:14px;padding:0 2px"><span class="lg"><i class="i-ok"></i>≥90%</span><span class="lg"><i class="i-late"></i>70–89%</span><span class="lg"><i class="i-miss"></i>&lt;70%</span></div>`;
 }
 
 // ---- V3 Sucursal ----
-window.abreSucursal = async function(id,nombre,zona){
-  go('suc');
-  $('#v-suc').innerHTML='<div class="loading">Cargando…</div>';
+window.abreSucursal = function(id,nombre,zona){ go('suc'); $('#v-suc').innerHTML='<div class="loading">Cargando…</div>'; guard('#v-suc',()=>_abreSucursal(id,nombre,zona)); }
+async function _abreSucursal(id,nombre,zona){
   const d = await api(`/api/sucursal/${id}?${rango()}`);
   $('#v-suc').innerHTML = `
     <button class="back" onclick="go('hoy')">‹ Sucursales</button>
@@ -267,17 +284,16 @@ window.abreSucursal = async function(id,nombre,zona){
       <div class="ds">${ZN[d.zona]||d.zona}${d.director?' · '+d.director:''}</div></div>
     <h2 class="sec">Formularios · semana</h2>
     <div>${(d.formularios||[]).map(f=>`
-      <div class="form-row" onclick="abreForm('${f.familia}',${id},'${d.nombre.replace(/'/g,'')}')">
+      <div class="form-row" data-fam="${f.familia}" data-suc="${id}" data-nom="${enc(d.nombre)}">
         <div class="fn"><b>${nombreForm(f.familia)}</b><small>${f.faltas} faltas</small></div>
         <div class="minibar"><i style="width:${f.pct||0}%;background:${cvar(f.pct)}"></i></div>
-        <div class="pctpill num" style="background:${pbg(f.pct)};color:${pfg(f.pct)};min-width:44px">${f.pct==null?'—':Math.round(f.pct)+'%'}</div>
+        <div class="pctpill num" style="background:${pbg(f.pct)};color:${pfg(f.pct)};min-width:44px" aria-label="${f.pct==null?'sin dato':Math.round(f.pct)+' por ciento'}">${glifo(f.pct)} ${f.pct==null?'—':Math.round(f.pct)+'%'}</div>
       </div>`).join('') || '<div class="loading">Sin formularios activos.</div>'}</div>`;
 }
 
 // ---- V4 Formulario detalle ----
-window.abreForm = async function(familia,id,nombreSuc){
-  go('form');
-  $('#v-form').innerHTML='<div class="loading">Cargando…</div>';
+window.abreForm = function(familia,id,nombreSuc){ go('form'); $('#v-form').innerHTML='<div class="loading">Cargando…</div>'; guard('#v-form',()=>_abreForm(familia,id,nombreSuc)); }
+async function _abreForm(familia,id,nombreSuc){
   const d = await api(`/api/formulario/${familia}/sucursal/${id}?desde=${isoAgo(30)}&hasta=${isoAgo(0)}`);
   const cal = d.calificacion;
   let areasHTML='';
