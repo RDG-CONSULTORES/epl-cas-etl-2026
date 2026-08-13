@@ -1,0 +1,176 @@
+{
+ "alistamiento_a": {
+  "nombre": "A1-Alistamiento Lunes",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "alistamiento_hornos": {
+  "nombre": "Revisión diaria - Alistamiento Hornos - Colaborador",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "alistamiento_l": {
+  "nombre": "L1-Alistamiento Lunes",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "alistamiento_servir": {
+  "nombre": "Alistamiento SERVIR",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "auditoria_proveedores": {
+  "nombre": "CHECKLIST AUDITORIA PROVEEDORES PLOG",
+  "share": "0/0",
+  "origen": "PLOG (nuevo, 0 subs)",
+  "tiene_cas_en_nombre": false
+ },
+ "autogestion_calidad": {
+  "nombre": "1. Autogestión de Calidad semana 1",
+  "share": "23/27",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "checklist_cierre": {
+  "nombre": "Alistamiento Sucursal - 12 - Checklist Cierre",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "comisariato_evaluacion": {
+  "nombre": "PRO-COM-2 Evaluación Procesos Comisariatos",
+  "share": "15/24",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "deposito_valores": {
+  "nombre": "PRO - SUC - 7 Depósito de Valores NL",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "do_control_seguridad": {
+  "nombre": "* DO CONTROL OPERATIVO DE SEGURIDAD CAS 1.2 REV. 06012026",
+  "share": "33/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": true
+ },
+ "do_supervision_operativa": {
+  "nombre": "*DO SUPERVISION OPERATIVA CAS 1.2 REV 06012026",
+  "share": "28/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": true
+ },
+ "gestion_finanzas_plog": {
+  "nombre": "GESTIÓN Y FINANZAS PLOG",
+  "share": "3/3",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "matriz_imagen_plog": {
+  "nombre": "MATRIZ DE CRITERIO DE IMAGEN PLOG",
+  "share": "0/0",
+  "origen": "PLOG (nuevo, 0 subs)",
+  "tiene_cas_en_nombre": false
+ },
+ "mtto_mensual": {
+  "nombre": "MANTENIMIENTO PREVENTIVO MENSUAL PLOG V1",
+  "share": "16/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "mtto_semestral": {
+  "nombre": "MANTENIMIENTO PREVENTIVO SEMESTRAL PLOG V1",
+  "share": "8/16",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "mtto_trimestral": {
+  "nombre": "MANTENIMIENTO PREVENTIVO TRIMESTRAL PLOG V1",
+  "share": "6/16",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "pro_csc_5_vehiculos": {
+  "nombre": "PRO-CSC-5 Revisión a Vehículos Plog",
+  "share": "5/5",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "pro_sc_6_seguridad": {
+  "nombre": "PRO-SC-6 Revisión de Condiciones de Seguridad",
+  "share": "24/24",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "pro_suc_1": {
+  "nombre": "PRO-SUC-1 Evaluación de Procesos 2025V1",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "pro_suc_3": {
+  "nombre": "PRO-SUC-3 Evaluación Procesos Operativos",
+  "share": "48/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "pro_suc_4_autoeval": {
+  "nombre": "PRO-SUC-4 Autoevaluación de Procesos",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "recorrido_comisariato": {
+  "nombre": "Recorrido Diario Comisariato - Puntos Críticos",
+  "share": "0/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "revision_operativa_plog": {
+  "nombre": "REVISIÓN OPERATIVA PLOG",
+  "share": "3/5",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "rh1_visita": {
+  "nombre": "RH-1 Alistamiento de visita Regional",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "rl1_entrega_t1": {
+  "nombre": "RL 1-Entrega Primer Turno",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "rl2_entrega_t2": {
+  "nombre": "RL 2-Entrega Segundo Turno",
+  "share": "49/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "vcal_calidad_integral": {
+  "nombre": "VCAL25 Verificación Calidad Integral 2025",
+  "share": "49/50",
+  "origen": "🟡 COMPARTIDO con CAS",
+  "tiene_cas_en_nombre": false
+ },
+ "visita_negocio": {
+  "nombre": "Alistamiento Regional Visita Negocio",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ },
+ "visita_seguimiento": {
+  "nombre": "Alistamiento Regional Visita Seguimiento",
+  "share": "50/50",
+  "origen": "🟢 PLOG-exclusivo",
+  "tiene_cas_en_nombre": false
+ }
+}

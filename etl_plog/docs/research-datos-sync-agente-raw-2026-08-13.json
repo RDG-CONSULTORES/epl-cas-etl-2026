@@ -1,0 +1,335 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 103,
+  "logs": [
+    "Q: Mejores prácticas 2025-2026 de ARQUITECTURA DE DATOS para una herramienta de ana…",
+    "Decomposed into 5 angles: ELT connector patterns — replicate vs live API, incremental sync, Polling cadence, rate limits, and job scheduling on PaaS, Sync reliability, freshness SLA, and source-vs-destination reconciliation, State of the art: text-to-SQL vs semantic layers vs pre-compiled KPIs, Hybrid agent architecture and guardrails — intents + LLM tool use",
+    "State of the art: text-to-SQL vs semantic layers vs pre-compiled KPIs: 6 results",
+    "Polling cadence, rate limits, and job scheduling on PaaS: 6 results",
+    "ELT connector patterns — replicate vs live API, incremental sync: 6 results",
+    "ELT connector patterns — replicate vs live API, incremental sync: 4 novel (2 filtered)",
+    "Hybrid agent architecture and guardrails — intents + LLM tool use: 6 results",
+    "Hybrid agent architecture and guardrails — intents + LLM tool use: 2 novel (4 filtered)",
+    "Sync reliability, freshness SLA, and source-vs-destination reconciliation: 6 results",
+    "Sync reliability, freshness SLA, and source-vs-destination reconciliation: 3 novel (3 filtered)",
+    "Fetched 21 sources → 105 claims → verifying top 25",
+    "\"Airbyte's incremental sync model uses a cursor/wat…\": 3-0 ✓",
+    "\"Airbyte incremental sync requires the record to ex…\": 0-3 ✗",
+    "\"Airbyte persists sync state automatically as the m…\": 3-0 ✓",
+    "\"Airbyte supports a configurable lookback window th…\": 3-0 ✓",
+    "\"Fivetran's standard architecture for SaaS API sour…\": 3-0 ✓",
+    "\"Fivetran tracks incremental progress using cursors…\": 3-0 ✓",
+    "\"For sources with late-arriving or restated data, F…\": 3-0 ✓",
+    "\"When a source API cannot reliably serve only incre…\": 3-0 ✓",
+    "\"Fivetran's default approach to deletes in ELT repl…\": 3-0 ✓",
+    "\"For SaaS/API sources, Fivetran detects deletes in …\": 3-0 ✓",
+    "\"Fivetran's re-sync reconciliation algorithm is wat…\": 3-0 ✓",
+    "\"Airbyte's incremental sync tracks changes via a cu…\": 3-0 ✓",
+    "\"In Append + Deduped mode, Airbyte enforces one row…\": 3-0 ✓",
+    "\"If a source modifies records without updating the …\": 3-0 ✓",
+    "\"Railway cron jobs have a minimum scheduling freque…\": 3-0 ✓",
+    "\"Railway cron services must complete and exit; if t…\": 3-0 ✓",
+    "[v2:Railway cron jobs cannot run more freque] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:Railway skips a scheduled cron execution] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Railway skips a scheduled cron execution] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Railway skips (does not queue or overlap] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Railway cron jobs cannot run more freque] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:Railway cron job processes must terminat] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Railway cron job processes must terminat] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Railway skips a scheduled cron execution] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Railway skips a scheduled cron execution if the pr…\": 0-0 (3 abstain) ✗",
+    "[v2:Railway cron job processes must terminat] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Railway cron job processes must terminate cleanly …\": 0-0 (3 abstain) ✗",
+    "[v0:Railway positions cron jobs as the right] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Railway positions cron jobs as the right] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Railway positions cron jobs as the right] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Railway positions cron jobs as the right pattern f…\": 0-0 (3 abstain) ✗",
+    "[v1:Capped exponential backoff without jitte] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:Capped exponential backoff without jitte] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Railway skips (does not queue or overlap] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Railway skips (does not queue or overlap) a cron e…\": 1-0 (2 abstain) ✗",
+    "[v2:Capped exponential backoff without jitte] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Capped exponential backoff without jitter barely r…\": 0-0 (3 abstain) ✗",
+    "[v0:Adding full jitter to exponential backof] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Adding full jitter to exponential backof] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:Jittered exponential backoff is recommen] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Adding full jitter to exponential backof] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Adding full jitter to exponential backoff cut the …\": 0-0 (3 abstain) ✗",
+    "[v2:Jittered exponential backoff is recommen] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Fivetran's official recommendation for S] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Fivetran's official recommendation for S] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Jittered exponential backoff is recommen] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Jittered exponential backoff is recommended as the…\": 0-0 (3 abstain) ✗",
+    "[v0:Fivetran's official recommendation for S] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Fivetran's official recommendation for SaaS/API co…\": 0-0 (3 abstain) ✗",
+    "[v0:Railway cron jobs cannot run more freque] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Railway cron jobs cannot run more frequently than …\": 0-0 (3 abstain) ✗",
+    "Verify done: 25 claims → 15 confirmed, 10 killed",
+    "[synthesize] failed: You've hit your session limit · resets 8pm (America/Monterrey)"
+  ],
+  "result": {
+    "question": "Mejores prácticas 2025-2026 de ARQUITECTURA DE DATOS para una herramienta de analytics/compliance operativo construida SOBRE el API de un SaaS de terceros (Zenput/Crunchtime: API v3 REST, sin webhooks, filtros de fecha no confiables, cap de paginación offset 10,000, endpoint Large Batch con cursor para >10k), donde la app debe estar actualizada mínimo diario e idealmente intradía. Investigar: (1) REPLICAR A BD PROPIA vs CONSULTAR EL API EN VIVO (passthrough): cuándo cada patrón es correcto según la industria; cómo lo resuelven los conectores ELT estándar (Airbyte, Fivetran, Singer/Meltano taps) para SaaS APIs sin webhooks — patrones de incremental sync: watermarks/cursors, ventanas de solape (lookback windows) para datos tardíos, full-refresh periódico de reconciliación, detección de deletes; (2) CADENCIA Y COSTO: cómo dimensionar frecuencia de polling contra rate limits no documentados (backoff, jitter, presupuesto de requests), qué cadencia usan productos operativos comparables para dashboards \"del día\" (15min/1h/diario), y patrón de jobs recomendado en un PaaS tipo Railway (crons vs worker persistente); (3) CONFIABILIDAD para una herramienta seria: idempotencia de sync, tabla de sync_state por recurso, alertas cuando el sync falla o se atrasa (data freshness SLA visible en el dashboard tipo \"datos al corte de las 14:00\"), reconciliación de conteos fuente-vs-destino, y qué hacen Fivetran/Airbyte cuando la fuente miente o trunca; (4) CEREZA DEL PASTEL — AGENTE DE IA conversacional sobre la BD de cumplimiento (Postgres) para gerentes no técnicos en español: estado del arte 2026 de text-to-SQL vs semantic layers vs KPIs pre-compilados con fast-path (lecciones conocidas: text-to-SQL puro tipo Vanna puede tardar 20-30s y equivocarse; los fast-paths de intents pre-compilados responden en 2-8s); arquitecturas híbridas recomendadas (intents deterministas para las 20 preguntas comunes + LLM para long-tail con guardrails read-only), function calling / tool use de Claude sobre APIs de métricas propias vs SQL directo, y mejores prácticas de guardrails (solo lectura, scoping por permisos del usuario, citas de datos). Entregar: veredicto claro replicar-vs-consultar con criterios, spec del sync confiable (cadencia, solape, reconciliación, freshness SLA), y blueprint del agente IA por fases (fase 1 intents+fast-path, fase 2 LLM long-tail) con estimación de complejidad para 1 dev.",
+    "summary": "Synthesis step was skipped or failed — returning 15 verified claims unmerged.",
+    "findings": [],
+    "confirmed": [
+      {
+        "claim": "Airbyte's incremental sync model uses a cursor/watermark: records at or below the stored cursor value are considered already synced, and subsequent syncs only fetch records with a cursor field value greater than the stored cursor.",
+        "source": "https://docs.airbyte.com/platform/connector-development/connector-builder-ui/incremental-sync",
+        "quote": "records whose `updated_at` value is less than or equal than that cursor value have been synced already, and that the next sync should only export records whose `updated_at` value is greater than the cursor value.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Airbyte persists sync state automatically as the most recent encountered date, which becomes the start date of the next sync — i.e., a per-stream sync_state table pattern is the standard ELT approach.",
+        "source": "https://docs.airbyte.com/platform/connector-development/connector-builder-ui/incremental-sync",
+        "quote": "The most recent encountered date will be saved as the state of the connection - when the next sync is running, it picks up from that cutoff date as the new start date.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Airbyte supports a configurable lookback window that re-syncs a portion of records before the cutoff date, as the standard mitigation for APIs that update existing records without reliable modification-date filtering, trading extra volume for consistency.",
+        "source": "https://docs.airbyte.com/platform/connector-development/connector-builder-ui/incremental-sync",
+        "quote": "resync some portion of records before the cutoff date to catch changes that were made to existing records.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Fivetran's standard architecture for SaaS API sources is replicate-to-destination with a one-time initial (historical) sync followed by incremental syncs that extract only changed/added data on a schedule — supporting the 'replicate to own DB' pattern over live API passthrough.",
+        "source": "https://fivetran.com/docs/core-concepts/syncoverview",
+        "quote": "The first historical sync that Fivetran does for a connection is called the initial sync. ... After a successful initial sync, the connection runs in incremental sync mode. In this mode, only data that has been modified or added - also known as incremental changes - is extracted, processed, and loaded on schedule.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Fivetran tracks incremental progress using cursors (watermarks) that record sync history per connection, the same mechanism the research question proposes for a sync_state table.",
+        "source": "https://fivetran.com/docs/core-concepts/syncoverview",
+        "quote": "We use cursors to record the history of the syncs",
+        "vote": "3-0"
+      },
+      {
+        "claim": "When a source API cannot reliably serve only incremental changes, Fivetran falls back to full reimports of affected tables — validating periodic full-refresh reconciliation as the industry response to unreliable date filters.",
+        "source": "https://fivetran.com/docs/core-concepts/syncoverview",
+        "quote": "We reimport tables when we aren't able to fetch only incremental changes.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "For sources with late-arriving or restated data, Fivetran runs daily 'rollback syncs' that re-fetch a wider window of past data than a normal incremental sync — the lookback/overlap-window pattern for late data.",
+        "source": "https://fivetran.com/docs/core-concepts/syncoverview",
+        "quote": "During a rollback sync, we sync current data as well as more past report data than we do in an incremental sync.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Fivetran's default approach to deletes in ELT replication is 'soft delete': deleted source rows are not removed from the destination but flagged via a _fivetran_deleted boolean column, preserving history in the replica database.",
+        "source": "https://fivetran.com/docs/core-concepts/sync-modes/soft-delete",
+        "quote": "Soft delete is the default sync mode in Fivetran. In this mode, Fivetran marks rows as deleted in the destination after they are deleted in the source.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "For SaaS/API sources, Fivetran detects deletes in only two ways: directly from the source (when the API exposes delete information, e.g. Salesforce's is_deleted field) or by inferring removals through periodic full re-syncs — confirming that for APIs without delete signals or webhooks, periodic full-refresh reconciliation is the industry-standard delete-detection pattern.",
+        "source": "https://fivetran.com/docs/core-concepts/sync-modes/soft-delete",
+        "quote": "For connectors with the Captures Deletes feature, we get delete information either directly from the connector or by inferring it through periodic re-syncs.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Fivetran's re-sync reconciliation algorithm is watermark-based: after merging the refreshed snapshot, any destination row whose last-synced timestamp predates the re-sync start time is marked deleted (_fivetran_synced < re-sync start time => _fivetran_deleted = TRUE), a concrete pattern reusable for a custom Zenput sync's delete reconciliation.",
+        "source": "https://fivetran.com/docs/core-concepts/sync-modes/soft-delete",
+        "quote": "After each batch is merged, Fivetran sets `_fivetran_deleted = TRUE` in rows that have `_fivetran_synced < <re-sync start time>`.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Airbyte's incremental sync tracks changes via a cursor field (e.g., updated_at) and only replicates records whose cursor value exceeds the last synced maximum, using queries of the form 'cursor_field > last_sync_max_cursor_field_value'.",
+        "source": "https://docs.airbyte.com/platform/using-airbyte/core-concepts/sync-modes/incremental-append-deduped",
+        "quote": "the value used to track whether a record should be replicated ... select * from table where cursor_field > 'last_sync_max_cursor_field_value'",
+        "vote": "3-0"
+      },
+      {
+        "claim": "In Append + Deduped mode, Airbyte enforces one row per primary key in the destination by sorting on the cursor field and keeping only the latest version of each record, updating modified rows instead of appending new versions.",
+        "source": "https://docs.airbyte.com/platform/using-airbyte/core-concepts/sync-modes/incremental-append-deduped",
+        "quote": "sorting the data using the cursor field and keeping only the latest de-duplicated data row ... updates rows that have been modified instead of adding a new version.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "If a source modifies records without updating the cursor field, those updates will be silently missed by incremental sync — a direct risk for a source like Zenput with unreliable date filters, arguing for lookback windows or periodic full refresh.",
+        "source": "https://docs.airbyte.com/platform/using-airbyte/core-concepts/sync-modes/incremental-append-deduped",
+        "quote": "without properly updating the cursor field, then the updated records won't be picked up by the Incremental sync as expected.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Railway cron jobs have a minimum scheduling frequency of every 5 minutes, so any intraday sync cadence faster than 5 minutes on Railway requires a persistent worker instead of a cron.",
+        "source": "https://docs.railway.com/guides/cron-workers-queues",
+        "quote": "The minimum frequency is every 5 minutes.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Railway cron services must complete and exit; if the process stays running, subsequent scheduled executions will not start — so a sync job that hangs (e.g., on a slow Zenput API call) silently blocks all future runs.",
+        "source": "https://docs.railway.com/guides/cron-workers-queues",
+        "quote": "If the process stays running, subsequent executions will not start.",
+        "vote": "3-0"
+      }
+    ],
+    "refuted": [
+      {
+        "claim": "Airbyte incremental sync requires the record to expose a top-level last-updated date/time cursor field AND the source API to support filtering by that field — a precondition that fails when a SaaS API's date filters are unreliable (as with Zenput).",
+        "vote": "0-3",
+        "source": "https://docs.airbyte.com/platform/connector-development/connector-builder-ui/incremental-sync"
+      },
+      {
+        "claim": "Railway skips (does not queue or overlap) a cron execution if the previous run has not finished, which gives built-in protection against overlapping sync runs but means missed sync windows when a run overruns its interval.",
+        "vote": "1-0",
+        "source": "https://docs.railway.com/guides/cron-workers-queues"
+      },
+      {
+        "claim": "Railway cron jobs cannot run more frequently than every 5 minutes, which caps the maximum intraday polling cadence achievable via Railway's native cron feature (still fine for a 15min/1h dashboard sync).",
+        "vote": "0-0",
+        "source": "https://docs.railway.com/cron-jobs"
+      },
+      {
+        "claim": "Railway skips a scheduled cron execution if the previous run is still in progress, meaning a slow sync job (e.g., a large backfill against a 10k-offset-capped API) silently misses scheduled runs rather than queuing or overlapping — a sync design must tolerate skipped ticks and track its own watermark.",
+        "vote": "0-0",
+        "source": "https://docs.railway.com/cron-jobs"
+      },
+      {
+        "claim": "Railway cron job processes must terminate cleanly after each run (closing DB connections, etc.); a process that does not exit blocks all subsequent scheduled executions, which distinguishes the cron pattern from a persistent worker pattern.",
+        "vote": "0-0",
+        "source": "https://docs.railway.com/cron-jobs"
+      },
+      {
+        "claim": "Railway positions cron jobs as the right pattern for short-lived periodic tasks (to save resources versus a 24/7 in-code scheduler), and explicitly not for long-running processes or for schedules tighter than 5 minutes — directly informing the crons-vs-persistent-worker decision for the ETL sync.",
+        "vote": "0-0",
+        "source": "https://docs.railway.com/cron-jobs"
+      },
+      {
+        "claim": "Capped exponential backoff without jitter barely reduces contention against a shared remote resource: retry attempts remain clustered in synchronized spikes, so it is the worst-performing retry strategy in both total work and completion time.",
+        "vote": "0-0",
+        "source": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/"
+      },
+      {
+        "claim": "Adding full jitter to exponential backoff cut the total number of retry calls by more than half in a simulation with 100 contending clients, and also significantly reduced time-to-completion versus un-jittered exponential backoff.",
+        "vote": "0-0",
+        "source": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/"
+      },
+      {
+        "claim": "Jittered exponential backoff is recommended as the standard default for any remote API client (e.g., an ETL poller hitting a third-party SaaS API), because the benefit-to-implementation-complexity ratio is very high.",
+        "vote": "0-0",
+        "source": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/"
+      },
+      {
+        "claim": "Fivetran's official recommendation for SaaS/API connectors is hourly incremental syncs specifically to keep API call consumption in check, not the fastest available cadence.",
+        "vote": "0-0",
+        "source": "https://www.fivetran.com/faq"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://docs.airbyte.com/platform/connector-development/connector-builder-ui/incremental-sync",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://fivetran.com/docs/core-concepts/syncoverview",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://fivetran.com/docs/core-concepts/sync-modes/soft-delete",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.airbyte.com/platform/using-airbyte/core-concepts/sync-modes/incremental-append-deduped",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.railway.com/guides/cron-workers-queues",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.railway.com/cron-jobs",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.merge.dev/blog/api-polling-best-practices",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.fivetran.com/faq",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://truto.one/blog/best-practices-for-handling-api-rate-limits-and-retries-across-multiple-third-party-apis/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://airbyte.com/blog/resumable-full-refresh-building-resilient-systems-for-syncing-data",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.airbyte.com/platform/operator-guides/refreshes",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.datafold.com/blog/data-reconciliation-best-practices/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://arxiv.org/pdf/2604.25149",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://medium.com/data-science-collective/intent-driven-natural-language-interface-a-hybrid-llm-intent-classification-approach-e1d96ad6f35d",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://atlan.com/know/ai-agent/data-for-ai/text-to-sql-for-enterprise/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.k2view.com/blog/llm-text-to-sql/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://promethium.ai/guides/enterprise-text-to-sql-accuracy-benchmarks-2/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://joseparreogarcia.substack.com/p/anthropic-agentic-data-analytics",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview",
+        "quality": "primary",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sources": 21,
+      "claims": 105,
+      "verified": 25,
+      "confirmed": 15,
+      "killed": 10,
+      "afterSynthesis": 0
+    }
+  }
+}

@@ -1,0 +1,336 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 105,
+  "logs": [
+    "Q: Diseño completo de la capa de PRESENTACIÓN y OPERACIÓN de un sistema de complian…",
+    "Decomposed into 5 angles: UX de dashboards de cumplimiento operativo móvil (industria restaurantera), Reporte semanal de cumplimiento automatizado: métricas y formato, Canal de entrega en México: email transaccional vs WhatsApp Cloud API (costos 2026), Auth y scoping por fila en FastAPI sin IdP externo, Cadencia de polling ELT contra API sin webhooks",
+    "UX de dashboards de cumplimiento operativo móvil (industria restaurantera): 6 results",
+    "Reporte semanal de cumplimiento automatizado: métricas y formato: 6 results",
+    "Canal de entrega en México: email transaccional vs WhatsApp Cloud API (costos 2026): 6 results",
+    "Auth y scoping por fila en FastAPI sin IdP externo: 6 results",
+    "Cadencia de polling ELT contra API sin webhooks: 6 results",
+    "Reporte semanal de cumplimiento automatizado: métricas y formato: 5 novel (1 filtered)",
+    "Canal de entrega en México: email transaccional vs WhatsApp Cloud API (costos 2026): 4 novel (2 filtered)",
+    "Auth y scoping por fila en FastAPI sin IdP externo: 4 novel (2 filtered)",
+    "Cadencia de polling ELT contra API sin webhooks: 4 novel (2 filtered)",
+    "Fetched 23 sources → 115 claims → verifying top 25",
+    "\"Zenput's Ops Execution dashboard is organized as a…\": 3-0 ✓",
+    "\"Zenput includes a 'Frequently answered No' card th…\": 3-0 ✓",
+    "\"Jolt's Item Completion Report encodes task complia…\": 3-0 ✓",
+    "\"Zenput displays task compliance as a Task Completi…\": 3-0 ✓",
+    "\"Jolt surfaces underperforming stores via a sortabl…\": 3-0 ✓",
+    "\"Jolt separates the compliance report into 'Open It…\": 3-0 ✓",
+    "\"Crunchtime's Ops Execution product tracks task com…\": 1-2 ✗",
+    "\"Crunchtime consolidates multi-location operational…\": 3-0 ✓",
+    "\"Xenia's compliance dashboard is built around a sco…\": 1-2 ✗",
+    "\"Xenia implements location-hierarchy data scoping w…\": 3-0 ✓",
+    "\"Zenput's Mobile Dashboard is organized into four m…\": 3-0 ✓",
+    "\"Zenput's Recurring view breaks compliance down by …\": 3-0 ✓",
+    "\"Zenput's mobile Tasks view buckets work by urgency…\": 3-0 ✓",
+    "\"Twilio charges a platform fee of $0.005 per WhatsA…\": 3-0 ✓",
+    "\"Utility template messages sent within the 24-hour …\": 3-0 ✓",
+    "\"Meta's fees for WhatsApp utility and authenticatio…\": 3-0 ✓",
+    "\"Mobile dashboards should use progressive disclosur…\": 3-0 ✓",
+    "\"Dashboards should start with high-level overviews …\": 3-0 ✓",
+    "\"Charts on mobile should be simplified: bar charts …\": 3-0 ✓",
+    "\"For weekly restaurant compliance/operations report…\": 3-0 ✓",
+    "\"The recommended weekly report format is a one-page…\": 2-1 ✓",
+    "[v1:A weekly report must be reviewable in un] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:Los mensajes de utilidad (utility) y aut] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Los mensajes de utilidad (utility) y aut] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Los mensajes de utilidad (utility) y aut] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Los mensajes de utilidad (utility) y autenticación…\": 0-0 (3 abstain) ✗",
+    "[v0:Under Meta's WhatsApp Business Platform ] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v1:Under Meta's WhatsApp Business Platform ] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:Under Meta's WhatsApp Business Platform ] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Under Meta's WhatsApp Business Platform per-messag…\": 0-0 (3 abstain) ✗",
+    "[v1:Desde mediados de 2025, WhatsApp Busines] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:Desde mediados de 2025, WhatsApp Busines] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v0:A weekly report must be reviewable in un] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "[v2:A weekly report must be reviewable in un] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"A weekly report must be reviewable in under 15 min…\": 0-0 (3 abstain) ✗",
+    "[v2:Desde mediados de 2025, WhatsApp Busines] failed: You've hit your session limit · resets 8pm (America/Monterrey)",
+    "\"Desde mediados de 2025, WhatsApp Business API cobr…\": 0-0 (3 abstain) ✗",
+    "Verify done: 25 claims → 19 confirmed, 6 killed",
+    "[synthesize] failed: You've hit your session limit · resets 8pm (America/Monterrey)"
+  ],
+  "result": {
+    "question": "Diseño completo de la capa de PRESENTACIÓN y OPERACIÓN de un sistema de compliance tracking multi-tienda (18 sucursales de restaurantes en 3 zonas de México: Nuevo León, Laguna, Querétaro), para un equipo de 1 desarrollador con stack Python/FastAPI + Postgres (Railway) + vanilla JS PWA mobile-first (tema oscuro, ya existe design system). El motor esperado-vs-real ya existe (estados: on_time/late/missed/pending, por formulario × sucursal × día). Investigar 5 áreas: (1) MEJORES VISTAS/UX para dashboards de cumplimiento operativo en móvil/PWA — patrones probados: matriz calendario día×sucursal (heatmap), scorecards por tienda, rankings, streaks, vistas por formulario individual, drill-down zona→sucursal→formulario→día; cómo diseñan sus vistas de cumplimiento Jolt, Zenput/Crunchtime, Xenia, MeazureUp, 7shifts, y qué patrones de data-viz móvil funcionan para gerentes de operaciones no técnicos (colores semáforo, sparklines, qué evitar en pantalla chica); (2) REPORTE SEMANAL DE CUMPLIMIENTO automatizado — mejores prácticas de formato (qué métricas incluir: % por tienda, por formulario, tendencia vs semana anterior, top faltantes), generación PDF vs HTML email nativo, y patrones de scheduled reports en productos comparables; (3) ENTREGA AUTOMATIZADA: correo transaccional (Resend, AWS SES, Postmark — costos y facilidad para 1 dev) VS WhatsApp en México 2026 (WhatsApp Business Platform/Cloud API: costos por conversación/mensaje de utilidad en MX, requisitos de registro Meta Business, plantillas pre-aprobadas, opt-in requerido, complejidad real de integración; alternativas Twilio WhatsApp vs Meta directo vs proveedores mexicanos) — recomendación concreta de canal para empezar y ruta de migración; (4) AUTH + ACCESOS SEGMENTADOS para FastAPI ligero: alta de usuarios con contraseña por un admin (sin self-signup), roles admin/director/viewer, y scoping de datos por zona Y por lista de sucursales por usuario (row-level: cada quien ve solo sus tiendas) — patrones simples y seguros (session cookies vs JWT para PWA, hashing argon2/bcrypt, tabla user_scopes) sin meter un IdP externo; (5) CADENCIA DE SYNC de un ELT que consulta un API externo sin webhooks: ¿barrido horario en horas operativas + cierre diario vs diario único? cómo deciden esto sistemas comparables y qué cadencia soporta un reporte semanal + dashboards \"del día\". Entregar: blueprint priorizado de vistas (wireframe verbal de cada pantalla), spec del reporte semanal, recomendación de canal de entrega con costos MX, esquema de auth/scoping, y cadencia de sync recomendada.",
+    "summary": "Synthesis step was skipped or failed — returning 19 verified claims unmerged.",
+    "findings": [],
+    "confirmed": [
+      {
+        "claim": "Zenput's Ops Execution dashboard is organized as a set of cards governed by two global filters — team and time frame — so all compliance data is sliced by org unit and date range from a single control.",
+        "source": "https://support.crunchtime.com/hc/en-us/articles/15644154708371-Using-the-Zenput-dashboard",
+        "quote": "The first thing to notice is the team and time filters. These filters will allow you to view your dashboard data by a team in your account and by a specific time frame. Use the drop-down to select your parameters and the cards below will reflect the data of your selections.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Zenput displays task compliance as a Task Completion Rate percentage card that is hard-limited to the trailing 5 weeks of data and cannot be customized beyond that window.",
+        "source": "https://support.crunchtime.com/hc/en-us/articles/15644154708371-Using-the-Zenput-dashboard",
+        "quote": "The Next card shows you the completion percentage of tasks filtered by the time selection chosen in the filter above. This will only show the last 5 weeks of data and cannot be customized.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Zenput includes a 'Frequently answered No' card that surfaces, per selected form and date range, the checklist questions failed the highest percentage of times — a pattern for pinpointing worst-performing compliance items rather than only aggregate scores.",
+        "source": "https://support.crunchtime.com/hc/en-us/articles/15644154708371-Using-the-Zenput-dashboard",
+        "quote": "to view the questions that were answered \"No\" the highest percentage of times for the given time period",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Jolt's Item Completion Report encodes task compliance status with a three-color scheme where dark blue means completed on time, light blue means completed late, and red means not completed — i.e., it distinguishes on-time vs late vs missed visually, but does not use a green/yellow/red traffic-light palette for these statuses.",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+        "quote": "Dark Blue: \"Tasks completed on time\" ... Light Blue: \"Tasks completed late\" ... Red: \"Tasks not completed\"",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Jolt surfaces underperforming stores via a sortable 'Incomplete (%)' metric and supports drill-down analysis by grouping data by Location, List, or Organization — matching the zona→sucursal→formulario drill-down pattern in the research question.",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+        "quote": "The report displays an \"Incomplete (%)\" metric that can be sorted to identify underperforming locations. ... Data can be \"Group[ed] by Location, List, or Organization for detailed drill-down analysis.\"",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Jolt separates the compliance report into 'Open Items' (work in progress, within the active display period) and 'Closed Items' (after the Display Schedule expires), and states that the closed view gives a more accurate completion picture — a pattern relevant to distinguishing 'pending' from finalized on_time/late/missed states in dashboards.",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+        "quote": "Open Items: Filters out expired lists, showing \"a view of work in progress.\" ... Closed Items: Shows lists after their Display Schedule expires, providing \"a more accurate reflection of task completion.\"",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Crunchtime consolidates multi-location operational compliance data into a single centralized dashboard (Crunchtime Insights) with real-time in-app reporting, rather than per-store-only views — supporting the pattern of an above-store roll-up dashboard for ops managers.",
+        "source": "https://www.crunchtime.com/operations-execution",
+        "quote": "Check operational performance in real time with in-app reporting ... Pull your data into one powerful dashboard",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Xenia implements location-hierarchy data scoping where each role only sees its own slice of stores (DM sees district, regional sees all regions, store manager sees one store) within a single account — validating the zona→sucursal row-level scoping pattern in the research question.",
+        "source": "https://www.xenia.team/daily-ops-checklists/industries-restaurant-task-management",
+        "quote": "DMs see their district. Regionals see all regions. Store managers see their store.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Zenput's Mobile Dashboard is organized into four main tabs — Summary (overview KPIs), Tasks (outstanding tasks at a store), Activity (chronological submissions log), and Recurring (progress on recurring projects) — as its core information architecture for store-level compliance visibility on mobile.",
+        "source": "https://support.zenput.com/hc/en-us/articles/115004371093-Navigating-the-Zenput-Dashboard-",
+        "quote": "Summary- The Summary shows you an overview of your team’s work (similar to what you see on the Web Dashboard). This view will give you important information like ‘Current Tasks’, ‘Task Completion Rate’, and more. Tasks- The Tasks tab ... simply shows outstanding tasks at a given store. Activity- The Activity tab shows all submissions made for the user account and when they were submitted. ... Recurring- The Recurring tab gives an overview of your team's progress on each recurring project.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Zenput's Recurring view breaks compliance down by cadence (daily/weekly/monthly) with percentage completion statistics per recurring project, scoped by the team, user, or location filter, and lets users scroll horizontally through past date ranges — i.e., a per-form, per-period completion matrix with historical scroll rather than a single aggregate score.",
+        "source": "https://support.zenput.com/hc/en-us/articles/115004371093-Navigating-the-Zenput-Dashboard-",
+        "quote": "Select Daily, Weekly, or Monthly to view the corresponding recurring projects. Provides detail about all projects that are currently open for the team, user, or location that you are filtered to with percentage completion statistics. ... You can see further in the past by scrolling the date ranges in the project card to the right or left.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Zenput's mobile Tasks view buckets work by urgency (overdue, due today, this week, upcoming) and offers a status filter of all/incomplete/complete/missed — a state taxonomy that maps closely to an on_time/late/missed/pending compliance model, plus an in-view legend explaining task-status icons.",
+        "source": "https://support.zenput.com/hc/en-us/articles/115004371093-Navigating-the-Zenput-Dashboard-",
+        "quote": "The Tasks tab in the dashboard is similar to the current task page on the mobile app, which shows overdue, due today, this week, and upcoming tasks at the location. You can use the search bar above the task count card to search for a specific task or use the filter to drill-down between all, incomplete, complete, or missed tasks. ... The encircled i displays a legend of what each icon means detailing task status and exceptions.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Twilio charges a platform fee of $0.005 per WhatsApp message (in addition to Meta's template fees), which is the Twilio markup a solo developer would pay on top of Meta rates versus integrating with Meta's Cloud API directly.",
+        "source": "https://www.twilio.com/en-us/whatsapp/pricing",
+        "quote": "Twilio's message handling fee: $0.005 per message",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Meta's fees for WhatsApp utility and authentication template messages start at $0.0034 per message (rates vary by country; the page does not display a Mexico-specific rate), which is the relevant category for automated compliance-report notifications.",
+        "source": "https://www.twilio.com/en-us/whatsapp/pricing",
+        "quote": "Utility and authentication messages start at $0.0034/message",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Utility template messages sent within the 24-hour customer service window (after a user-initiated message) incur no Meta fee; the utility fee only applies outside that window.",
+        "source": "https://www.twilio.com/en-us/whatsapp/pricing",
+        "quote": "$0.0034 /message Meta fee outside the customer service window, no charge for messages during the customer service window",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Mobile dashboards should use progressive disclosure: show summary metrics first with drill-down options, revealing detail only when needed — which supports the zona→sucursal→formulario→día drill-down pattern in the research question.",
+        "source": "https://querio.ai/articles/how-to-design-dashboards-for-mobile-users",
+        "quote": "Display \"summary metrics first, with options to drill down\" ... \"show[ing] additional details only when necessary\"",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Charts on mobile should be simplified: bar charts limited to 5–7 bars (preferring horizontal bars) and pie charts kept under 7 categories.",
+        "source": "https://querio.ai/articles/how-to-design-dashboards-for-mobile-users",
+        "quote": "Bar charts: \"Limit to 5–7 bars; use horizontal bars\" ... Pie charts: \"Keep categories under 7\"",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Dashboards should start with high-level overviews and offer progressive-disclosure drill-down paths to increase granularity, rather than cramming detail into the primary view — supporting the proposed zone→store→form→day drill-down pattern.",
+        "source": "https://www.justinmind.com/ui-design/dashboard-design-best-practices-ux",
+        "quote": "Always design your dashboard so that... provide easy paths for your users to increase the level of granularity.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "For weekly restaurant compliance/operations reports, recommended operational-execution metrics include checklist completion rate broken down by shift and by location, temperature checks completed vs required, and the most-missed item per location — supporting the research question's proposed metrics of % per store, per form, and top faltantes.",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports",
+        "quote": "\"Temperature checks completed vs. required\" ... \"Checklist completion rate by shift and by location\" ... \"Most-missed item by location\"",
+        "vote": "3-0"
+      },
+      {
+        "claim": "The recommended weekly report format is a one-page executive summary structured as a single scorecard table plus five short sections, deliverable as a spreadsheet, digital form submission, or auto-generated PDF export.",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports",
+        "quote": "Structure it as one scorecard table plus five short sections ... Format options listed: spreadsheet, digital form submission, or \"auto-generated PDF export.\"",
+        "vote": "2-1"
+      }
+    ],
+    "refuted": [
+      {
+        "claim": "Crunchtime's Ops Execution product tracks task completion timeliness at the individual-task level, distinguishing on-time vs not-on-time and correctness — validating the on_time/late/missed status model as the industry-standard grain for restaurant compliance tracking.",
+        "vote": "1-2",
+        "source": "https://www.crunchtime.com/operations-execution"
+      },
+      {
+        "claim": "Xenia's compliance dashboard is built around a scoped-by-role, real-time completion-percentage view: a district manager can see which of their ~30 stores hit 100% task completion by a set time of day (e.g., 8am), making completion % the primary daily store metric.",
+        "vote": "1-2",
+        "source": "https://www.xenia.team/daily-ops-checklists/industries-restaurant-task-management"
+      },
+      {
+        "claim": "A weekly report must be reviewable in under 15 minutes or recipients stop reading it, and the scorecard plus exceptions should be distributed before the review meeting rather than during it.",
+        "vote": "0-0",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports"
+      },
+      {
+        "claim": "Desde mediados de 2025, WhatsApp Business API cobra los mensajes de plantilla iniciados por el negocio por mensaje entregado, reemplazando el modelo anterior de cobro por ventana de conversación de 24 horas.",
+        "vote": "0-0",
+        "source": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works"
+      },
+      {
+        "claim": "Los mensajes de utilidad (utility) y autenticación cuestan aproximadamente 80-90% menos que los mensajes de marketing en el mismo mercado — relevante porque un reporte semanal de cumplimiento calificaría como plantilla de utilidad.",
+        "vote": "0-0",
+        "source": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works"
+      },
+      {
+        "claim": "Under Meta's WhatsApp Business Platform per-message pricing effective April 1, 2026, sending a template message to Mexico costs $0.0305 USD for marketing and $0.0085 USD for utility or authentication categories — so a weekly utility-template compliance report to ~5-10 managers in Mexico would cost well under $1 USD/month in Meta fees.",
+        "vote": "0-0",
+        "source": "https://formbeep.com/whatsapp-api-pricing/"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://support.crunchtime.com/hc/en-us/articles/15644154708371-Using-the-Zenput-dashboard",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://querio.ai/articles/how-to-design-dashboards-for-mobile-users",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.crunchtime.com/operations-execution",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.justinmind.com/ui-design/dashboard-design-best-practices-ux",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.xenia.team/daily-ops-checklists/industries-restaurant-task-management",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.xenia.team/articles/restaurant-weekly-reports",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/SigNoz/signoz/issues/10662",
+        "quality": "forum",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.cloud.google.com/looker/docs/studio/schedule-automatic-report-delivery",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.zenput.com/hc/en-us/articles/115004371093-Navigating-the-Zenput-Dashboard-",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://mailfloss.com/automated-email-reporting/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://formbeep.com/whatsapp-api-pricing/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.buildmvpfast.com/blog/resend-vs-ses-vs-postmark-transactional-email-deliverability-saas-2026",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.twilio.com/en-us/whatsapp/pricing",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://betterstack.com/community/guides/scaling-python/authentication-fastapi/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://blog.greeden.me/en/2025/10/14/a-beginners-guide-to-serious-security-design-with-fastapi-authentication-authorization-jwt-oauth2-cookie-sessions-rbac-scopes-csrf-protection-and-real-world-pitfalls/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://tomodahinata.com/en/blog/fastapi-authentication-oauth2-jwt-security-scopes-production-guide",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.crunchydata.com/blog/row-level-security-for-tenants-in-postgres",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://taskjuice.ai/blog/api-polling-best-practices",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://dagster.io/blog/data-ingestion-patterns-when-to-use-push-pull-and-poll",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.merge.dev/blog/webhooks-vs-polling",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://airbyte.com/data-engineering-resources/etl-pipelines-run",
+        "quality": "blog",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sources": 23,
+      "claims": 115,
+      "verified": 25,
+      "confirmed": 19,
+      "killed": 6,
+      "afterSynthesis": 0
+    }
+  }
+}

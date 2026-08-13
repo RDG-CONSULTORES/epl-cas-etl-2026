@@ -1,0 +1,328 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 105,
+  "logs": [
+    "Q: Estrategia y blueprint técnico 2025-2026 para llevar un dashboard operativo de c…",
+    "Decomposed into 5 angles: Framework decision, solo-dev parity (state of the art + tradeoffs), Charting libraries: heatmaps, sparklines, drill-down on iOS/Android, SwiftUI ↔ Jetpack Compose equivalences + shared design tokens, Push notification parity and deep links (iOS 18 / Android 15), Parity architecture and release pipeline (skeptical/practitioner)",
+    "SwiftUI ↔ Jetpack Compose equivalences + shared design tokens: 6 results",
+    "Charting libraries: heatmaps, sparklines, drill-down on iOS/Android: 6 results",
+    "Push notification parity and deep links (iOS 18 / Android 15): 6 results",
+    "Push notification parity and deep links (iOS 18 / Android 15): 4 novel (2 filtered)",
+    "Parity architecture and release pipeline (skeptical/practitioner): 6 results",
+    "Parity architecture and release pipeline (skeptical/practitioner): 4 novel (2 filtered)",
+    "Framework decision, solo-dev parity (state of the art + tradeoffs): 6 results",
+    "Framework decision, solo-dev parity (state of the art + tradeoffs): 3 novel (3 filtered)",
+    "Fetched 23 sources → 112 claims → verifying top 25",
+    "\"As of Compose Multiplatform 1.8.0 (May 2025), JetB…\": 3-0 ✓",
+    "\"JetBrains claims iOS rendering performance is at n…\": 3-0 ✓",
+    "\"Swift Charts natively supports building a multi-ch…\": 3-0 ✓",
+    "\"Swift Charts provides vectorized plots (e.g., Poin…\": 3-0 ✓",
+    "\"Vico is positioned as a chart library for Compose …\": 3-0 ✓",
+    "\"Style Dictionary es un sistema de build que permit…\": 3-0 ✓",
+    "\"Vico's built-in chart types are line, column, cand…\": 3-0 ✓",
+    "\"Style Dictionary genera salidas específicas por pl…\": 3-0 ✓",
+    "\"SkipUI is a reimplementation of SwiftUI for Androi…\": 3-0 ✓",
+    "\"SkipUI's SwiftUI API coverage is explicitly incomp…\": 3-0 ✓",
+    "\"SkipUI renders using Android's Material 3 colors a…\": 3-0 ✓",
+    "\"The specific controls needed by the dashboard app …\": 3-0 ✓",
+    "\"OneSignal push notifications con Launch URL en iOS…\": 3-0 ✓",
+    "\"OneSignal soporta deep linking hacia pantallas esp…\": 3-0 ✓",
+    "\"FastAPI automatically generates an OpenAPI 3.1 spe…\": 3-0 ✓",
+    "\"Para paridad de deep links iOS/Android con OneSign…\": 3-0 ✓",
+    "\"OpenAPI Generator is the multi-language option off…\": 3-0 ✓",
+    "\"Generated clients provide compile-time type safety…\": 3-0 ✓",
+    "\"Swift OpenAPI Generator is a Swift Package Manager…\": 3-0 ✓",
+    "\"The generated code abstracts away HTTP serializati…\": 3-0 ✓",
+    "\"OpenAPI Generator can automatically generate API c…\": 3-0 ✓",
+    "\"The Kotlin client generator offers a 'jvm-retrofit…\": 3-0 ✓",
+    "\"Google Play's mandatory pre-production testing req…\": 3-0 ✓",
+    "\"Affected developers must have a minimum of 12 test…\": 3-0 ✓",
+    "\"Running a closed test is mandatory before applying…\": 3-0 ✓",
+    "Verify done: 25 claims → 25 confirmed, 0 killed",
+    "[synthesize] failed: You've hit your session limit · resets 8pm (America/Monterrey)"
+  ],
+  "result": {
+    "question": "Estrategia y blueprint técnico 2025-2026 para llevar un dashboard operativo de cumplimiento (hoy PWA vanilla JS mobile-first, backend FastAPI+Postgres, vistas: semáforo del día, heatmap semanal día×sucursal, scorecards con sparklines, drill-down 4 niveles) a APPS NATIVAS iOS Y ANDROID CON PARIDAD TOTAL de controles y capacidades, mantenidas por 1 solo desarrollador (con experiencia previa SwiftUI/TestFlight/APNs y algo de Android). Investigar y comparar HONESTAMENTE: (1) DECISIÓN DE FRAMEWORK para paridad iOS+Android con 1 dev: doble nativo (SwiftUI + Jetpack Compose) vs Kotlin Multiplatform + Compose Multiplatform vs Flutter vs React Native vs Capacitor envolviendo el PWA existente — estado real 2026 de cada uno, costo de mantener paridad, calidad de resultado para apps de dashboards/gráficas, y cuál recomienda la evidencia para este caso; (2) RENDERIZADO DE GRÁFICAS equivalente en ambas plataformas: Swift Charts (iOS) vs sus equivalentes Android (Vico, Compose Charts, MPAndroidChart) vs Flutter (fl_chart, Syncfusion) vs charts web dentro de Capacitor — específicamente: heatmaps/matrices de calendario, sparklines, barras con drill-down interactivo, animaciones fluidas, tema oscuro; (3) MAPA DE EQUIVALENCIAS de controles/navegación SwiftUI ↔ Jetpack Compose para las vistas del sistema: tab bar inferior, navigation stack, listas con pull-to-refresh, bottom sheets, calendarios, badges, y cómo compartir design tokens (colores/tipografía/espaciado) entre iOS, Android y el PWA para que las 3 caras se vean iguales; (4) PUSH Y MENSAJERÍA con paridad: OneSignal vs Firebase Cloud Messaging + APNs directo vs push de Capacitor — rich notifications (imágenes, botones de acción, agrupación por thread-id iOS / channels Android), deep links universales (universal links iOS / app links Android) hacia vistas específicas, in-app messaging, y mejores prácticas estéticas de notificaciones operativas 2026 (iOS 18 / Android 15+); (5) ARQUITECTURA DE PARIDAD para no batallar: contrato API único (OpenAPI → clientes generados Swift/Kotlin), auth por bearer token en móvil conviviendo con session cookies del PWA, cache offline de dashboards, feature flags para lanzar por plataforma, y pipelines de publicación (TestFlight ya dominado; requisitos reales de Google Play 2026 para apps internas/closed testing: cuenta, revisión, 12-20 testers, tiempos). Entregar: recomendación de framework con justificación, tabla de equivalencias de controles y gráficas por plataforma, arquitectura de push/deep links, y checklist de preparación (qué construir HOY en el backend/PWA para que la fase nativa sea plug-and-play).",
+    "summary": "Synthesis step was skipped or failed — returning 25 verified claims unmerged.",
+    "findings": [],
+    "confirmed": [
+      {
+        "claim": "As of Compose Multiplatform 1.8.0 (May 2025), JetBrains declares Compose Multiplatform for iOS stable and production-ready, with all major APIs officially stable — directly relevant to whether a solo dev can bet on KMP+CMP for iOS/Android parity in 2025-2026.",
+        "source": "https://blog.jetbrains.com/kotlin/2025/05/compose-multiplatform-1-8-0-released-compose-multiplatform-for-ios-is-stable-and-production-ready/",
+        "quote": "Compose for iOS to Stable ... All major APIs are now officially stable",
+        "vote": "3-0"
+      },
+      {
+        "claim": "JetBrains claims iOS rendering performance is at native parity: scrolling matches SwiftUI even on high-refresh-rate devices and startup time is comparable to native apps — relevant to whether CMP can deliver smooth dashboard/chart animations.",
+        "source": "https://blog.jetbrains.com/kotlin/2025/05/compose-multiplatform-1-8-0-released-compose-multiplatform-for-ios-is-stable-and-production-ready/",
+        "quote": "Scrolling performance is on par with SwiftUI, even on high-refresh-rate devices ... Startup time is comparable to native apps, so your first frame arrives just as fast",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Swift Charts natively supports building a multi-chart dashboard including heatmaps, histograms, and scatterplots — covering the heatmap/matrix view type required by the compliance dashboard — as demonstrated by Apple's own sample app.",
+        "source": "https://developer.apple.com/documentation/Charts/creating-a-data-visualization-dashboard-with-swift-charts",
+        "quote": "This sample shows how to visualize a dataset using a variety of chart types including histograms, scatterplots, heatmaps, and more.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Swift Charts provides vectorized plots (e.g., PointPlot, LinePlot) that efficiently render an entire RandomAccessCollection in a single plot, making it suitable for large-scale dashboard datasets on iOS.",
+        "source": "https://developer.apple.com/documentation/Charts/creating-a-data-visualization-dashboard-with-swift-charts",
+        "quote": "Visualize an entire data collection efficiently by instantiating a single vectorized plot in Swift Charts.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Vico is positioned as a chart library for Compose Multiplatform (not Android-only), making it a candidate for shared iOS+Android charting in a KMP/Compose Multiplatform stack.",
+        "source": "https://github.com/patrykandpatrick/vico",
+        "quote": "a powerful and extensible chart library for Compose Multiplatform",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Vico's built-in chart types are line, column, candlestick, and pie; no heatmap (or calendar-matrix) chart type is offered, so the dashboard's day-by-branch heatmap would require custom drawing on top of Vico or another approach.",
+        "source": "https://github.com/patrykandpatrick/vico",
+        "quote": "Supports line, column, and candlestick chart types ... The library supports line, column, candlestick, and pie charts. No heatmap type is mentioned in these releases.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Style Dictionary es un sistema de build que permite definir estilos/design tokens una sola vez y generarlos para cualquier plataforma o lenguaje, resolviendo exactamente el problema de mantener tokens consistentes entre iOS, Android y web (PWA).",
+        "source": "https://github.com/style-dictionary/style-dictionary",
+        "quote": "define styles once and use those styles on any platform or language ... keeping styles consistent and synchronized across multiple development platforms and devices",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Style Dictionary genera salidas específicas por plataforma desde una misma fuente de tokens: constantes Swift para iOS (p.ej. `float const SizeFontSmall = 10.00f;`), recursos XML para Android (p.ej. `<dimen name=\"font-small\">10sp</dimen>`) y variables SCSS/CSS para web (p.ej. `$size-font-small: 10px;`), con transforms y formats personalizables para otros destinos (como Compose).",
+        "source": "https://github.com/style-dictionary/style-dictionary",
+        "quote": "iOS/Swift: Float constants (e.g., `float const SizeFontSmall = 10.00f;`) ... Android: XML format (e.g., `<dimen name=\"font-small\">10sp</dimen>`) ... Web/CSS: SCSS variables (e.g., `$size-font-small: 10px;`)",
+        "vote": "3-0"
+      },
+      {
+        "claim": "SkipUI is a reimplementation of SwiftUI for Android built on Jetpack Compose, meaning a solo developer with SwiftUI experience could target Android from a single SwiftUI codebase instead of writing Jetpack Compose by hand (a fifth framework option beyond the five listed in the research question).",
+        "source": "https://github.com/skiptools/skip-ui",
+        "quote": "SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI for Kotlin on Android using Jetpack Compose.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "SkipUI's SwiftUI API coverage is explicitly incomplete: the project itself acknowledges that significant portions of SwiftUI are unimplemented, so full parity of arbitrary SwiftUI code on Android is not guaranteed.",
+        "source": "https://github.com/skiptools/skip-ui",
+        "quote": "SkipUI has robust support for the building blocks of SwiftUI, including its state flow and declarative syntax. Some of SwiftUI's vast surface area, however, is not yet implemented.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "The specific controls needed by the dashboard app map well in SkipUI's support table: NavigationStack, TabView and List are rated high support, while .refreshable (pull-to-refresh) and .badge are rated full support; DatePicker is only medium support (limited initializers), which matters for calendar/heatmap date pickers.",
+        "source": "https://github.com/skiptools/skip-ui",
+        "quote": "NavigationStack: 🟢 High support ... TabView: 🟢 High support ... List: 🟢 High support ... .refreshable: ✅ Full support ... .badge: ✅ Full support ... DatePicker: 🟡 Medium support",
+        "vote": "3-0"
+      },
+      {
+        "claim": "SkipUI renders using Android's Material 3 colors and components under the hood rather than pixel-replicating iOS visuals, so the Android app would look Material-native by default — relevant to the goal of sharing design tokens so iOS/Android/PWA look identical. Additionally, Swift Charts does not appear in the supported API table, so the dashboard's chart layer (heatmaps, sparklines, drill-down bars) would need a separate Android charting solution even with Skip.",
+        "source": "https://github.com/skiptools/skip-ui",
+        "quote": "Under the hood, SkipUI uses Android's Material 3 colors and components.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "OneSignal push notifications con Launch URL en iOS abren primero Safari y luego rebotan a la app vía el handshake de Universal Links, en lugar de abrir la app directamente; por eso OneSignal recomienda usar Additional Data con listeners de click para routing en móvil, o suprimir el comportamiento con OneSignal_suppress_launch_urls=YES en Info.plist.",
+        "source": "https://documentation.onesignal.com/docs/en/deep-linking",
+        "quote": "OneSignal's iOS SDK calls `openURL`, which opens Safari first, then bounces to your app through the Universal Link handshake. ... users can avoid this by using Additional Data or setting `OneSignal_suppress_launch_urls=YES` in `Info.plist`.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "OneSignal soporta deep linking hacia pantallas específicas mediante dos mecanismos configurables: Launch URL (parámetros API url/app_url o dashboard) y Additional Data (datos estructurados que la app enruta manualmente vía click listeners), siendo Additional Data el método recomendado para apps móviles.",
+        "source": "https://documentation.onesignal.com/docs/en/deep-linking",
+        "quote": "Two methods exist for attaching deep links: 1. Launch URL: Set via dashboard or API parameters `url`/`app_url`. ... 2. Additional Data: Recommended for mobile. Places destination in structured data fields, requiring manual routing through click listeners. This avoids iOS browser redirection.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Para paridad de deep links iOS/Android con OneSignal se requiere configuración nativa estándar en ambas plataformas: en iOS Universal Links (Associated Domains + archivo AASA) o esquemas en CFBundleURLTypes; en Android App Links (intent filters con autoVerify=\"true\" + archivo Digital Asset Links) o esquemas URI en AndroidManifest.xml — OneSignal no elimina ese trabajo por plataforma.",
+        "source": "https://documentation.onesignal.com/docs/en/deep-linking",
+        "quote": "iOS: Configure Universal Links (Associated Domains + AASA file) or custom URL schemes in `CFBundleURLTypes`; Android: Set up App Links (intent filters with `autoVerify=\"true\"` + Digital Asset Links file) or custom URI schemes in `AndroidManifest.xml`",
+        "vote": "3-0"
+      },
+      {
+        "claim": "FastAPI automatically generates an OpenAPI 3.1 specification for the API, so any SDK generator tool used against it must support OpenAPI 3.1 — a hard compatibility requirement when choosing generators for Swift/Kotlin mobile clients.",
+        "source": "https://fastapi.tiangolo.com/advanced/generate-clients/",
+        "quote": "FastAPI automatically generates **OpenAPI 3.1** specifications, so any tool you use must support this version.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "OpenAPI Generator is the multi-language option officially referenced for producing SDKs from a FastAPI OpenAPI spec (i.e., the path to generated Swift and Kotlin clients), while Hey API is recommended only for TypeScript; the docs show no Swift/Kotlin-specific examples.",
+        "source": "https://fastapi.tiangolo.com/advanced/generate-clients/",
+        "quote": "A versatile option ... supports **many programming languages** and can generate SDKs from your OpenAPI specification. ... For **TypeScript clients**, Hey API is a purpose-built solution, providing an optimized experience for the TypeScript ecosystem.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Generated clients provide compile-time type safety: autocompletion for methods, request payloads and response payloads, plus inline errors, so API contract mismatches are caught at client build time rather than at runtime — the core mechanism for keeping iOS/Android/PWA parity against one API contract.",
+        "source": "https://fastapi.tiangolo.com/advanced/generate-clients/",
+        "quote": "if you **build** the client, it will error out if you have any **mismatch** in the data used... you would **detect many errors** very early in the development cycle.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Swift OpenAPI Generator is a Swift Package Manager plugin that can generate type-safe Swift client code (and server code) directly from an OpenAPI document, enabling the contract-first 'OpenAPI → generated Swift client' workflow proposed for the parity architecture.",
+        "source": "https://www.swift.org/blog/introducing-swift-openapi-generator/",
+        "quote": "Swift OpenAPI Generator is a SwiftPM plugin that takes an OpenAPI document and generates either the client code to perform HTTP calls or the server code to handle those calls.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "The generated code abstracts away HTTP serialization details, translating between type-safe Swift representations of each operation and raw HTTP requests/responses, which reduces hand-written networking code a solo developer must maintain.",
+        "source": "https://www.swift.org/blog/introducing-swift-openapi-generator/",
+        "quote": "translates between a type-safe representation of each operation's input and output, and the underlying HTTP request and response.",
+        "vote": "3-0"
+      },
+      {
+        "claim": "OpenAPI Generator can automatically generate API client libraries (SDKs), server stubs, documentation and configuration from an OpenAPI Specification, which directly enables the 'single API contract → generated Swift/Kotlin clients' parity architecture; supported client languages include both Swift (versions 2.x through 6.x) and Kotlin.",
+        "source": "https://github.com/OpenAPITools/openapi-generator",
+        "quote": "OpenAPI Generator allows generation of API client libraries (SDK generation), server stubs, documentation and configuration automatically given an OpenAPI Spec (both 2.0 and 3.0 are supported). ... **Swift** (2.x, 3.x, 4.x, 5.x, 6.x) ... **Kotlin** ...",
+        "vote": "3-0"
+      },
+      {
+        "claim": "The Kotlin client generator offers a 'jvm-retrofit2' library option (Retrofit 2.6.2 HTTP client), plus alternatives including jvm-okhttp4 (default), jvm-ktor, and a Kotlin 'multiplatform' library using Ktor + Kotlinx Serialization — so the same OpenAPI spec can produce an Android Retrofit2 client or a KMP-compatible client.",
+        "source": "https://github.com/OpenAPITools/openapi-generator",
+        "quote": "<dt>**jvm-retrofit2**</dt><dd>Platform: Java Virtual Machine. HTTP client: Retrofit 2.6.2.</dd><dt>**multiplatform**</dt><dd>Platform: Kotlin multiplatform. HTTP client: Ktor 1.6.7. JSON processing: Kotlinx Serialization: 1.2.1.</dd>",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Google Play's mandatory pre-production testing requirements apply only to personal developer accounts created after November 13, 2023; older personal accounts and organization accounts are not subject to them.",
+        "source": "https://support.google.com/googleplay/android-developer/answer/14151465",
+        "quote": "Developers with personal accounts created after November 13, 2023",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Affected developers must have a minimum of 12 testers opted in to a closed test for 14 consecutive days before they can apply for production access (not 20, which was the earlier figure the research question references as '12-20 testers').",
+        "source": "https://support.google.com/googleplay/android-developer/answer/14151465",
+        "quote": "opted-in for the last 14 days continuously",
+        "vote": "3-0"
+      },
+      {
+        "claim": "Running a closed test is mandatory before applying to publish to production for these accounts; there is no way to skip straight to production.",
+        "source": "https://support.google.com/googleplay/android-developer/answer/14151465",
+        "quote": "You must run a closed test before you can apply to publish your app to production.",
+        "vote": "3-0"
+      }
+    ],
+    "refuted": [],
+    "sources": [
+      {
+        "url": "https://blog.jetbrains.com/kotlin/2025/05/compose-multiplatform-1-8-0-released-compose-multiplatform-for-ios-is-stable-and-production-ready/",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.javacodegeeks.com/2026/02/kotlin-multiplatform-vs-flutter-vs-react-native-the-2026-cross-platform-reality.html",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://ourcodeworld.com/articles/read/3646/pwa-vs-capacitor-vs-native-2026",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.apple.com/documentation/Charts/creating-a-data-visualization-dashboard-with-swift-charts",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/patrykandpatrick/vico",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://artemnovichkov.com/blog/github-contribution-graph-swift-charts",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://medium.com/@rudi-k/the-complete-flutter-charts-comparison-why-cristalyse-is-leading-the-2025-revolution-fbb0b5466e55",
+        "quality": "blog",
+        "claimCount": 4
+      },
+      {
+        "url": "https://www.syncfusion.com/blogs/post/build-heat-map-using-flutter-charts",
+        "quality": "blog",
+        "claimCount": 4
+      },
+      {
+        "url": "https://www.jetpackcompose.app/Chart-libraries-in-Jetpack-Compose",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://medium.com/@contact.lutforrahman/flutter-jetpack-compose-swiftui-components-at-a-glance-e3d230ad4b51",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://proandroiddev.com/swiftui-vs-jetpack-compose-by-an-android-engineer-6b48415f36b3",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/style-dictionary/style-dictionary",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://ititans.com/blog/cross-platform-mobile-ui-with-design-tokens/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.swiftforjs.dev/blog/style-dictionary-colours-swiftui",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/skiptools/skip-ui",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://documentation.onesignal.com/docs/en/deep-linking",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://ably.com/compare/fcm-vs-onesignal",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://app.smler.io/blogs/deep-linking/app-links-vs-universal-links-technical-comparison-guide-2026",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://blog.prototyp.digital/universal-links-deep-linking-2026/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/advanced/generate-clients/",
+        "quality": "primary",
+        "claimCount": 4
+      },
+      {
+        "url": "https://www.swift.org/blog/introducing-swift-openapi-generator/",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/OpenAPITools/openapi-generator",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.google.com/googleplay/android-developer/answer/14151465",
+        "quality": "primary",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sources": 23,
+      "claims": 112,
+      "verified": 25,
+      "confirmed": 25,
+      "killed": 0,
+      "afterSynthesis": 0
+    }
+  }
+}

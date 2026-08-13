@@ -28,3 +28,9 @@ Thumbs.db
 # Database
 *.db
 *.sqlite3
+.venv-plog/
+
+# etl_plog artefactos regenerables
+etl_plog/discovery/data/
+etl_plog/web/_data_snapshot.json
+etl_plog/**/__pycache__/

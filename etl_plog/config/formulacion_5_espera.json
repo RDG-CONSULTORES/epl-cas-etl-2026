@@ -1,0 +1,182 @@
+{
+ "do_control_seguridad": {
+  "form_template_id": 1161749,
+  "activity_id": 1160314,
+  "nombre": "* DO CONTROL OPERATIVO DE SEGURIDAD CAS 1.2 REV. 06012026",
+  "n_campos": 185,
+  "secciones": [
+   "CONTROL OPERATIVO DE SEGURIDAD",
+   "I. AREA COMEDOR",
+   "II. AREA ASADORES",
+   "III. AREA DE MARINADO",
+   "IV. AREA DE BODEGA",
+   "V. AREA DE HORNO",
+   "VI. AREA FREIDORAS",
+   "VII. CENTRO DE CARGA",
+   "VIII. AREA AZOTEA",
+   "IX. AREA EXTERIOR",
+   "X. PROGRAMA INTERNO PROTECCION CIVIL",
+   "XI. BITACORAS",
+   "XII. NOMBRES Y FIRMAS"
+  ],
+  "formulas": [
+   "PUNTOS MAX",
+   "PUNTOS TOTALES OBTENIDOS",
+   "CALIFICACION PORCENTAJE %",
+   "COMEDOR PUNTOS MAX",
+   "COMEDOR PUNTOS TOTALES",
+   "COMEDOR PORCENTAJE %",
+   "ASADORES PUNTOS MAX",
+   "ASADORES PUNTOS TOTALES",
+   "ASADORES PORCENTAJE %",
+   "AREA MARINADO PUNTOS MAX",
+   "AREA MARINADO PUNTOS TOTALES",
+   "AREA MARINADO PORCENTAJE %",
+   "BODEGA PUNTOS MAX",
+   "BODEGA PUNTOS TOTALES",
+   "BODEGA PORCENTAJE %",
+   "HORNOS PUNTOS MAX",
+   "HORNOS PUNTOS TOTALES",
+   "HORNOS PORCENTAJE %",
+   "FREIDORAS PUNTOS MAX",
+   "FREIDORAS PUNTOS TOTALES",
+   "FREIDORAS PORCENTAJE %",
+   "CENTRO DE CARGA PUNTOS MAX",
+   "CENTRO DE CARGA PUNTOS TOTALES",
+   "CENTRO DE CARGA %",
+   "AZOTEA PUNTOS MAX",
+   "AZOTEA PUNTOS TOTALES",
+   "AZOTEA PORCENTAJE %",
+   "EXTERIOR PUNTOS MAX",
+   "EXTERIOR PUNTOS TOTALES",
+   "EXTERIOR PORCENTAJE %",
+   "PROGRAMA PROTECCIÓN CIVIL PUNTO MAX",
+   "PROGRAMA PROTECCION CIVIL PUNTOS TOTALES",
+   "PROGRAMA PROTECCIÓN CIVIL PORCENTAJE %",
+   "BITACORAS PUNTOS MAX",
+   "BITACORAS PUNTOS TOTALES",
+   "BITACORAS PORCENTAJE %"
+  ],
+  "tipos_campo": {
+   "account": 1,
+   "text": 13,
+   "section": 13,
+   "formula": 36,
+   "datetime": 6,
+   "yesno": 57,
+   "image": 57,
+   "signature": 2
+  }
+ },
+ "revision_operativa_plog": {
+  "form_template_id": 1638930,
+  "activity_id": 1637360,
+  "nombre": "REVISIÓN OPERATIVA PLOG",
+  "n_campos": 95,
+  "secciones": [
+   "IV. PROCESOS OPERATIVOS  -  PESO DE SECCIÓN: 15 %",
+   "V. TEMPERATURAS - PAPA Y PLATAFORMAS  -  PESO DE SECCIÓN: 10 %",
+   "MANTENIMIENTO  -  PESO DE SECCIÓN: 12 %",
+   "II. LIMPIEZA E HIGIENE  -  PESO DE SECCIÓN: 15 %",
+   "III.  IMAGEN DE LA TIENDA  -  PESO DE SECCIÓN: 10 %",
+   "VI. FIRMAS Y VoBo"
+  ],
+  "formulas": [
+   "SUBTOTAL - IMAGEN DE LA TIENDA",
+   "SUBTOTAL - PROCESOS OPERATIVOS",
+   "SUBTOTAL - TEMPERATURAS - PAPA Y PLATAFORMAS",
+   "Subtotal - Mantenimiento",
+   "SUBTOTAL - LIMPIEZA E HIGIENE",
+   "RESULTADO TOTAL SOBRE 62%"
+  ],
+  "tipos_campo": {
+   "account": 1,
+   "yesno": 39,
+   "formula": 6,
+   "section": 6,
+   "text": 41,
+   "signature": 2
+  }
+ },
+ "gestion_finanzas_plog": {
+  "form_template_id": 1638942,
+  "activity_id": 1637372,
+  "nombre": "GESTIÓN Y FINANZAS PLOG",
+  "n_campos": 42,
+  "secciones": [
+   "I. PROCESOS ADMINISTRATIVOS  -  PESO DE SECCIÓN: 13 %",
+   "II. ?  INDICADORES FINANCIEROS  -  PESO DE SECCIÓN: 25 %"
+  ],
+  "formulas": [
+   "SUBTOTAL - PROCESOS ADMINISTRATIVOS",
+   "SUBTOTAL - INDICADORES FINANCIEROS",
+   "RESULTADO TOTAL DE 38%"
+  ],
+  "tipos_campo": {
+   "account": 1,
+   "section": 2,
+   "yesno": 16,
+   "formula": 3,
+   "text": 18,
+   "signature": 2
+  }
+ },
+ "matriz_imagen_plog": {
+  "form_template_id": 1657858,
+  "activity_id": 1656181,
+  "nombre": "MATRIZ DE CRITERIO DE IMAGEN PLOG",
+  "n_campos": 33,
+  "secciones": [
+   "II. INTERIOR",
+   "I. EXTERIOR",
+   "III. Exterior - Interior",
+   "IV. FIRMAS"
+  ],
+  "formulas": [],
+  "tipos_campo": {
+   "account": 1,
+   "yesno": 23,
+   "section": 4,
+   "text": 2,
+   "signature": 2,
+   "datetime": 1
+  }
+ },
+ "auditoria_proveedores": {
+  "form_template_id": 1695114,
+  "activity_id": 1693323,
+  "nombre": "CHECKLIST AUDITORIA PROVEEDORES PLOG",
+  "n_campos": 56,
+  "secciones": [
+   "I. INSTALACIONES",
+   "II. HIGIENE PERSONAL",
+   "III. MANEJO DE ALIMENTOS",
+   "IV. TEMPERATURA",
+   "V. LIMPIEZA",
+   "VI. PLAGAS",
+   "VII. ALMACENAMIENTO",
+   "VIII. MAQUILA",
+   "IV. FIRMAS Y NOMBRES",
+   "Calificacion General"
+  ],
+  "formulas": [
+   "Formula",
+   "Formula",
+   "Formula",
+   "Formula",
+   "Formula",
+   "Formula",
+   "Formula",
+   "Formula",
+   "Formula"
+  ],
+  "tipos_campo": {
+   "section": 10,
+   "account": 1,
+   "yesno": 32,
+   "text": 2,
+   "signature": 2,
+   "formula": 9
+  }
+ }
+}

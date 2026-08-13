@@ -1,0 +1,306 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 103,
+  "logs": [
+    "Q: Diseño completo de la capa de PRESENTACIÓN y OPERACIÓN de un sistema de complian…",
+    "Decomposed into 5 angles: UX de dashboards de cumplimiento operativo móvil (industria restaurantera), Reporte semanal de cumplimiento automatizado: métricas y formato, Canal de entrega en México: email transaccional vs WhatsApp Cloud API (costos 2026), Auth y scoping por fila en FastAPI sin IdP externo, Cadencia de polling ELT contra API sin webhooks",
+    "Reporte semanal de cumplimiento automatizado: métricas y formato: 6 results",
+    "Canal de entrega en México: email transaccional vs WhatsApp Cloud API (costos 2026): 6 results",
+    "Auth y scoping por fila en FastAPI sin IdP externo: 6 results",
+    "Auth y scoping por fila en FastAPI sin IdP externo: 4 novel (2 filtered)",
+    "Cadencia de polling ELT contra API sin webhooks: 6 results",
+    "Cadencia de polling ELT contra API sin webhooks: 4 novel (2 filtered)",
+    "UX de dashboards de cumplimiento operativo móvil (industria restaurantera): 6 results",
+    "UX de dashboards de cumplimiento operativo móvil (industria restaurantera): 2 novel (4 filtered)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[fetch:unknown] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "Fetched 6 sources → 30 claims → verifying top 25",
+    "[v0:Jolt's completion report is designed aro] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Jolt's Lists Item Completion Report enco] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Jolt's completion report is designed aro] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Jolt's Lists Item Completion Report enco] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Jolt's completion report is designed aro] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Jolt's completion report is designed around a loca…\": 0-0 (3 abstain) ✗",
+    "[v1:Jolt's Lists Item Completion Report enco] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Jolt's Lists Item Completion Report encodes task c…\": 0-0 (3 abstain) ✗",
+    "[v1:The report supports built-in scheduled e] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:The report supports built-in scheduled e] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:A restaurant weekly report should be lim] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:A restaurant weekly report should be lim] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:The report supports built-in scheduled e] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"The report supports built-in scheduled email deliv…\": 0-0 (3 abstain) ✗",
+    "[v2:A restaurant weekly report should be lim] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"A restaurant weekly report should be limited to ro…\": 0-0 (3 abstain) ✗",
+    "[v2:The recommended weekly report format is ] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:The recommended weekly report format is ] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:The recommended weekly report format is ] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"The recommended weekly report format is a one-page…\": 0-0 (3 abstain) ✗",
+    "[v0:Weekly reports should be produced on the] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Weekly reports should be produced on the] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Weekly reports should be produced on the] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Weekly reports should be produced on the same week…\": 0-0 (3 abstain) ✗",
+    "[v0:Recommended operational-execution metric] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Recommended operational-execution metric] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:WhatsApp Business API billing shifted fr] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:WhatsApp Business API billing shifted fr] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Recommended operational-execution metric] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Recommended operational-execution metrics for the …\": 0-0 (3 abstain) ✗",
+    "[v2:WhatsApp Business API billing shifted fr] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"WhatsApp Business API billing shifted from per-con…\": 0-0 (3 abstain) ✗",
+    "[v1:Utility and authentication template mess] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Jolt separates in-progress vs final comp] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Jolt separates in-progress vs final comp] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Utility and authentication template mess] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Utility and authentication template mess] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Utility and authentication template messages cost …\": 0-0 (3 abstain) ✗",
+    "[v2:Jolt separates in-progress vs final comp] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Jolt separates in-progress vs final compliance mea…\": 0-0 (3 abstain) ✗",
+    "[v0:The report offers drill-down/aggregation] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:The report offers drill-down/aggregation] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Looker Studio's scheduled report deliver] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Looker Studio's scheduled report deliver] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:The report offers drill-down/aggregation] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"The report offers drill-down/aggregation by groupi…\": 0-0 (3 abstain) ✗",
+    "[v2:Looker Studio's scheduled report deliver] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Looker Studio's scheduled report delivery via emai…\": 0-0 (3 abstain) ✗",
+    "[v0:Scheduled report emails in Looker Studio] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Looker Studio supports daily, weekly, mo] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Scheduled report emails in Looker Studio] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Looker Studio supports daily, weekly, mo] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Scheduled report emails in Looker Studio] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Scheduled report emails in Looker Studio combine a…\": 0-0 (3 abstain) ✗",
+    "[v1:Xenia's product designs its compliance r] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Xenia's product designs its compliance r] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Xenia's product designs its compliance r] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Xenia's product designs its compliance reporting a…\": 0-0 (3 abstain) ✗",
+    "[v0:Automated recurring reports should inclu] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Automated recurring reports should inclu] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Automated recurring reports should inclu] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Automated recurring reports should include a defin…\": 0-0 (3 abstain) ✗",
+    "[v0:Looker Studio supports daily, weekly, mo] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Looker Studio supports daily, weekly, monthly, and…\": 0-0 (3 abstain) ✗",
+    "[v0:Effective automated report dashboards sh] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Effective automated report dashboards sh] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Effective automated report dashboards sh] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Effective automated report dashboards should be li…\": 0-0 (3 abstain) ✗",
+    "[v0:Weekly automated reports are best schedu] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Weekly automated reports are best schedu] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Fixed-schedule report delivery is presen] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Fixed-schedule report delivery is presen] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Fixed-schedule report delivery is presen] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Fixed-schedule report delivery is presented as the…\": 0-0 (3 abstain) ✗",
+    "[v0:Marketing template messages cost roughly] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Weekly automated reports are best schedu] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Weekly automated reports are best scheduled to arr…\": 0-0 (3 abstain) ✗",
+    "[v2:Marketing template messages cost roughly] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Replies sent within the 24-hour customer] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:Marketing template messages cost roughly] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Marketing template messages cost roughly $0.01 to …\": 0-0 (3 abstain) ✗",
+    "[v1:Replies sent within the 24-hour customer] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:Replies sent within the 24-hour customer] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Replies sent within the 24-hour customer service w…\": 0-0 (3 abstain) ✗",
+    "[v2:A self-contained HTML email report can b] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:A self-contained HTML email report can b] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:PDF report generation typically requires] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:PDF report generation typically requires] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:PDF report generation typically requires] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"PDF report generation typically requires bundling …\": 0-0 (3 abstain) ✗",
+    "[v2:Self-contained HTML reports can preserve] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:A self-contained HTML email report can b] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"A self-contained HTML email report can be generate…\": 0-0 (3 abstain) ✗",
+    "[v1:Self-contained HTML reports can preserve] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v0:Self-contained HTML reports can preserve] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"Self-contained HTML reports can preserve chart int…\": 0-0 (3 abstain) ✗",
+    "[v0:The proposed scheduled-report feature fo] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v1:The proposed scheduled-report feature fo] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "[v2:The proposed scheduled-report feature fo] failed: You've hit your session limit · resets 3pm (America/Monterrey)",
+    "\"The proposed scheduled-report feature for SigNoz d…\": 0-0 (3 abstain) ✗",
+    "Verify done: 25 claims → 0 confirmed, 25 killed"
+  ],
+  "result": {
+    "question": "Diseño completo de la capa de PRESENTACIÓN y OPERACIÓN de un sistema de compliance tracking multi-tienda (18 sucursales de restaurantes en 3 zonas de México: Nuevo León, Laguna, Querétaro), para un equipo de 1 desarrollador con stack Python/FastAPI + Postgres (Railway) + vanilla JS PWA mobile-first (tema oscuro, ya existe design system). El motor esperado-vs-real ya existe (estados: on_time/late/missed/pending, por formulario × sucursal × día). Investigar 5 áreas: (1) MEJORES VISTAS/UX para dashboards de cumplimiento operativo en móvil/PWA — patrones probados: matriz calendario día×sucursal (heatmap), scorecards por tienda, rankings, streaks, vistas por formulario individual, drill-down zona→sucursal→formulario→día; cómo diseñan sus vistas de cumplimiento Jolt, Zenput/Crunchtime, Xenia, MeazureUp, 7shifts, y qué patrones de data-viz móvil funcionan para gerentes de operaciones no técnicos (colores semáforo, sparklines, qué evitar en pantalla chica); (2) REPORTE SEMANAL DE CUMPLIMIENTO automatizado — mejores prácticas de formato (qué métricas incluir: % por tienda, por formulario, tendencia vs semana anterior, top faltantes), generación PDF vs HTML email nativo, y patrones de scheduled reports en productos comparables; (3) ENTREGA AUTOMATIZADA: correo transaccional (Resend, AWS SES, Postmark — costos y facilidad para 1 dev) VS WhatsApp en México 2026 (WhatsApp Business Platform/Cloud API: costos por conversación/mensaje de utilidad en MX, requisitos de registro Meta Business, plantillas pre-aprobadas, opt-in requerido, complejidad real de integración; alternativas Twilio WhatsApp vs Meta directo vs proveedores mexicanos) — recomendación concreta de canal para empezar y ruta de migración; (4) AUTH + ACCESOS SEGMENTADOS para FastAPI ligero: alta de usuarios con contraseña por un admin (sin self-signup), roles admin/director/viewer, y scoping de datos por zona Y por lista de sucursales por usuario (row-level: cada quien ve solo sus tiendas) — patrones simples y seguros (session cookies vs JWT para PWA, hashing argon2/bcrypt, tabla user_scopes) sin meter un IdP externo; (5) CADENCIA DE SYNC de un ELT que consulta un API externo sin webhooks: ¿barrido horario en horas operativas + cierre diario vs diario único? cómo deciden esto sistemas comparables y qué cadencia soporta un reporte semanal + dashboards \"del día\". Entregar: blueprint priorizado de vistas (wireframe verbal de cada pantalla), spec del reporte semanal, recomendación de canal de entrega con costos MX, esquema de auth/scoping, y cadencia de sync recomendada.",
+    "summary": "All 25 claims refuted by adversarial verification. Research inconclusive — sources may be low-quality or claims overstated.",
+    "findings": [],
+    "refuted": [
+      {
+        "claim": "Jolt's Lists Item Completion Report encodes task compliance status with a three-color scheme: dark blue for tasks completed on time, light blue for tasks completed late, and red for tasks not completed — i.e., it distinguishes on_time/late/missed states visually, matching the state model in the research question, but does not use a green/yellow/red traffic-light palette.",
+        "vote": "0-0",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report"
+      },
+      {
+        "claim": "Jolt's completion report is designed around a location-comparison workflow where managers sort by percentage incomplete to surface underperforming stores at the top — a ranking/scorecard pattern per location.",
+        "vote": "0-0",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report"
+      },
+      {
+        "claim": "The report supports built-in scheduled email delivery configured by the end user (cadence, recipients, delivery timing) rather than requiring external tooling, which is the 'scheduled report' pattern in a comparable product.",
+        "vote": "0-0",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report"
+      },
+      {
+        "claim": "A restaurant weekly report should be limited to roughly 10-15 core metrics; tracking many more (e.g., 40) makes the report useless.",
+        "vote": "0-0",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports"
+      },
+      {
+        "claim": "The recommended weekly report format is a one-page scorecard table plus five short sections (executive summary, financial, operations execution, maintenance, next-week priorities), deliverable as a spreadsheet, a digital form, or an auto-generated PDF export.",
+        "vote": "0-0",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports"
+      },
+      {
+        "claim": "Weekly reports should be produced on the same weekday every week and reviewed within 24-48 hours; manual re-typing of numbers that already exist in POS/payroll/checklist systems is the main reason weekly reports get skipped, arguing for automation.",
+        "vote": "0-0",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports"
+      },
+      {
+        "claim": "Recommended operational-execution metrics for the weekly report include checklist completion rates (opening/closing), the most-missed checklist items by location, temperature log completion with a 100% target, and audit scores with repeat-finding counts.",
+        "vote": "0-0",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports"
+      },
+      {
+        "claim": "WhatsApp Business API billing shifted from per-conversation to per-message pricing for business-initiated template messages starting mid-2025, so cost planning for 2026 should be done per message delivered, not per conversation.",
+        "vote": "0-0",
+        "source": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works"
+      },
+      {
+        "claim": "Utility and authentication template messages cost roughly 80-90% less than marketing messages, making utility templates (the category a weekly compliance report would use) the cheap tier of WhatsApp API pricing.",
+        "vote": "0-0",
+        "source": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works"
+      },
+      {
+        "claim": "Jolt separates in-progress vs final compliance measurement: an 'Open Items' view shows work in progress, while a 'Closed Items' view only counts lists whose display schedule has expired, so final completion percentages are only assessed after the scheduled window closes.",
+        "vote": "0-0",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report"
+      },
+      {
+        "claim": "The report offers drill-down/aggregation by grouping data at Location, List, or Organization level, plus filters by date range, locations, and lists — mirroring the zone→store→form→day drill-down hierarchy the research question asks about (though Jolt's 'Last 90 Days' preset is a fixed, not rolling, window).",
+        "vote": "0-0",
+        "source": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report"
+      },
+      {
+        "claim": "Looker Studio's scheduled report delivery via email attaches the report as a PDF file, establishing PDF-attachment email as the standard pattern for automated scheduled reports in a major BI product.",
+        "vote": "0-0",
+        "source": "https://docs.cloud.google.com/looker/docs/studio/schedule-automatic-report-delivery"
+      },
+      {
+        "claim": "Scheduled report emails in Looker Studio combine a rendered preview of the first page with a link to the live report, rather than being HTML-native or link-only — a hybrid PDF + preview + deep-link format.",
+        "vote": "0-0",
+        "source": "https://docs.cloud.google.com/looker/docs/studio/schedule-automatic-report-delivery"
+      },
+      {
+        "claim": "Looker Studio supports daily, weekly, monthly, and custom scheduling frequencies (e.g., specific weekdays or biweekly), showing that weekly and custom-weekday cadences are first-class options in comparable scheduled-report systems.",
+        "vote": "0-0",
+        "source": "https://docs.cloud.google.com/looker/docs/studio/schedule-automatic-report-delivery"
+      },
+      {
+        "claim": "Xenia's product designs its compliance reporting around a Template Submission Dashboard with live status counters and dashboards oriented to surfacing issues and trends rather than raw completion percentages.",
+        "vote": "0-0",
+        "source": "https://www.xenia.team/articles/restaurant-weekly-reports"
+      },
+      {
+        "claim": "Automated recurring reports should include a defined set of core metrics plus period-over-period trend context, rather than raw numbers alone.",
+        "vote": "0-0",
+        "source": "https://mailfloss.com/automated-email-reporting/"
+      },
+      {
+        "claim": "Effective automated report dashboards should be limited to roughly 5-7 key metrics with a clear purpose, opening with a 3-5 bullet summary section.",
+        "vote": "0-0",
+        "source": "https://mailfloss.com/automated-email-reporting/"
+      },
+      {
+        "claim": "Weekly automated reports are best scheduled to arrive Monday morning before team meetings, with monthly rollups on the first day of the month for leadership and triggered alerts reserved for threshold violations.",
+        "vote": "0-0",
+        "source": "https://mailfloss.com/automated-email-reporting/"
+      },
+      {
+        "claim": "Fixed-schedule report delivery is presented as the simplest reliable pattern for automated reporting (set once, deliver on cadence), versus event-triggered delivery.",
+        "vote": "0-0",
+        "source": "https://mailfloss.com/automated-email-reporting/"
+      },
+      {
+        "claim": "Marketing template messages cost roughly $0.01 to $0.14 USD per message depending on the recipient's country; rates are set by recipient market, not by the business's location.",
+        "vote": "0-0",
+        "source": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works"
+      },
+      {
+        "claim": "Replies sent within the 24-hour customer service window (after a customer-initiated message) are free and require no pre-approved template, meaning inbound-triggered conversations cost nothing to answer.",
+        "vote": "0-0",
+        "source": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works"
+      },
+      {
+        "claim": "A self-contained HTML email report can be generated without adding a headless Chrome/renderer sidecar, avoiding new infrastructure dependencies that PDF rendering would require.",
+        "vote": "0-0",
+        "source": "https://github.com/SigNoz/signoz/issues/10662"
+      },
+      {
+        "claim": "PDF report generation typically requires bundling a Chromium sidecar of roughly 300MB, which is a significant operational burden for self-hosted, small-team deployments.",
+        "vote": "0-0",
+        "source": "https://github.com/SigNoz/signoz/issues/10662"
+      },
+      {
+        "claim": "Self-contained HTML reports can preserve chart interactivity (hover tooltips with exact values), which neither PDF nor embedded PNG screenshots can deliver.",
+        "vote": "0-0",
+        "source": "https://github.com/SigNoz/signoz/issues/10662"
+      },
+      {
+        "claim": "The proposed scheduled-report feature for SigNoz dashboards offers exactly three cadences — daily, weekly, and monthly — with user-selectable time ranges such as 'last 7 days' or 'last 30 days'.",
+        "vote": "0-0",
+        "source": "https://github.com/SigNoz/signoz/issues/10662"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.xenia.team/articles/restaurant-weekly-reports",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/SigNoz/signoz/issues/10662",
+        "quality": "forum",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.cloud.google.com/looker/docs/studio/schedule-automatic-report-delivery",
+        "quality": "primary",
+        "claimCount": 5
+      },
+      {
+        "url": "https://mailfloss.com/automated-email-reporting/",
+        "quality": "blog",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.uptail.ai/blog/whatsapp-business-api-pricing-2026-what-it-costs-and-how-billing-works",
+        "quality": "blog",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sources": 6,
+      "claims": 30,
+      "verified": 25,
+      "confirmed": 0,
+      "killed": 25
+    }
+  }
+}

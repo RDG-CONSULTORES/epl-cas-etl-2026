@@ -1,0 +1,1431 @@
+{
+ "954591": {
+  "score_total": "Alistamiento a Gerente de Sucursal Visita de Seguimiento Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 13,
+  "familia": "visita_seguimiento"
+ },
+ "954592": {
+  "score_total": "Procesos Operativos Gerente de Sucursal Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 12,
+  "familia": "pro_suc_1"
+ },
+ "954593": {
+  "score_total": "Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Almacenamiento y Recepción",
+    "campo_pct": "Almacenamiento y Recepción Puntuación (100%):",
+    "campo_puntos": "Almacenamiento y Recepción (90 Puntos):"
+   },
+   {
+    "area": "Producción",
+    "campo_pct": "Producción Puntuación (100%):",
+    "campo_puntos": "Producción (150 Puntos):"
+   },
+   {
+    "area": "Limpieza",
+    "campo_pct": "Limpieza Puntuación (100%):",
+    "campo_puntos": "Limpieza (60 Puntos):"
+   },
+   {
+    "area": "Servicio al Comensal",
+    "campo_pct": "Servicio al Comensal Puntuación (100%):",
+    "campo_puntos": "Servicio al Comensal (55 Puntos):"
+   },
+   {
+    "area": "Sabor",
+    "campo_pct": "Sabor Puntuación (100%):",
+    "campo_puntos": "Sabor (5 Puntos):"
+   },
+   {
+    "area": "Control de Plagas",
+    "campo_pct": "Control de Plagas Puntuación (100%):",
+    "campo_puntos": "Control de Plagas (115 Puntos):"
+   },
+   {
+    "area": "Equipos",
+    "campo_pct": "Equipos Puntuación (100%):",
+    "campo_puntos": "Equipos (5 Puntos):"
+   },
+   {
+    "area": "Control del Personal",
+    "campo_pct": "Control del Personal Puntuación (100%):",
+    "campo_puntos": "Control del Personal (40 Puntos):"
+   },
+   {
+    "area": "Documentación",
+    "campo_pct": "Documentación Puntuación (100%):",
+    "campo_puntos": "Documentación (10 Puntos):"
+   }
+  ],
+  "n_formulas": 41,
+  "familia": "vcal_calidad_integral"
+ },
+ "954594": {
+  "score_total": "Revisión de Interiores Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 6,
+  "familia": "pro_csc_5_vehiculos"
+ },
+ "954595": {
+  "score_total": "Primer Turno - Entrega Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 3,
+  "familia": "rl1_entrega_t1"
+ },
+ "954596": {
+  "score_total": "PRO-SUC- 4 Autoevaluación de Procesos Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Gestión de Procesos",
+    "campo_pct": "Gestión de Procesos Puntuación (100%):",
+    "campo_puntos": "Gestión de Procesos (81 Puntos):"
+   },
+   {
+    "area": "Proceso Integral de Inventarios",
+    "campo_pct": "Proceso Integral de Inventarios Puntuación (100%):",
+    "campo_puntos": "Proceso Integral de Inventarios (19 Puntos):"
+   }
+  ],
+  "n_formulas": 17,
+  "familia": "pro_suc_4_autoeval"
+ },
+ "954598": {
+  "score_total": "Gestión de Procesos Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "954599": {
+  "score_total": "PRO-SUC-1 Evaluación de Procesos 2025V1 (100%):",
+  "areas": [
+   {
+    "area": "Gestión de Procesos",
+    "campo_pct": "Gestión de Procesos Puntuación (100%):",
+    "campo_puntos": "Gestión de Procesos (62 Puntos):"
+   },
+   {
+    "area": "Proceso Integral de Inventarios",
+    "campo_pct": "Proceso Integral de Inventarios Puntuación (100%):",
+    "campo_puntos": "Proceso Integral de Inventarios (16 Puntos):"
+   }
+  ],
+  "n_formulas": 17,
+  "familia": "pro_suc_1"
+ },
+ "954600": {
+  "score_total": "Puntos Críticos Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Área de Lavado de Loza",
+    "campo_pct": "Área de Lavado de Loza Puntuación (100%):",
+    "campo_puntos": "Área de Lavado de Loza (15 Puntos):"
+   },
+   {
+    "area": "Recepción",
+    "campo_pct": "Recepción Puntuación (100%):",
+    "campo_puntos": "Recepción (15 Puntos):"
+   },
+   {
+    "area": "Área de Lavado de Verduras",
+    "campo_pct": "Área de Lavado de Verduras Puntuación (100%):",
+    "campo_puntos": "Área de Lavado de Verduras (20 Puntos):"
+   },
+   {
+    "area": "Congeladores",
+    "campo_pct": "Congeladores Puntuación (100%):",
+    "campo_puntos": "Congeladores (15 Puntos):"
+   },
+   {
+    "area": "Area de Secos",
+    "campo_pct": "Area de Secos Puntuación (100%):",
+    "campo_puntos": "Area de Secos (25 Puntos):"
+   },
+   {
+    "area": "Manejo de Productos Quimicos",
+    "campo_pct": "Manejo de Productos Quimicos Puntuación (100%):",
+    "campo_puntos": "Manejo de Productos Quimicos (20 Puntos):"
+   },
+   {
+    "area": "Cámaras de Refrigeracion",
+    "campo_pct": "Cámaras de Refrigeracion Puntuación (100%):",
+    "campo_puntos": "Cámaras de Refrigeracion (25 Puntos):"
+   },
+   {
+    "area": "Área de Cocina",
+    "campo_pct": "Área de Cocina Puntuación (100%):",
+    "campo_puntos": "Área de Cocina (35 Puntos):"
+   },
+   {
+    "area": "Área de Totopos",
+    "campo_pct": "Área de Totopos Puntuación (100%):",
+    "campo_puntos": "Área de Totopos (35 Puntos):"
+   },
+   {
+    "area": "Área de Pollo",
+    "campo_pct": "Área de Pollo Puntuación (100%):",
+    "campo_puntos": "Área de Pollo (75 Puntos):"
+   },
+   {
+    "area": "Degustaciones de Productos",
+    "campo_pct": "Degustaciones de Productos Puntuación (100%):",
+    "campo_puntos": "Degustaciones de Productos (30 Puntos):"
+   },
+   {
+    "area": "Agua y Hielo",
+    "campo_pct": "Agua y Hielo Puntuación (100%):",
+    "campo_puntos": "Agua y Hielo (10 Puntos):"
+   },
+   {
+    "area": "Servicios Sanitarios para Empleados",
+    "campo_pct": "Servicios Sanitarios para Empleados Puntuación (100%):",
+    "campo_puntos": "Servicios Sanitarios para Empleados (15 Puntos):"
+   },
+   {
+    "area": "Control de Plagas",
+    "campo_pct": "Control de Plagas Puntuación (100%):",
+    "campo_puntos": "Control de Plagas (25 Puntos):"
+   },
+   {
+    "area": "Personal",
+    "campo_pct": "Personal Puntuación (100%):",
+    "campo_puntos": "Personal (40 Puntos):"
+   },
+   {
+    "area": "Transporte",
+    "campo_pct": "Transporte Puntuación (100%):",
+    "campo_puntos": "Transporte (40 Puntos):"
+   },
+   {
+    "area": "Control Microbiológico",
+    "campo_pct": "Control Microbiológico Puntuación (100%):",
+    "campo_puntos": "Control Microbiológico (5 Puntos):"
+   }
+  ],
+  "n_formulas": 38,
+  "familia": "comisariato_evaluacion"
+ },
+ "954601": {
+  "score_total": "Evaluación Comisariatos Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Proceso integral de Inventarios",
+    "campo_pct": "Proceso integral de Inventarios Puntuación (100%):",
+    "campo_puntos": "Proceso integral de Inventarios (71 Puntos):"
+   },
+   {
+    "area": "Recibo / Embarques",
+    "campo_pct": "Recibo / Embarques Puntuación (100%):",
+    "campo_puntos": "Recibo / Embarques (10 Puntos):"
+   },
+   {
+    "area": "Inventarios",
+    "campo_pct": "Inventarios Puntuación (100%):",
+    "campo_puntos": "Inventarios (19 Puntos):"
+   },
+   {
+    "area": "Operación Diaria",
+    "campo_pct": "Operación Diaria Puntuación (100%):",
+    "campo_puntos": "Operación Diaria (11 Puntos):"
+   },
+   {
+    "area": "Administración Diaria",
+    "campo_pct": "Administración Diaria Puntuación (100%):",
+    "campo_puntos": "Administración Diaria (18 Puntos):"
+   },
+   {
+    "area": "Control Diario de Embalaje",
+    "campo_pct": "Control Diario de Embalaje Puntuación (100%):",
+    "campo_puntos": "Control Diario de Embalaje (13 Puntos):"
+   },
+   {
+    "area": "Uso de Vehículos de Carga",
+    "campo_pct": "Uso de Vehículos de Carga Puntuación (100%):",
+    "campo_puntos": "Uso de Vehículos de Carga (29 Puntos):"
+   },
+   {
+    "area": "Formato de Revisión Diario de Transporte de Carga",
+    "campo_pct": "Formato de Revisión Diario de Transporte de Carga Puntuación (100%):",
+    "campo_puntos": "Formato de Revisión Diario de Transporte de Carga (17 Puntos):"
+   },
+   {
+    "area": "Responsivas",
+    "campo_pct": "Responsivas Puntuación (100%):",
+    "campo_puntos": "Responsivas (12 Puntos):"
+   }
+  ],
+  "n_formulas": 20,
+  "familia": "comisariato_evaluacion"
+ },
+ "954602": {
+  "score_total": "Entrega de Pendientes Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Segundo Turno",
+    "campo_pct": "Segundo Turno Puntuación (100%):",
+    "campo_puntos": "Segundo Turno (100 Puntos):"
+   }
+  ],
+  "n_formulas": 4,
+  "familia": "rl2_entrega_t2"
+ },
+ "954603": {
+  "score_total": "Seguridad General Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 10,
+  "familia": "pro_sc_6_seguridad"
+ },
+ "954604": {
+  "score_total": "Seguimiento RH Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Junta de Comunicación / Colaboradores",
+    "campo_pct": "Junta de Comunicación / Colaboradores Puntuación (100%):",
+    "campo_puntos": "Junta de Comunicación / Colaboradores (26 Puntos):"
+   },
+   {
+    "area": "Promesa a Nuestros Colaboradores",
+    "campo_pct": "Promesa a Nuestros Colaboradores Puntuación (100%):",
+    "campo_puntos": "Promesa a Nuestros Colaboradores (74 Puntos):"
+   }
+  ],
+  "n_formulas": 6,
+  "familia": "rh1_visita"
+ },
+ "997145": {
+  "score_total": null,
+  "areas": [],
+  "n_formulas": 0,
+  "familia": "deposito_valores"
+ },
+ "997146": {
+  "score_total": "Alistamiento Diario de Hornos (100%):",
+  "areas": [
+   {
+    "area": "Exterior hornos",
+    "campo_pct": "Exterior hornos (100%):",
+    "campo_puntos": "Exterior hornos (21 Puntos Posibles):"
+   },
+   {
+    "area": "Campana y área de hornos",
+    "campo_pct": "Campana y área de hornos (100%):",
+    "campo_puntos": "Campana y área de hornos (6 Puntos Posibles):"
+   },
+   {
+    "area": "Equipos y herramientas de uso",
+    "campo_pct": "Equipos y herramientas de uso (100%):",
+    "campo_puntos": "Equipos y herramientas de uso (6 Puntos Posibles):"
+   },
+   {
+    "area": "Firmas",
+    "campo_pct": "Firmas (100%):",
+    "campo_puntos": "Firmas (1 Puntos Posibles):"
+   }
+  ],
+  "n_formulas": 10,
+  "familia": "alistamiento_hornos"
+ },
+ "1010538": {
+  "score_total": "A7 - Alistamiento Domingo Porcentaje (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "1038657": {
+  "score_total": "Procesos Operativos Gerente de Sucursal Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Alistamiento de Sucursal",
+    "campo_pct": "Alistamiento de Sucursal Puntuación (100%):",
+    "campo_puntos": "Alistamiento de Sucursal (5 Puntos):"
+   },
+   {
+    "area": "Asignación de Funciones",
+    "campo_pct": "Asignación de Funciones Puntuación (100%):",
+    "campo_puntos": "Asignación de Funciones (9 Puntos):"
+   },
+   {
+    "area": "Entrega de Turno",
+    "campo_pct": "Entrega de Turno Puntuación (100%):",
+    "campo_puntos": "Entrega de Turno (6 Puntos):"
+   },
+   {
+    "area": "Programa 5´s",
+    "campo_pct": "Programa 5´s Puntuación (100%):",
+    "campo_puntos": "Programa 5´s (3 Puntos):"
+   },
+   {
+    "area": "Autogestión de Calidad",
+    "campo_pct": "Autogestión de Calidad Puntuación (100%):",
+    "campo_puntos": "Autogestión de Calidad (3 Puntos):"
+   },
+   {
+    "area": "Autogestión de Hornos",
+    "campo_pct": "Autogestión de Hornos Puntuación (100%):",
+    "campo_puntos": "Autogestión de Hornos (13 Puntos):"
+   },
+   {
+    "area": "Cajeros / Autoloco / Telemetría",
+    "campo_pct": "Cajeros / Autoloco / Telemetría Puntuación (100%):",
+    "campo_puntos": "Cajeros / Autoloco / Telemetría (8 Puntos):"
+   },
+   {
+    "area": "Protocolo SERVIR",
+    "campo_pct": "Protocolo SERVIR Puntuación (100%):",
+    "campo_puntos": "Protocolo SERVIR (26 Puntos):"
+   },
+   {
+    "area": "Alistamiento de Servicios (Alistamiento de Cierre)",
+    "campo_pct": "Alistamiento de Servicios (Alistamiento de Cierre) Puntuación (100%):",
+    "campo_puntos": "Alistamiento de Servicios (Alistamiento de Cierre) (2 Puntos):"
+   },
+   {
+    "area": "Revisión Ordenes Plataformas",
+    "campo_pct": "Revisión Ordenes Plataformas Puntuación (100%):",
+    "campo_puntos": "Revisión Ordenes Plataformas (10 Puntos):"
+   },
+   {
+    "area": "Manejo de Quejas",
+    "campo_pct": "Manejo de Quejas Puntuación (100%):",
+    "campo_puntos": "Manejo de Quejas (15 Puntos):"
+   }
+  ],
+  "n_formulas": 24,
+  "familia": "pro_suc_3"
+ },
+ "1038658": {
+  "score_total": "Domingo Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1038659": {
+  "score_total": "Sábado Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1038660": {
+  "score_total": "Viernes Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1040504": {
+  "score_total": "Miércoles Puntuación (100%)",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1040505": {
+  "score_total": "Jueves Puntuación (100%)",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1040506": {
+  "score_total": "Martes Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1040507": {
+  "score_total": "Lunes Puntuación (100%)",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_l"
+ },
+ "1040519": {
+  "score_total": null,
+  "areas": [],
+  "n_formulas": 0,
+  "familia": "checklist_cierre"
+ },
+ "1040520": {
+  "score_total": "Martes Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "1040521": {
+  "score_total": "Miércoles Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "1040522": {
+  "score_total": "Jueves Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "1040523": {
+  "score_total": "Viernes Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "1040524": {
+  "score_total": "Sábado Puntuación (100%):",
+  "areas": [],
+  "n_formulas": 2,
+  "familia": "alistamiento_a"
+ },
+ "1040698": {
+  "score_total": "Revisión de proceso (100%):",
+  "areas": [
+   {
+    "area": "AREA DE CAJAS (Toma de Ordenes Cajera)",
+    "campo_pct": "AREA DE CAJAS (Toma de Ordenes Cajera) (100%):",
+    "campo_puntos": "AREA DE CAJAS (Toma de Ordenes Cajera) (20 Puntos):"
+   },
+   {
+    "area": "AREA DE CAJAS (Entrega de Ordenes Cajera/Barra)",
+    "campo_pct": "AREA DE CAJAS (Entrega de Ordenes Cajera/Barra) (100%):",
+    "campo_puntos": "AREA DE CAJAS (Entrega de Ordenes Cajera/Barra) (10 Puntos):"
+   },
+   {
+    "area": "AREA DE AUTOLOCO (Cajero Vendedor)",
+    "campo_pct": "AREA DE AUTOLOCO (Cajero Vendedor) (100%):",
+    "campo_puntos": "AREA DE AUTOLOCO (Cajero Vendedor) (15 Puntos):"
+   },
+   {
+    "area": "AREA DE AUTOLOCO (Runner)",
+    "campo_pct": "AREA DE AUTOLOCO (Runner) (100%):",
+    "campo_puntos": "AREA DE AUTOLOCO (Runner) (10 Puntos):"
+   },
+   {
+    "area": "AREA DE COMEDOR (Mesera)",
+    "campo_pct": "AREA DE COMEDOR (Mesera) (100%):",
+    "campo_puntos": "AREA DE COMEDOR (Mesera) (30 Puntos):"
+   },
+   {
+    "area": "LIMPIEZA DE COMEDOR (Mesas y Sillas)",
+    "campo_pct": "LIMPIEZA DE COMEDOR (Mesas y Sillas) (100%):",
+    "campo_puntos": "LIMPIEZA DE COMEDOR (Mesas y Sillas) (9 Puntos):"
+   },
+   {
+    "area": "SEÑALIZACION MODELO SERVIR",
+    "campo_pct": "SEÑALIZACION MODELO SERVIR (100%):",
+    "campo_puntos": "SEÑALIZACION MODELO SERVIR (6 Puntos):"
+   }
+  ],
+  "n_formulas": 16,
+  "familia": "alistamiento_servir"
+ },
+ "1043393": {
+  "score_total": null,
+  "areas": [],
+  "n_formulas": 0,
+  "familia": "deposito_valores"
+ },
+ "1043394": {
+  "score_total": null,
+  "areas": [],
+  "n_formulas": 0,
+  "familia": "deposito_valores"
+ },
+ "1059169": {
+  "score_total": "Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Almacenamiento y Recepción",
+    "campo_pct": "Almacenamiento y Recepción (100%):",
+    "campo_puntos": "Almacenamiento y Recepción (48 Puntos):"
+   },
+   {
+    "area": "Recepción",
+    "campo_pct": "Recepción (100%):",
+    "campo_puntos": "Recepción (4 Puntos):"
+   },
+   {
+    "area": "Cámaras de Refrigeración y Congelación",
+    "campo_pct": "Cámaras de Refrigeración y Congelación (100%):",
+    "campo_puntos": "Cámaras de Refrigeración y Congelación (28 Puntos):"
+   },
+   {
+    "area": "Área de Almacenamiento",
+    "campo_pct": "Área de Almacenamiento (100%):",
+    "campo_puntos": "Área de Almacenamiento (12 Puntos):"
+   },
+   {
+    "area": "Manejo de Productos Químicos",
+    "campo_pct": "Manejo de Productos Químicos (100%):",
+    "campo_puntos": "Manejo de Productos Químicos (4 Puntos):"
+   },
+   {
+    "area": "Producción",
+    "campo_pct": "Producción (100%):",
+    "campo_puntos": "Producción (88 Puntos):"
+   },
+   {
+    "area": "Complementos",
+    "campo_pct": "Complementos (100%):",
+    "campo_puntos": "Complementos (8 Puntos):"
+   },
+   {
+    "area": "Barra",
+    "campo_pct": "Barra (100%):",
+    "campo_puntos": "Barra (16 Puntos):"
+   },
+   {
+    "area": "Área de Barra",
+    "campo_pct": "Área de Barra (100%):",
+    "campo_puntos": "Área de Barra (16 Puntos):"
+   },
+   {
+    "area": "Proceso Asado",
+    "campo_pct": "Proceso Asado (100%):",
+    "campo_puntos": "Proceso Asado (12 Puntos):"
+   },
+   {
+    "area": "Marinado y Asado",
+    "campo_pct": "Marinado y Asado (100%):",
+    "campo_puntos": "Marinado y Asado (12 Puntos):"
+   },
+   {
+    "area": "Verificación de Pollo Asado",
+    "campo_pct": "Verificación de Pollo Asado (100%):",
+    "campo_puntos": "Verificación de Pollo Asado (12 Puntos):"
+   },
+   {
+    "area": "Verificación de Caducidades",
+    "campo_pct": "Verificación de Caducidades (100%):",
+    "campo_puntos": "Verificación de Caducidades (4 Puntos):"
+   },
+   {
+    "area": "Limpieza",
+    "campo_pct": "Limpieza (100%):",
+    "campo_puntos": "Limpieza (56 Puntos):"
+   },
+   {
+    "area": "Área de Cocina",
+    "campo_pct": "Área de Cocina (100%):",
+    "campo_puntos": "Área de Cocina (20 Puntos):"
+   },
+   {
+    "area": "Área de Freido",
+    "campo_pct": "Área de Freido (100%):",
+    "campo_puntos": "Área de Freido (4 Puntos):"
+   },
+   {
+    "area": "Área de Hornos",
+    "campo_pct": "Área de Hornos (100%):",
+    "campo_puntos": "Área de Hornos (16 Puntos):"
+   },
+   {
+    "area": "Área de Marinado",
+    "campo_pct": "Área de Marinado (100%):",
+    "campo_puntos": "Área de Marinado (4 Puntos):"
+   },
+   {
+    "area": "5's, Orden y Limpieza General",
+    "campo_pct": "5's, Orden y Limpieza General (100%):",
+    "campo_puntos": "5's, Orden y Limpieza General (12 Puntos):"
+   },
+   {
+    "area": "Servicio al Comensal",
+    "campo_pct": "Servicio al Comensal (100%):",
+    "campo_puntos": "Servicio al Comensal (20 Puntos):"
+   },
+   {
+    "area": "Sanitarios para Comensales",
+    "campo_pct": "Sanitarios para Comensales (100%):",
+    "campo_puntos": "Sanitarios para Comensales (8 Puntos):"
+   },
+   {
+    "area": "Control de Plagas",
+    "campo_pct": "Control de Plagas (100%):",
+    "campo_puntos": "Control de Plagas (71 Puntos):"
+   },
+   {
+    "area": "Buenas Practicas del Personal",
+    "campo_pct": "Buenas Practicas del Personal (100%):",
+    "campo_puntos": "Buenas Practicas del Personal (32 Puntos):"
+   },
+   {
+    "area": "Personal",
+    "campo_pct": "Personal (100%):",
+    "campo_puntos": "Personal (32 Puntos):"
+   }
+  ],
+  "n_formulas": 50,
+  "familia": "vcal_calidad_integral"
+ },
+ "1059170": {
+  "score_total": "Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Evaluación Comisariatos",
+    "campo_pct": "Evaluación Comisariatos (100%):",
+    "campo_puntos": "Evaluación Comisariatos (74 Puntos):"
+   },
+   {
+    "area": "Proceso integral de Inventarios",
+    "campo_pct": "Proceso integral de Inventarios (100%):",
+    "campo_puntos": "Proceso integral de Inventarios (49 Puntos):"
+   },
+   {
+    "area": "Recibo / Embarques",
+    "campo_pct": "Recibo / Embarques (100%):",
+    "campo_puntos": "Recibo / Embarques (4 Puntos):"
+   },
+   {
+    "area": "Inventarios",
+    "campo_pct": "Inventarios (100%):",
+    "campo_puntos": "Inventarios (13 Puntos):"
+   },
+   {
+    "area": "Operación Diaria",
+    "campo_pct": "Operación Diaria (100%):",
+    "campo_puntos": "Operación Diaria (11 Puntos):"
+   },
+   {
+    "area": "Administración Diaria",
+    "campo_pct": "Administración Diaria (100%):",
+    "campo_puntos": "Administración Diaria (13 Puntos):"
+   },
+   {
+    "area": "Control Diario de Embalaje",
+    "campo_pct": "Control Diario de Embalaje (100%):",
+    "campo_puntos": "Control Diario de Embalaje (8 Puntos):"
+   },
+   {
+    "area": "Uso de Vehículos de Carga",
+    "campo_pct": "Uso de Vehículos de Carga (100%):",
+    "campo_puntos": "Uso de Vehículos de Carga (25 Puntos):"
+   },
+   {
+    "area": "Formato de Revisión Diario de Transporte de Carga",
+    "campo_pct": "Formato de Revisión Diario de Transporte de Carga (100%):",
+    "campo_puntos": "Formato de Revisión Diario de Transporte de Carga (13 Puntos):"
+   },
+   {
+    "area": "Responsivas",
+    "campo_pct": "Responsivas (100%):",
+    "campo_puntos": "Responsivas (12 Puntos):"
+   }
+  ],
+  "n_formulas": 22,
+  "familia": "comisariato_evaluacion"
+ },
+ "1059179": {
+  "score_total": "Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Alistamiento a Gerente de Sucursal Visita de Negocio",
+    "campo_pct": "Alistamiento a Gerente de Sucursal Visita de Negocio (100%):",
+    "campo_puntos": "Alistamiento a Gerente de Sucursal Visita de Negocio (108 Puntos):"
+   },
+   {
+    "area": "Gestión de Ventas",
+    "campo_pct": "Gestión de Ventas (100%):",
+    "campo_puntos": "Gestión de Ventas (8 Puntos):"
+   },
+   {
+    "area": "Folder de Negocio",
+    "campo_pct": "Folder de Negocio (100%):",
+    "campo_puntos": "Folder de Negocio (8 Puntos):"
+   },
+   {
+    "area": "Reportes de Manejo de Dinero",
+    "campo_pct": "Reportes de Manejo de Dinero (100%):",
+    "campo_puntos": "Reportes de Manejo de Dinero (21 Puntos):"
+   },
+   {
+    "area": "Control de Gramajes y Rendimientos",
+    "campo_pct": "Control de Gramajes y Rendimientos (100%):",
+    "campo_puntos": "Control de Gramajes y Rendimientos (12 Puntos):"
+   },
+   {
+    "area": "ODOO",
+    "campo_pct": "ODOO (100%):",
+    "campo_puntos": "ODOO (11 Puntos):"
+   },
+   {
+    "area": "Plantilla y Rotación",
+    "campo_pct": "Plantilla y Rotación (100%):",
+    "campo_puntos": "Plantilla y Rotación (10 Puntos):"
+   },
+   {
+    "area": "Gastos TRAVEX",
+    "campo_pct": "Gastos TRAVEX (100%):",
+    "campo_puntos": "Gastos TRAVEX (4 Puntos):"
+   },
+   {
+    "area": "Estado de Resultados",
+    "campo_pct": "Estado de Resultados (100%):",
+    "campo_puntos": "Estado de Resultados (3 Puntos):"
+   },
+   {
+    "area": "Recursos Humanos",
+    "campo_pct": "Recursos Humanos (100%):",
+    "campo_puntos": "Recursos Humanos (5 Puntos):"
+   },
+   {
+    "area": "Pizarrones de Comunicación",
+    "campo_pct": "Pizarrones de Comunicación (100%):",
+    "campo_puntos": "Pizarrones de Comunicación (7 Puntos):"
+   },
+   {
+    "area": "Inventarios",
+    "campo_pct": "Inventarios (100%):",
+    "campo_puntos": "Inventarios (15 Puntos):"
+   },
+   {
+    "area": "Cajeros",
+    "campo_pct": "Cajeros (100%):",
+    "campo_puntos": "Cajeros (4 Puntos):"
+   }
+  ],
+  "n_formulas": 28,
+  "familia": "visita_negocio"
+ },
+ "1059182": {
+  "score_total": "Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Puntos Criticos",
+    "campo_pct": "Puntos Criticos (100%):",
+    "campo_puntos": "Puntos Criticos (250 Puntos):"
+   },
+   {
+    "area": "Recepción",
+    "campo_pct": "Recepción (100%):",
+    "campo_puntos": "Recepción (6 Puntos):"
+   },
+   {
+    "area": "Área de Lavado de Loza y Embalaje",
+    "campo_pct": "Área de Lavado de Loza y Embalaje (100%):",
+    "campo_puntos": "Área de Lavado de Loza y Embalaje (7 Puntos):"
+   },
+   {
+    "area": "Área de Lavado de Verduras",
+    "campo_pct": "Área de Lavado de Verduras (100%):",
+    "campo_puntos": "Área de Lavado de Verduras (10 Puntos):"
+   },
+   {
+    "area": "Área de Almacenamiento",
+    "campo_pct": "Área de Almacenamiento (100%):",
+    "campo_puntos": "Área de Almacenamiento (38 Puntos):"
+   },
+   {
+    "area": "Area de Secos",
+    "campo_pct": "Area de Secos (100%):",
+    "campo_puntos": "Area de Secos (13 Puntos):"
+   },
+   {
+    "area": "Manejo de Productos Quimicos",
+    "campo_pct": "Manejo de Productos Quimicos (100%):",
+    "campo_puntos": "Manejo de Productos Quimicos (8 Puntos):"
+   },
+   {
+    "area": "Cámaras de Refrigeracion",
+    "campo_pct": "Cámaras de Refrigeracion (100%):",
+    "campo_puntos": "Cámaras de Refrigeracion (17 Puntos):"
+   },
+   {
+    "area": "Área de Cocina",
+    "campo_pct": "Área de Cocina (100%):",
+    "campo_puntos": "Área de Cocina (22 Puntos):"
+   },
+   {
+    "area": "Área de Pollo",
+    "campo_pct": "Área de Pollo (100%):",
+    "campo_puntos": "Área de Pollo (27 Puntos):"
+   },
+   {
+    "area": "Degustaciones de Productos",
+    "campo_pct": "Degustaciones de Productos (100%):",
+    "campo_puntos": "Degustaciones de Productos (25 Puntos):"
+   },
+   {
+    "area": "Servicios Sanitarios para Empleados",
+    "campo_pct": "Servicios Sanitarios para Empleados (100%):",
+    "campo_puntos": "Servicios Sanitarios para Empleados (15 Puntos):"
+   },
+   {
+    "area": "Control de Olagas",
+    "campo_pct": "Control de Olagas (100%):",
+    "campo_puntos": "Control de Olagas (25 Puntos):"
+   },
+   {
+    "area": "Personal",
+    "campo_pct": "Personal (100%):",
+    "campo_puntos": "Personal (35 Puntos):"
+   },
+   {
+    "area": "Transporte",
+    "campo_pct": "Transporte (100%):",
+    "campo_puntos": "Transporte (35 Puntos):"
+   },
+   {
+    "area": "Control Microbiológico",
+    "campo_pct": "Control Microbiológico (100%):",
+    "campo_puntos": "Control Microbiológico (5 Puntos):"
+   }
+  ],
+  "n_formulas": 34,
+  "familia": "comisariato_evaluacion"
+ },
+ "1059183": {
+  "score_total": "Puntuación (100%):",
+  "areas": [
+   {
+    "area": "Gestión de Procesos",
+    "campo_pct": "Gestión de Procesos (100%):",
+    "campo_puntos": "Gestión de Procesos (100 Puntos):"
+   },
+   {
+    "area": "Puntos Críticos",
+    "campo_pct": "Puntos Críticos (100%):",
+    "campo_puntos": "Puntos Críticos (46 Puntos):"
+   },
+   {
+    "area": "Inventarios",
+    "campo_pct": "Inventarios (100%):",
+    "campo_puntos": "Inventarios (20 Puntos):"
+   },
+   {
+    "area": "Folder de Negocio",
+    "campo_pct": "Folder de Negocio (100%):",
+    "campo_puntos": "Folder de Negocio (2 Puntos):"
+   },
+   {
+    "area": "Depósitos",
+    "campo_pct": "Depósitos (100%):",
+    "campo_puntos": "Depósitos (3 Puntos):"
+   },
+   {
+    "area": "Comprobación de Gastos",
+    "campo_pct": "Comprobación de Gastos (100%):",
+    "campo_puntos": "Comprobación de Gastos (2 Puntos):"
+   },
+   {
+    "area": "Gestión de Cobro en Cajas",
+    "campo_pct": "Gestión de Cobro en Cajas (100%):",
+    "campo_puntos": "Gestión de Cobro en Cajas (7 Puntos):"
+   },
+   {
+    "area": "Pedidos Cancelados",
+    "campo_pct": "Pedidos Cancelados (100%):",
+    "campo_puntos": "Pedidos Cancelados (3 Puntos):"
+   },
+   {
+    "area": "Proceso Integral de Inventarios",
+    "campo_pct": "Proceso Integral de Inventarios (100%):",
+    "campo_puntos": "Proceso Integral de Inventarios (6 Puntos):"
+   },
+   {
+    "area": "Conteo de Pollo",
+    "campo_pct": "Conteo de Pollo (100%):",
+    "campo_puntos": "Conteo de Pollo (5 Puntos):"
+   },
+   {
+    "area": "Administrativos",
+    "campo_pct": "Administrativos (100%):",
+    "campo_puntos": "Administrativos (6 Puntos):"
+   }
+  ],
+  "n_formulas": 24,
+  "familia": "pro_suc_3"
+ },
+ "1161748": {
+  "score_total": "PORCENTAJE %",
+  "areas": [
+   {
+    "area": "Area Marinado Calificación",
+    "campo_pct": "Area Marinado Calificación Porcentaje %",
+    "campo_puntos": null
+   },
+   {
+    "area": "PROCESO MARINADO CALIFICACION",
+    "campo_pct": "PROCESO MARINADO CALIFICACION PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CUARTO FRIO 1 CALIFICACION",
+    "campo_pct": "CUARTO FRIO 1 CALIFICACION PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AREA COCINA FRIA/CALIENTE  CALIFICACIÓN",
+    "campo_pct": "AREA COCINA FRIA/CALIENTE  CALIFICACIÓN PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "REFRIGERADORES DE SERVICIO",
+    "campo_pct": "REFRIGERADORES DE SERVICIO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CUARTO FRIO 2",
+    "campo_pct": "CUARTO FRIO 2 PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN JARABES",
+    "campo_pct": "ALMACEN JARABES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN GENERAL",
+    "campo_pct": "ALMACEN GENERAL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CONGELADOR PAPA",
+    "campo_pct": "CONGELADOR PAPA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "MAQUINA DE HIELO",
+    "campo_pct": "MAQUINA DE HIELO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CAJAS DE TOTOPO EMPACADO",
+    "campo_pct": "CAJAS DE TOTOPO EMPACADO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BAÑO EMPLEADOS",
+    "campo_pct": "BAÑO EMPLEADOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "LAVADO DE UTENSILIOS",
+    "campo_pct": "LAVADO DE UTENSILIOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "HORNOS",
+    "campo_pct": "HORNOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS",
+    "campo_pct": "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "FREIDORA DE PAPA",
+    "campo_pct": "FREIDORA DE PAPA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "FREIDORAS",
+    "campo_pct": "FREIDORAS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CONSERVADOR PAPA FRITA",
+    "campo_pct": "CONSERVADOR PAPA FRITA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ASADORES",
+    "campo_pct": "ASADORES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BARRA DE SERVICIO",
+    "campo_pct": "BARRA DE SERVICIO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "COMEDOR AREA COMEDOR",
+    "campo_pct": "COMEDOR AREA COMEDOR PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BAÑO CLIENTES",
+    "campo_pct": "BAÑO CLIENTES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "DISPENSADOR DE REFRESCOS",
+    "campo_pct": "DISPENSADOR DE REFRESCOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BARRA DE SALSAS",
+    "campo_pct": "BARRA DE SALSAS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "TIEMPOS DE SERVICIO",
+    "campo_pct": "TIEMPOS DE SERVICIO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN QUÍMICOS",
+    "campo_pct": "ALMACEN QUÍMICOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "EXTERIOR SUCURSAL",
+    "campo_pct": "EXTERIOR SUCURSAL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL",
+    "campo_pct": "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "UNIFORMA INSTITUCIONSL",
+    "campo_pct": "UNIFORMA INSTITUCIONSL PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 93,
+  "familia": "do_supervision_operativa"
+ },
+ "1161749": {
+  "score_total": "CALIFICACION PORCENTAJE %",
+  "areas": [
+   {
+    "area": "COMEDOR",
+    "campo_pct": "COMEDOR PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ASADORES",
+    "campo_pct": "ASADORES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AREA MARINADO",
+    "campo_pct": "AREA MARINADO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BODEGA",
+    "campo_pct": "BODEGA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "HORNOS",
+    "campo_pct": "HORNOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "FREIDORAS",
+    "campo_pct": "FREIDORAS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AZOTEA",
+    "campo_pct": "AZOTEA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "EXTERIOR",
+    "campo_pct": "EXTERIOR PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "PROGRAMA PROTECCIÓN CIVIL",
+    "campo_pct": "PROGRAMA PROTECCIÓN CIVIL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BITACORAS",
+    "campo_pct": "BITACORAS PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 36,
+  "familia": "do_control_seguridad"
+ },
+ "1161752": {
+  "score_total": "CALIFICACION GENERAL PORCENTAJE %",
+  "areas": [
+   {
+    "area": "RECEPCION",
+    "campo_pct": "CALIFICACION RECEPCION PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN",
+    "campo_pct": "CALIFICACION ALMACEN PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "REFRIGERACION",
+    "campo_pct": "CALIFICACION REFRIGERACION PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AREA LAVADO LOZA Y COCHAMBRE",
+    "campo_pct": "CALIFICACION AREA LAVADO LOZA Y COCHAMBRE PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "FORMATOS",
+    "campo_pct": "CALIFICACION FORMATOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ÁREA DE QUÍMICOS",
+    "campo_pct": "CALIFICACION ÁREA DE QUÍMICOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "GENERAL COCINA Y PREPARACIÓN COCINA Y PREPARACIÓN DE ALIMENTOS",
+    "campo_pct": "CALIFICACION GENERAL COCINA Y PREPARACIÓN COCINA Y PREPARACIÓN DE ALIMENTOS PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 36,
+  "familia": "recorrido_comisariato"
+ },
+ "1560060": {
+  "score_total": "PORCENTAJE %",
+  "areas": [
+   {
+    "area": "Area Marinado Calificación",
+    "campo_pct": "Area Marinado Calificación Porcentaje %",
+    "campo_puntos": null
+   },
+   {
+    "area": "PROCESO MARINADO CALIFICACION",
+    "campo_pct": "PROCESO MARINADO CALIFICACION PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CUARTO FRIO 1 CALIFICACION",
+    "campo_pct": "CUARTO FRIO 1 CALIFICACION PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AREA COCINA FRIA/CALIENTE  CALIFICACIÓN",
+    "campo_pct": "AREA COCINA FRIA/CALIENTE  CALIFICACIÓN PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "REFRIGERADORES DE SERVICIO",
+    "campo_pct": "REFRIGERADORES DE SERVICIO PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 18,
+  "familia": "autogestion_calidad"
+ },
+ "1568530": {
+  "score_total": "PORCENTAJE %",
+  "areas": [
+   {
+    "area": "CUARTO FRIO 2",
+    "campo_pct": "CUARTO FRIO 2 PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN JARABES",
+    "campo_pct": "ALMACEN JARABES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN GENERAL",
+    "campo_pct": "ALMACEN GENERAL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CONGELADOR PAPA",
+    "campo_pct": "CONGELADOR PAPA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "MAQUINA DE HIELO",
+    "campo_pct": "MAQUINA DE HIELO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CAJAS DE TOTOPO EMPACADO",
+    "campo_pct": "CAJAS DE TOTOPO EMPACADO PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 21,
+  "familia": "autogestion_calidad"
+ },
+ "1568532": {
+  "score_total": "PORCENTAJE %",
+  "areas": [
+   {
+    "area": "BAÑO EMPLEADOS",
+    "campo_pct": "BAÑO EMPLEADOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "LAVADO DE UTENSILIOS",
+    "campo_pct": "LAVADO DE UTENSILIOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "HORNOS",
+    "campo_pct": "HORNOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS",
+    "campo_pct": "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "FREIDORA DE PAPA",
+    "campo_pct": "FREIDORA DE PAPA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "FREIDORAS",
+    "campo_pct": "FREIDORAS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "CONSERVADOR PAPA FRITA",
+    "campo_pct": "CONSERVADOR PAPA FRITA PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ASADORES",
+    "campo_pct": "ASADORES PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 30,
+  "familia": "autogestion_calidad"
+ },
+ "1568536": {
+  "score_total": "PORCENTAJE %",
+  "areas": [
+   {
+    "area": "ASADORES",
+    "campo_pct": "ASADORES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BARRA DE SERVICIO",
+    "campo_pct": "BARRA DE SERVICIO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "COMEDOR AREA COMEDOR",
+    "campo_pct": "COMEDOR AREA COMEDOR PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BAÑO CLIENTES",
+    "campo_pct": "BAÑO CLIENTES PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "DISPENSADOR DE REFRESCOS",
+    "campo_pct": "DISPENSADOR DE REFRESCOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "BARRA DE SALSAS",
+    "campo_pct": "BARRA DE SALSAS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "TIEMPOS DE SERVICIO",
+    "campo_pct": "TIEMPOS DE SERVICIO PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "ALMACEN QUÍMICOS",
+    "campo_pct": "ALMACEN QUÍMICOS PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "EXTERIOR SUCURSAL",
+    "campo_pct": "EXTERIOR SUCURSAL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL",
+    "campo_pct": "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL PORCENTAJE %",
+    "campo_puntos": null
+   },
+   {
+    "area": "UNIFORMA INSTITUCIONSL",
+    "campo_pct": "UNIFORMA INSTITUCIONSL PORCENTAJE %",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 36,
+  "familia": "autogestion_calidad"
+ },
+ "1572200": {
+  "score_total": "Calificación General Mto Preventivo Trimestral",
+  "areas": [],
+  "n_formulas": 10,
+  "familia": "mtto_trimestral"
+ },
+ "1572620": {
+  "score_total": null,
+  "areas": [],
+  "n_formulas": 5,
+  "familia": "mtto_semestral"
+ },
+ "1572636": {
+  "score_total": "Calificación General Mantenimiento Preventivo Mensual",
+  "areas": [],
+  "n_formulas": 20,
+  "familia": "mtto_mensual"
+ },
+ "1638930": {
+  "score_total": "RESULTADO TOTAL SOBRE 62%",
+  "areas": [
+   {
+    "area": "Mantenimiento",
+    "campo_pct": "Subtotal - Mantenimiento",
+    "campo_puntos": null
+   },
+   {
+    "area": "LIMPIEZA E HIGIENE",
+    "campo_pct": "SUBTOTAL - LIMPIEZA E HIGIENE",
+    "campo_puntos": null
+   },
+   {
+    "area": "IMAGEN DE LA TIENDA",
+    "campo_pct": "SUBTOTAL - IMAGEN DE LA TIENDA",
+    "campo_puntos": null
+   },
+   {
+    "area": "PROCESOS OPERATIVOS",
+    "campo_pct": "SUBTOTAL - PROCESOS OPERATIVOS",
+    "campo_puntos": null
+   },
+   {
+    "area": "TEMPERATURAS - PAPA Y PLATAFORMAS",
+    "campo_pct": "SUBTOTAL - TEMPERATURAS - PAPA Y PLATAFORMAS",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 6,
+  "familia": "revision_operativa_plog"
+ },
+ "1638942": {
+  "score_total": "RESULTADO TOTAL DE 38%",
+  "areas": [
+   {
+    "area": "PROCESOS ADMINISTRATIVOS",
+    "campo_pct": "SUBTOTAL - PROCESOS ADMINISTRATIVOS",
+    "campo_puntos": null
+   },
+   {
+    "area": "INDICADORES FINANCIEROS",
+    "campo_pct": "SUBTOTAL - INDICADORES FINANCIEROS",
+    "campo_puntos": null
+   }
+  ],
+  "n_formulas": 3,
+  "familia": "gestion_finanzas_plog"
+ }
+}

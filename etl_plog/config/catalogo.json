@@ -1,0 +1,1278 @@
+{
+ "_generado": "build_catalogo.py — NO editar a mano; corre el script",
+ "_fuente_excel": "/Volumes/aduanadata/Definicion_Politicas_Formularios_PLOG_v3 Zenput.xlsx",
+ "familias": {
+  "alistamiento_a": {
+   "nombre": "A1–A7 Alistamiento diario (uno por día Lun–Dom)",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "El form de su día de la semana",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "El form de su día de la semana",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "El form de su día de la semana",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": {
+    "954598": "lun",
+    "1040520": "mar",
+    "1040521": "mie",
+    "1040522": "jue",
+    "1040523": "vie",
+    "1040524": "sab",
+    "1010538": "dom"
+   },
+   "serie": "dia_semana",
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "alistamiento_l": {
+   "nombre": "L1–L7 Alistamiento diario (uno por día Lun–Dom)",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "No",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "El form de su día de la semana",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Las asignadas a serie L"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "El form de su día de la semana",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Las asignadas a serie L"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "El form de su día de la semana",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Las asignadas a serie L"
+    }
+   },
+   "form_templates": {
+    "1040507": "lun",
+    "1040506": "mar",
+    "1040504": "mie",
+    "1040505": "jue",
+    "1038660": "vie",
+    "1038659": "sab",
+    "1038658": "dom"
+   },
+   "serie": "dia_semana",
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "rl1_entrega_t1": {
+   "nombre": "RL1 Entrega Primer Turno",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días al cambio de turno",
+     "hora_limite": "15:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días al cambio de turno",
+     "hora_limite": "15:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días al cambio de turno",
+     "hora_limite": "15:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954595
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "rl2_entrega_t2": {
+   "nombre": "RL2 Entrega Segundo Turno",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días, segundo turno",
+     "hora_limite": "22:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días, segundo turno",
+     "hora_limite": "22:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días, segundo turno",
+     "hora_limite": "22:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954602
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "checklist_cierre": {
+   "nombre": "Checklist de Cierre",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Al cierre, todos los días",
+     "hora_limite": "01:00 (día sig.)",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Al cierre, todos los días",
+     "hora_limite": "01:00 (día sig.)",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Al cierre, todos los días",
+     "hora_limite": "01:00 (día sig.)",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1040519
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "alistamiento_servir": {
+   "nombre": "Alistamiento SERVIR",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días antes del pico de comida",
+     "hora_limite": "13:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días antes del pico de comida",
+     "hora_limite": "13:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Ambos",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días antes del pico de comida",
+     "hora_limite": "13:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1040698
+   ],
+   "score_patron": "p2",
+   "tipo": "ambos"
+  },
+  "alistamiento_hornos": {
+   "nombre": "Alistamiento Hornos",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Diario",
+     "horario_esperado": "Turno matutino, todos los días",
+     "hora_limite": "12:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Diario",
+     "horario_esperado": "Turno matutino, todos los días",
+     "hora_limite": "12:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Ambos",
+     "frecuencia": "Diario",
+     "horario_esperado": "Turno matutino, todos los días",
+     "hora_limite": "12:00",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    997146
+   ],
+   "score_patron": "p2",
+   "tipo": "ambos"
+  },
+  "deposito_valores": {
+   "nombre": "Depósito de Valores (el de su región)",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "No",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates_por_zona": {
+    "nuevo_leon": [
+     997145
+    ],
+    "laguna": [
+     1043394
+    ],
+    "queretaro": [
+     1043393
+    ]
+   },
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "autogestion_calidad": {
+   "nombre": "Autogestión de Calidad S1–S4",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Semanal",
+     "horario_esperado": "S1: día 1–7, S2: 8–14, S3: 15–21, S4: 22–fin",
+     "hora_limite": "—",
+     "dias_gracia": "2 días",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Semanal",
+     "horario_esperado": "S1: día 1–7, S2: 8–14, S3: 15–21, S4: 22–fin",
+     "hora_limite": "—",
+     "dias_gracia": "2 días",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Ambos",
+     "frecuencia": "Semanal",
+     "horario_esperado": "S1: día 1–7, S2: 8–14, S3: 15–21, S4: 22–fin",
+     "hora_limite": "—",
+     "dias_gracia": "2 días",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": {
+    "1560060": "s1",
+    "1568530": "s2",
+    "1568532": "s3",
+    "1568536": "s4"
+   },
+   "serie": "semana_del_mes",
+   "score_patron": "p1",
+   "tipo": "ambos"
+  },
+  "pro_suc_4_autoeval": {
+   "nombre": "PRO-SUC-4 Autoevaluación de Procesos",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "Dentro del mes, antes del día 25",
+     "hora_limite": "—",
+     "dias_gracia": "Hasta fin de mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "Dentro del mes, antes del día 25",
+     "hora_limite": "—",
+     "dias_gracia": "Hasta fin de mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "Dentro del mes, antes del día 25",
+     "hora_limite": "—",
+     "dias_gracia": "Hasta fin de mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954596
+   ],
+   "score_patron": "p2",
+   "tipo": "ambos"
+  },
+  "mtto_mensual": {
+   "nombre": "Mantenimiento Preventivo Mensual",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "Dentro del mes, antes del día 25",
+     "hora_limite": "—",
+     "dias_gracia": "Hasta fin de mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "Dentro del mes, antes del día 25",
+     "hora_limite": "—",
+     "dias_gracia": "Hasta fin de mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "Dentro del mes, antes del día 25",
+     "hora_limite": "—",
+     "dias_gracia": "Hasta fin de mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1572636
+   ],
+   "score_patron": "p3",
+   "tipo": "ambos"
+  },
+  "mtto_trimestral": {
+   "nombre": "Mantenimiento Preventivo Trimestral",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Trimestral",
+     "horario_esperado": "Dentro de los 2 primeros meses del trimestre",
+     "hora_limite": "—",
+     "dias_gracia": "El 3er mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Trimestral",
+     "horario_esperado": "Dentro de los 2 primeros meses del trimestre",
+     "hora_limite": "—",
+     "dias_gracia": "El 3er mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Trimestral",
+     "horario_esperado": "Dentro de los 2 primeros meses del trimestre",
+     "hora_limite": "—",
+     "dias_gracia": "El 3er mes",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1572200
+   ],
+   "score_patron": "p3",
+   "tipo": "ambos"
+  },
+  "mtto_semestral": {
+   "nombre": "Mantenimiento Preventivo Semestral",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Semestral",
+     "horario_esperado": "Dentro del semestre (Ene–Jun / Jul–Dic)",
+     "hora_limite": "—",
+     "dias_gracia": "Últimos 45 días",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Semestral",
+     "horario_esperado": "Dentro del semestre (Ene–Jun / Jul–Dic)",
+     "hora_limite": "—",
+     "dias_gracia": "Últimos 45 días",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Ambos",
+     "frecuencia": "Semestral",
+     "horario_esperado": "Dentro del semestre (Ene–Jun / Jul–Dic)",
+     "hora_limite": "—",
+     "dias_gracia": "Últimos 45 días",
+     "agenda": "No",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1572620
+   ],
+   "score_patron": "p3",
+   "tipo": "ambos"
+  },
+  "visita_negocio": {
+   "nombre": "Alistamiento Regional Visita Negocio",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Semanal",
+     "horario_esperado": "Cada sucursal ≥1 visita por semana",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Semanal",
+     "horario_esperado": "Cada sucursal ≥1 visita por semana",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Semanal",
+     "horario_esperado": "Cada sucursal ≥1 visita por semana",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1059179
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "visita_seguimiento": {
+   "nombre": "Alistamiento Regional Visita Seguimiento",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Por visita",
+     "horario_esperado": "Al dar seguimiento a hallazgos",
+     "hora_limite": "—",
+     "dias_gracia": "14 días por hallazgo",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Donde haya hallazgos"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Por visita",
+     "horario_esperado": "Al dar seguimiento a hallazgos",
+     "hora_limite": "—",
+     "dias_gracia": "14 días por hallazgo",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Donde haya hallazgos"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Por visita",
+     "horario_esperado": "Al dar seguimiento a hallazgos",
+     "hora_limite": "—",
+     "dias_gracia": "14 días por hallazgo",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Donde haya hallazgos"
+    }
+   },
+   "form_templates": [
+    954591
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "rh1_visita": {
+   "nombre": "RH-1 Alistamiento de visita Regional",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "No",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 visita por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 visita por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 visita por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954604
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "pro_suc_1": {
+   "nombre": "PRO-SUC-1 / 1.1 Evaluación de Procesos",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954599,
+    954592
+   ],
+   "score_patron": "p2",
+   "tipo": "calificacion"
+  },
+  "pro_suc_3": {
+   "nombre": "PRO-SUC-3 / 3.1 Evaluación Procesos Operativos",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1038657,
+    1059183
+   ],
+   "score_patron": "p2",
+   "tipo": "calificacion"
+  },
+  "do_supervision_operativa": {
+   "nombre": "*DO Supervisión Operativa CAS 1.2",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1161748
+   ],
+   "score_patron": "p1",
+   "tipo": "ambos"
+  },
+  "do_control_seguridad": {
+   "nombre": "*DO Control Op. de Seguridad CAS 1.2",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "No",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Ambos",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por sucursal por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    1161749
+   ],
+   "score_patron": "p1",
+   "tipo": "ambos"
+  },
+  "vcal_calidad_integral": {
+   "nombre": "VCAL25 / VCALQRO Verificación Calidad Integral",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "No",
+     "medicion": "Calificación",
+     "frecuencia": "Trimestral",
+     "horario_esperado": "1 por sucursal por trimestre",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Trimestral",
+     "horario_esperado": "1 por sucursal por trimestre",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Calificación",
+     "frecuencia": "Trimestral",
+     "horario_esperado": "1 por sucursal por trimestre",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954593,
+    1059169
+   ],
+   "score_patron": "p2",
+   "tipo": "calificacion"
+  },
+  "comisariato_evaluacion": {
+   "nombre": "Verificación / PRO-COM-2 Comisariato",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "No",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por comisariato por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Comisariatos"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por comisariato por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Comisariatos"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por comisariato por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Comisariatos"
+    }
+   },
+   "form_templates": [
+    954601,
+    954600,
+    1059170,
+    1059182
+   ],
+   "score_patron": "p2",
+   "tipo": "calificacion"
+  },
+  "recorrido_comisariato": {
+   "nombre": "Recorrido Diario Comisariato",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Comisariatos"
+    },
+    "laguna": {
+     "usar": "No",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Comisariatos"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Diario",
+     "horario_esperado": "Todos los días",
+     "hora_limite": "23:59",
+     "dias_gracia": "0",
+     "agenda": "No",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Comisariatos"
+    }
+   },
+   "form_templates": [
+    1161752
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "pro_sc_6_seguridad": {
+   "nombre": "PRO-SC-6 Revisión Condiciones de Seguridad",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "No",
+     "medicion": "Calificación",
+     "frecuencia": "Bimestral",
+     "horario_esperado": "1 por sucursal por bimestre",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Bimestral",
+     "horario_esperado": "1 por sucursal por bimestre",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Calificación",
+     "frecuencia": "Bimestral",
+     "horario_esperado": "1 por sucursal por bimestre",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "Ambas",
+     "sucursales_aplica": "Todas"
+    }
+   },
+   "form_templates": [
+    954603
+   ],
+   "score_patron": "p2",
+   "tipo": "calificacion"
+  },
+  "pro_csc_5_vehiculos": {
+   "nombre": "PRO-CSC-5 Revisión a Vehículos PLOG",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por unidad por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Flotilla",
+     "nota_override": "Roberto 2026-08-11: Vehículos sí se tiene en cuenta"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por unidad por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Flotilla"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Cumplimiento",
+     "frecuencia": "Mensual",
+     "horario_esperado": "1 por unidad por mes",
+     "hora_limite": "—",
+     "dias_gracia": "—",
+     "agenda": "SI TIENEN, INDICAR",
+     "calificacion_vista": "No aplica",
+     "sucursales_aplica": "Flotilla"
+    }
+   },
+   "form_templates": [
+    954594
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "revision_operativa_plog": {
+   "nombre": "REVISIÓN OPERATIVA PLOG (nuevo)",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    }
+   },
+   "form_templates": [
+    1638930
+   ],
+   "score_patron": "p4",
+   "tipo": "ambos"
+  },
+  "gestion_finanzas_plog": {
+   "nombre": "GESTIÓN Y FINANZAS PLOG (nuevo)",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    },
+    "queretaro": {
+     "usar": "No",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    }
+   },
+   "form_templates": [
+    1638942
+   ],
+   "score_patron": "p4",
+   "tipo": "ambos"
+  },
+  "matriz_imagen_plog": {
+   "nombre": "MATRIZ DE CRITERIO DE IMAGEN PLOG (nuevo)",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Por definir",
+     "frecuencia": "Por definir",
+     "horario_esperado": "",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "agenda": "",
+     "calificacion_vista": "",
+     "sucursales_aplica": ""
+    }
+   },
+   "form_templates": [
+    1657858
+   ],
+   "score_patron": null,
+   "tipo": "cumplimiento"
+  },
+  "auditoria_proveedores": {
+   "nombre": "CHECKLIST AUDITORÍA PROVEEDORES PLOG",
+   "zonas": {
+    "nuevo_leon": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "sucursales_aplica": "Por definir"
+    },
+    "laguna": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "sucursales_aplica": "Por definir"
+    },
+    "queretaro": {
+     "usar": "Sí",
+     "medicion": "Calificación",
+     "frecuencia": "Mensual",
+     "hora_limite": "",
+     "dias_gracia": "0",
+     "sucursales_aplica": "Por definir"
+    }
+   },
+   "nota": "Alta directa Roberto 2026-08-11 (no está en el Excel v3). 0 submissions aún; 8 áreas: Instalaciones, Higiene Personal, Manejo de Alimentos, Temperatura, Limpieza, Plagas, Almacenamiento, Maquila. Política por validar con directores.",
+   "form_templates": [
+    1695114
+   ],
+   "score_patron": "p3",
+   "tipo": "calificacion"
+  }
+ }
+}

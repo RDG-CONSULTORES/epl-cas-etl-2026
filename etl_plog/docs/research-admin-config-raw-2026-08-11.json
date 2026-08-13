@@ -1,0 +1,330 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 106,
+  "logs": [
+    "Q: Mejores prácticas 2025-2026 para diseñar un sistema de \"compliance tracking\" ope…",
+    "Decomposed into 5 angles: Config-driven expectation/scheduling engine (state of the art), Versioned policy data modeling (effective dating / bitemporal), Admin panel & entity-level feature toggle patterns, How comparable products do it (competitive/product research), Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics",
+    "Admin panel & entity-level feature toggle patterns: 6 results",
+    "Versioned policy data modeling (effective dating / bitemporal): 6 results",
+    "How comparable products do it (competitive/product research): 6 results",
+    "How comparable products do it (competitive/product research): 5 novel (1 filtered)",
+    "Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics: 6 results",
+    "Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics: 4 novel (2 filtered)",
+    "Config-driven expectation/scheduling engine (state of the art): 6 results",
+    "Config-driven expectation/scheduling engine (state of the art): 3 novel (3 filtered)",
+    "Fetched 24 sources → 118 claims → verifying top 25",
+    "\"Prefect's scheduler pre-materializes future expect…\": 3-0 ✓",
+    "\"When a schedule is edited, Prefect deletes previou…\": 3-0 ✓",
+    "\"Crunchtime Ops Execution tracks expected-vs-actual…\": 3-0 ✓",
+    "\"Prefect documents distinct, non-obvious DST semant…\": 3-0 ✓",
+    "\"The product exposes raw operational data via a 'Da…\": 3-0 ✓",
+    "\"Ops Execution supports complex multi-level organiz…\": 3-0 ✓",
+    "\"The Effectivity pattern models validity by attachi…\": 3-0 ✓",
+    "\"Temporal data has two independent dimensions — act…\": 3-0 ✓",
+    "\"A simple audit log that records BOTH the record da…\": 3-0 ✓",
+    "\"Full bitemporality should be avoided when a simple…\": 3-0 ✓",
+    "\"Unleash defines the distinguishing property of a f…\": 0-3 ✗",
+    "\"Best practice is to keep an audit trail of all fla…\": 3-0 ✓",
+    "\"CRUDAdmin provides an admin interface for FastAPI …\": 3-0 ✓",
+    "\"CRUDAdmin ships built-in audit trails that record …\": 3-0 ✓",
+    "\"Late-completion policy is a per-project boolean ('…\": 3-0 ✓",
+    "\"Ops Execution does not support N-times-per-day exp…\": 3-0 ✓",
+    "\"Zenput/Crunchtime Ops Execution models expected wo…\": 3-0 ✓",
+    "\"Zenput models scheduled compliance work as 'Projec…\": 3-0 ✓",
+    "\"In Zenput, the expectation policy per project cons…\": 3-0 ✓",
+    "\"Zenput scopes each scheduled expectation by team, …\": 3-0 ✓",
+    "\"Zenput handles late/grace behavior via an 'Auto Ar…\": 3-0 ✓",
+    "\"Zenput's compliance report ('Project Completion by…\": 3-0 ✓",
+    "\"Jolt's Item Completion Report classifies each expe…\": 3-0 ✓",
+    "\"Jolt's compliance reporting derives expected-vs-re…\": 3-0 ✓",
+    "\"Jolt separates in-progress work from finalized com…\": 3-0 ✓",
+    "Verify done: 25 claims → 24 confirmed, 1 killed"
+  ],
+  "result": {
+    "question": "Mejores prácticas 2025-2026 para diseñar un sistema de \"compliance tracking\" operativo multi-tienda (restaurantes/retail) construido sobre la API de un sistema de auditorías de campo (Zenput/Crunchtime Ops Execution), con estas características concretas: (1) ELT raw-first a Postgres (Railway) que extrae TODAS las submissions de formularios; (2) un ADMIN PANEL donde un administrador activa/desactiva formularios por zona, edita políticas de medición (frecuencia esperada diaria/semanal/mensual, hora límite, días de gracia, tipo cumplimiento vs calificación) SIN deploys — es decir, configuración viva en BD que gobierna un motor de \"esperado vs real\"; (3) dashboards PWA con drill-down (grupo → sucursal → formulario → área). Investigar: patrones de diseño para config-driven compliance engines (schedule expectation engines, cron-like expectation generation, timezone handling), modelado de datos para políticas versionadas (¿qué pasa con el histórico de cumplimiento cuando cambias la política? efective-dating/bitemporal vs recompute), mejores prácticas de admin panels para sistemas operativos pequeños (feature toggles por entidad, audit log de cambios de config, roles admin vs viewer), cómo lo hacen productos comparables (Zenput/Crunchtime mismo, Jolt, MeazureUp, GoAudits, Xenia, FORM/GoSpotCheck) con sus \"form scheduling / compliance reports\", y recomendaciones concretas de arquitectura para un equipo de 1 desarrollador con stack Python/FastAPI + Postgres + vanilla JS. Entregar: lista priorizada de lo que hay que construir, esquema de datos recomendado para la config administrable, y trampas conocidas (pitfalls) de sistemas esperado-vs-real.",
+    "summary": "Best practice for a solo-dev, config-driven compliance engine over Zenput/Crunchtime data is: (1) keep the ELT raw-first (the vendor itself validates external raw-data + BI-dashboard patterns via its Data Streaming/Insights offerings); (2) model admin-editable policies as effective-dated rows (Fowler's Effectivity pattern: valid_from/valid_to) with a two-date audit log (effective_at, recorded_at) and archive-not-delete semantics; (3) build a Prefect-style expectation engine that pre-materializes expected occurrences within a bounded horizon in each store's local timezone, and on any policy change deletes only future not-yet-due occurrences and regenerates them (recompute-forward — never recompute the past; instead snapshot each computed compliance result with the policy inputs used, per Fowler's \"trace of the calculation\" alternative to bitemporality); (4) mirror the vendors' status semantics: tri-state on-time/late/missed (Jolt), a distinct not-assigned state (Zenput's Project Completion by Location report), and a strict open-window vs closed-window separation so pending work is never counted as a miss. Zenput's own config model (Projects: frequency one-time/daily/weekly-weekdays/monthly-fixed-or-relative/yearly + Due-Between time windows + boolean Auto-Archive late policy + scoping by location attributes/teams/roles, all edited in an admin UI without deploys) is the direct precedent for the admin panel's schema. Prioritized build order: raw ELT → policy tables with effectivity + audit log → timezone-aware expectation generator → matcher with 4-state outcomes → admin panel (CRUDAdmin or minimal vanilla-JS CRUD with admin/viewer roles) → drill-down dashboards reading precomputed snapshot rows.",
+    "findings": [
+      {
+        "claim": "Expectation engine core pattern: pre-materialize expected occurrences ahead of time within bounded constraints, and on policy/schedule change delete only future not-yet-started occurrences and regenerate from the new definition (recompute-forward). Prefect's scheduler is the reference implementation: it pre-creates future runs under ordered limits (max 100 runs, max 100 days ahead, min 3 runs, at least 1h into the future) and, when a schedule is edited, 'previously scheduled flow runs that have not started are removed, and new scheduled flow runs are created to reflect the new schedule.' For the compliance engine this means an expected_occurrence table populated by a periodic job with a rolling horizon (e.g., 30-60 days), where past occurrences are immutable and only future ones are rebuilt when the admin edits a policy.",
+        "confidence": "high",
+        "vote": "3-0, 3-0 (claims 0, 1 merged)",
+        "sources": [
+          "https://docs.prefect.io/v3/concepts/schedules"
+        ],
+        "evidence": "Verified verbatim against Prefect v3 official docs: 'No more than 100 runs will be scheduled... Runs will not be scheduled more than 100 days in the future... At least three runs will be scheduled... Runs will be scheduled until at least one hour in the future' and 'previously scheduled flow runs that have not started are removed, and new scheduled flow runs are created to reflect the new schedule.' Limits are configurable defaults, not hard constants."
+      },
+      {
+        "claim": "Timezone/DST semantics must be an explicit, per-frequency design decision, because naive cron produces surprising behavior: Prefect documents that hourly cron schedules fire on new clock hours (creating a two-hour gap at fall-back), sub-24h intervals follow elapsed UTC time, and daily-or-longer intervals and RRules pin to local clock time across DST boundaries. For a multi-store compliance engine the correct choice is: store each location's IANA timezone, compute daily/weekly/monthly due times pinned to local clock time (a 9 AM deadline stays 9 AM through DST), and persist both due_at_local and due_at_utc on each expected occurrence.",
+        "confidence": "high",
+        "vote": "3-0 (claim 2)",
+        "sources": [
+          "https://docs.prefect.io/v3/concepts/schedules"
+        ],
+        "evidence": "Verified live against Prefect docs 2026-08-11: 'an hourly cron schedule fires on every new schedule hour, not every elapsed hour... this results in a two-hour pause'; 'intervals of less than 24 hours will follow UTC intervals'; 'a daily schedule that always fires at 9 AM will observe DST and continue to fire at 9 AM in the local time zone.'"
+      },
+      {
+        "claim": "Direct product precedent — Zenput/Crunchtime's admin-editable schedule config: expected work is modeled as 'Projects' assigning a Form/Photo/Basic task, with frequency options One-time, Daily, Weekly (selectable weekdays), Monthly (fixed day or relative day like 'first Monday'), and Yearly; Daily projects carry an intra-day deadline window via 'Due – Between' start/end times; all of this is configured by an admin in the web UI with no code or deploy; and each expectation is scoped by team, role, and location, where locations are targeted via attributes (tags) or explicit selection. This is a validated template for the form_policy schema: frequency enum + weekday mask + month-day/relative-day + due-window start/end + scope (zone/attribute or explicit location list).",
+        "confidence": "high",
+        "vote": "3-0 x4 (claims 13, 17, 18, 19 merged)",
+        "sources": [
+          "https://support.zenput.com/hc/en-us/sections/360006261533-Projects-Tasks",
+          "https://support.zenput.com/hc/en-us/articles/360003098774-Creating-a-monthly-recurring-project-in-Zenput-Admin-Video-",
+          "https://support.crunchtime.com/hc/en-us/articles/15644416983187"
+        ],
+        "evidence": "Vendor support docs verified (partly via Wayback and current Crunchtime help center after the Zenput→Crunchtime rebrand): 'One-time (non-recurring)... Daily... select Due – Between – and choose the start and end times... Weekly... select the weekday(-s)... Monthly... start day of the month or relative day (first Monday, last Friday, etc.)'; 'a Zenput Admin has to log in... and create the recurring project from the Projects page'; 'select which specific locations are assigned the task either with attributes or by selecting from the drop-down menu.' Current docs also add Bi-Weekly and note edits to recurring projects only affect future instances."
+      },
+      {
+        "claim": "Vendor design constraints worth copying deliberately: (a) Zenput does NOT support N-times-per-day in a single schedule — multiple daily occurrences of the same form must be modeled as separate daily policies with different time windows (e.g., 8-11am, 12-3pm, 5-10pm); (b) late-completion policy is a single per-project boolean ('Auto-Archive', on by default): enabled = hard cutoff (task removed from users' lists at the due time), disabled = task stays open indefinitely and can be completed late; there is no configurable grace-days window anywhere in the product. Implication for the engine: model 'times per day' as multiple policy rows (or a windows array), and if you want grace_days as a first-class admin field you are exceeding what the market leader offers — keep it simple (int days, default 0) and treat it as a differentiator, not table stakes.",
+        "confidence": "high",
+        "vote": "3-0 x3 (claims 14, 15, 20 merged)",
+        "sources": [
+          "https://support.zenput.com/hc/en-us/sections/360006261533-Projects-Tasks",
+          "https://support.zenput.com/hc/en-us/articles/360003098774-Creating-a-monthly-recurring-project-in-Zenput-Admin-Video-",
+          "https://support.crunchtime.com/hc/en-us/articles/15644511429139"
+        ],
+        "evidence": "Verified via Wayback + current Crunchtime docs: 'If you would like a Form task to be assigned multiple times a day repeat the steps above... one is due between 8am-11am, the next between 12pm-3pm...'; 'we suggest you ALWAYS choose to auto-archive to prevent a culmination of overdue tasks, unless you would like the task to be able to be completed even past the due time'; current article confirms Auto-Archive is checked by default and disabling it leaves tasks open past due. Zenput developer API exposes only date_start/date_due/time_zone — no grace-period field."
+      },
+      {
+        "claim": "Compliance outcome model must be at least 4 states, never binary done/not-done — this is unanimous across both comparable products: (a) Jolt's Item Completion Report classifies every expected task into exactly three outcomes — completed on time (dark blue), completed late (light blue), not completed (red); (b) Zenput's 'Project Completion by Location' report additionally distinguishes not-assigned (blank cell) from missed (No), plus per-location and per-project overall scores; (c) Crunchtime Ops Execution itself tracks on-time vs late ('Completed Late' status) and surfaces incomplete work; (d) Jolt strictly separates in-progress from finalized: the Open Items view shows work whose window hasn't expired, the Closed Items view judges only items whose completion window has ended, and 'lists transition from Open to Closed status when their Display Schedule expires' — the deadline window is what converts pending work into countable misses. Engine rule: expected_occurrence.status ∈ {pending, on_time, late, missed, not_required}, and 'missed' can only be assigned after due_at (+grace) has passed.",
+        "confidence": "high",
+        "vote": "3-0 x5 (claims 3, 16, 21, 22, 23 merged)",
+        "sources": [
+          "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+          "https://help.smartsense.co/en/articles/9671176-lists-item-completion-report",
+          "https://support.zenput.com/hc/en-us/sections/360006261533-Projects-Tasks",
+          "https://www.crunchtime.com/operations-execution",
+          "https://support.crunchtime.com/hc/en-us/articles/25862051470483"
+        ],
+        "evidence": "Jolt/SmartSense doc fetched live: 'Dark Blue: Tasks completed on time... Light Blue: Tasks completed late... Red: Tasks not completed'; 'Closed Items View: filters out items on lists that haven't expired because there is more time to complete them'; 'Lists transition from Open to Closed status when their Display Schedule expires.' Zenput report (Wayback verified): 'A Yes or No indicating if the location completed the project. If blank, the project was not assigned. The overall score of each location and overall score for the projects.' Crunchtime release notes document an explicit 'Completed Late' status."
+      },
+      {
+        "claim": "Policy versioning: use the Effectivity pattern (valid_from/valid_to on each policy row) — Fowler identifies it as 'the most common pattern' when temporal validity must be readily queryable — and be explicit about the two independent time dimensions (actual/effective time vs record time). The low-cost baseline that preserves full bitemporal history is an audit log recording BOTH dates on every config change (effective_at + recorded_at), which Fowler recommends 'even if you are only bothered about one of them.' Crucially, AVOID full bitemporal tables: Fowler's explicit guidance is that persisting a detailed trace of the calculation at the moment it runs 'satisfies the requirement in a much simpler way than a bi-temporal object model.' Applied here: when the nightly job resolves an occurrence, snapshot the outcome AND the policy inputs used (frequency, due time, grace, policy_version) into the occurrence row; historical compliance numbers then never mutate when the admin changes a policy — the change only affects future generated expectations.",
+        "confidence": "high",
+        "vote": "3-0 x4 (claims 6, 7, 8, 9 merged)",
+        "sources": [
+          "https://martinfowler.com/eaaDev/timeNarrative.html",
+          "http://www.dsc.ufcg.edu.br/~jacques/cursos/map/recursos/fowler-ap/Patterns%20for%20things%20that%20change%20with%20time.htm",
+          "https://martinfowler.com/articles/bitemporal-history.html"
+        ],
+        "evidence": "All four quotes verified verbatim on the canonical martinfowler.com source: 'The most common pattern that people use in this situation is Effectivity'; 'the first dimension as actual time... The second dimension is record time'; 'record both the record date and the actual date in the log with each entry... worth doing even if you are only bothered about one of them'; 'Bi-temporality is the full solution, but it's always worth thinking of ways around it... often better to store a detailed trace of the calculations... much simpler way than a bi-temporal object model.' Verifiers noted the pro-bitemporality counterarguments (JUXT, financial trade reconstruction) only apply to regulatory regimes requiring 'what did the system believe then' reconstruction, which this use case does not."
+      },
+      {
+        "claim": "Admin panel best practices for this system: (1) every flag/policy/config change must leave an audit trail, and removed/disabled configs should be archived rather than hard-deleted so the trail stays complete (Unleash's documented best practice: production flag changes require 'documentation, authorization, and a retained audit trail just like a... code deployment'); (2) for a solo FastAPI/Postgres developer, CRUDAdmin auto-generates an admin panel from SQLAlchemy models with built-in session auth and opt-in event tracking (track_events=True) whose AdminAuditLog stores previous_state, new_state, and computed diffs per change with user attribution — covering 'who changed which policy, when, and what changed' without custom code. Caveats: CRUDAdmin is pre-1.0/experimental (breaking changes between versions), its logging is best-effort, and it only audits changes made through its own panel — edits via other routes or a custom vanilla-JS UI would need a separate policy_change_log written in the same transaction as the update.",
+        "confidence": "high",
+        "vote": "3-0 x3 (claims 10, 11, 12 merged)",
+        "sources": [
+          "https://docs.getunleash.io/guides/feature-flag-best-practices",
+          "https://github.com/benavlabs/crudadmin",
+          "https://benavlabs.github.io/crudadmin/api/events/"
+        ],
+        "evidence": "Unleash docs fetched 2026-08-11: 'archive them after removing them... This archive serves as an important audit log'; 'Tracking and auditing feature flag changes help maintain data integrity and meet regulatory requirements.' CRUDAdmin repo (451 stars, active, v0.4.0) and API docs confirm 'Comprehensive audit trails for all admin actions with user attribution' with AdminEventLog (CREATE/UPDATE/DELETE/LOGIN events, user_id, ip, resource) and AdminAuditLog (previous_state, new_state, diffs). Repo self-labels 'still experimental... APIs may change between versions.'"
+      },
+      {
+        "claim": "The raw-first ELT + external dashboards architecture is validated by the vendor's own product direction: Crunchtime sells 'Data Streaming' ('Gain access to all your raw operational data') — a managed replication of raw Zenput data into a customer Snowflake warehouse for BI tools (paid add-on, 4-12h latency) — alongside in-app real-time reporting, a Crunchtime Insights dashboard, and a developer API portal (developer.crunchtime.com / developer.zenput.com). Building your own API→Postgres ELT replicates this pattern with a different mechanism (API pull instead of Snowflake replication) and gives you lower latency and zero add-on cost, at the price of owning pagination/incremental-sync logic.",
+        "confidence": "high",
+        "vote": "3-0 (claim 4)",
+        "sources": [
+          "https://www.crunchtime.com/operations-execution",
+          "https://support.crunchtime.com/hc/en-us/articles/46041233840275"
+        ],
+        "evidence": "Product page verified verbatim ('Gain access to all your raw operational data with Data Streaming'; 'Check operational performance in real time with in-app reporting'; 'Pull your data into one powerful dashboard with Crunchtime Insights'), corroborated by the non-marketing Data Streaming FAQ: raw Zenput data 'easily pulled into your preferred BI tools and combined with non-Crunchtime data' via managed Snowflake replication. Verifier flagged that Data Streaming is Snowflake replication, not API access — conceptual validation of the pattern, different mechanism."
+      },
+      {
+        "claim": "Hierarchy and drill-down precedent: Ops Execution supports multi-level organizational hierarchies including multibrand franchises, with corporate-defined standards plus per-franchisee/per-location flexibility, rollup reporting by role/territory ('regional managers can monitor performance within their territories'), hierarchy-scoped task assignment, and date-range compliance reports pulled up for health-department inspections. This maps directly onto the requested grupo → sucursal → formulario → área drill-down: model the hierarchy as its own table (group/zone/location), scope policies at any level, and make every dashboard aggregate a rollup over the same expected_occurrence fact rows.",
+        "confidence": "medium",
+        "vote": "3-0, verifier rated medium (claim 5)",
+        "sources": [
+          "https://www.crunchtime.com/operations-execution",
+          "https://www.crunchtime.com/blog/3-key-ways-zenput-hierarchies-support-multi-unit-restaurant-growth"
+        ],
+        "evidence": "Vendor page contains 'managing complex hierarchies (including multibrand franchises)' and describes pulling comprehensive per-location work/audit reports for inspector visits; hierarchy blog corroborates territory rollups and hierarchy-scoped assignment. Medium confidence because this is vendor marketing copy — capability depth (e.g., true per-zone form on/off granularity) is asserted, not independently demonstrated; the health-department clause means reports usable with inspectors, not certified documents."
+      },
+      {
+        "claim": "SYNTHESIS — recommended architecture for 1 dev on FastAPI/Postgres/vanilla JS. Prioritized build list: (1) raw ELT of all submissions (immutable JSONB rows + incremental sync watermark) — already the plan; (2) config schema with effectivity + audit: form_catalog(form_id, name, area); location(id, group_id, zone_id, tz IANA, active); form_policy(id, form_id, scope_type[all|zone|location|attribute], scope_ref, frequency[daily|weekly|monthly|one_time], weekday_mask, month_day, relative_day, window_start_local, window_end_local, due_time_local, grace_days int default 0, mode[compliance|score], min_score, active bool, valid_from date, valid_to date null); policy_change_log(policy_id, changed_by, recorded_at, effective_at, old_state jsonb, new_state jsonb) written in the same transaction as every edit; (3) expectation generator: idempotent job (cron every few hours) materializing expected_occurrence(policy_id, policy_snapshot jsonb, location_id, form_id, period_key, window_open_at_utc, due_at_utc, due_at_local, status default 'pending') over a rolling ~35-day horizon in each location's local tz; on policy edit, delete/regenerate only future pending occurrences; (4) resolver/matcher: after due_at+grace passes, match submissions to occurrences (by form, location, window) and finalize status on_time|late|missed, freezing policy_snapshot — never recompute finalized rows; not-covered locations get no row or status not_required, never missed; (5) admin panel: CRUDAdmin (fastest) or ~4 vanilla-JS CRUD screens over the policy tables, roles admin (edit) vs viewer (read), toggle = active bool + archive semantics, show the change log inline; (6) PWA dashboards: pure SQL rollups over expected_occurrence (group → sucursal → form → area), tri-state color coding à la Jolt, separate 'window still open' from finalized. Known pitfalls of esperado-vs-real systems, each grounded in a verified claim: counting not-yet-due work as missed (Jolt's open/closed separation exists precisely for this); conflating not-assigned with missed (Zenput's blank vs No); historical scores silently mutating when policy changes (fix: snapshot, recompute-forward only); DST bugs from computing due times in UTC or naive cron (Prefect's documented gaps); modeling N-per-day as a count instead of explicit windows (Zenput can't either — use one row per window); hard-deleting configs and losing the audit trail (Unleash: archive instead); and edits to a recurrence affecting already-generated instances (Crunchtime docs: edits apply only to future instances).",
+        "confidence": "medium",
+        "vote": "derived synthesis over 24 verified claims",
+        "sources": [
+          "https://docs.prefect.io/v3/concepts/schedules",
+          "https://martinfowler.com/eaaDev/timeNarrative.html",
+          "https://support.zenput.com/hc/en-us/sections/360006261533-Projects-Tasks",
+          "https://help.smartsense.co/en/articles/9671176-lists-item-completion-report",
+          "https://docs.getunleash.io/guides/feature-flag-best-practices",
+          "https://github.com/benavlabs/crudadmin"
+        ],
+        "evidence": "Every element of the recommendation traces to a 3-0-verified claim above: pre-materialization + regenerate-future (Prefect), effectivity + two-date audit log + calculation-trace-over-bitemporal (Fowler), policy field set and window model (Zenput Projects), 4-state outcome model and open/closed judging (Jolt + Zenput reports), archive-not-delete + audited config changes (Unleash), admin UI scaffold (CRUDAdmin). Confidence medium because the composition itself (priority order, exact schema) is the synthesizer's design judgment, not an externally verified artifact."
+      }
+    ],
+    "caveats": "1) Source currency/link rot: nearly all Zenput support URLs 301-redirect to crunchtime.zendesk.com (post-acquisition rebrand to Crunchtime Ops Execution) and several were verified via Wayback snapshots rather than live pages (Cloudflare 403s); Jolt was acquired by Digi in Aug 2025 and its docs now live at help.smartsense.co — cite the rehosted URLs. 2) Vendor pages (crunchtime.com/operations-execution) are marketing copy; the hierarchy/franchise-flexibility finding is vendor-claimed capability, not independently demonstrated, hence medium confidence. 3) CRUDAdmin is explicitly experimental/pre-1.0 with breaking changes between versions and best-effort audit logging that only covers actions through its own panel — if the admin UI ends up as custom vanilla JS, the audit log must be hand-written in-transaction. 4) One claim was REFUTED 0-3: the assertion that Unleash defines feature flags by runtime dynamism (restart/redeploy = static config) — do not use Unleash as authority for the 'live DB config vs deploy' framing; the DB-driven policy pattern stands on the Prefect/Zenput/Fowler evidence instead. 5) Coverage gap: no surviving claims cover MeazureUp, GoAudits, Xenia, or FORM/GoSpotCheck, nor the Zenput API's concrete extraction mechanics (pagination, rate limits, incremental fields) — the ELT side of the question is validated only at the pattern level. 6) Crunchtime's own raw-data offering (Data Streaming) is Snowflake replication with 4-12h latency, a different mechanism than the planned API→Postgres ELT; treat it as conceptual validation, not a how-to. 7) Fowler's temporal-patterns essay dates to ~2005; verifiers judged it non-stale (SQL:2011 standardization, 2021 follow-up article), but bitemporal tooling has evolved — the 'snapshot instead of bitemporal' advice holds specifically because this use case has no regulatory requirement to reconstruct past system beliefs.",
+    "openQuestions": [
+      "Zenput/Crunchtime API extraction mechanics: exact pagination, rate limits, and which timestamp fields support reliable incremental sync of submissions (developer.zenput.com vs the newer developer.crunchtime.com portal) — and whether the API exposes expected/missed task instances directly, or the expectation side must be fully reconstructed externally (as this design assumes).",
+      "Calendar exceptions: how comparable products handle store closures, holidays, and variable store hours in expectation generation (Crunchtime's 'Calendar Events' feature hints at event-anchored windows like 'store opening' / 'pre-rush', but no verified claim covered exception/holiday suppression of expected occurrences).",
+      "Retroactive corrections policy: when an admin realizes a policy was wrong for the past month (backdated effective date), is the right UX to (a) leave history frozen with an annotation, (b) offer an explicit admin-triggered recompute of a bounded past window, or (c) both? Fowler's framework permits either but no verified source prescribed the operational best practice.",
+      "Scoring-mode semantics: for 'calificación' policies (vs binary compliance), how do comparable products roll a form's internal score (e.g., Zenput's 'PORCENTAJE %' formula field) into the location/period compliance score when some occurrences are missed — score-of-completed-only vs missed-counts-as-zero materially changes the dashboard numbers and was not settled by any verified claim."
+    ],
+    "refuted": [
+      {
+        "claim": "Unleash defines the distinguishing property of a feature flag system as runtime dynamism: if changing behavior requires an application restart or redeploy, it is static configuration rather than a feature flag — flag state must be evaluated dynamically at runtime via SDKs synced with a central control service. This validates the pattern of DB-stored 'live' policy config that governs engine behavior without deploys.",
+        "vote": "0-3",
+        "source": "https://docs.getunleash.io/guides/feature-flag-best-practices"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.nylas.com/blog/calendar-events-rrules/",
+        "quality": "blog",
+        "angle": "Config-driven expectation/scheduling engine (state of the art)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.prefect.io/v3/concepts/schedules",
+        "quality": "primary",
+        "angle": "Config-driven expectation/scheduling engine (state of the art)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.crunchtime.com/operations-execution",
+        "quality": "primary",
+        "angle": "Config-driven expectation/scheduling engine (state of the art)",
+        "claimCount": 5
+      },
+      {
+        "url": "http://www.dsc.ufcg.edu.br/~jacques/cursos/map/recursos/fowler-ap/Patterns%20for%20things%20that%20change%20with%20time.htm",
+        "quality": "primary",
+        "angle": "Versioned policy data modeling (effective dating / bitemporal)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://aiven.io/blog/two-dimensional-time-with-bitemporal-data",
+        "quality": "blog",
+        "angle": "Versioned policy data modeling (effective dating / bitemporal)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://hdombrovskaya.wordpress.com/2024/05/05/3937/",
+        "quality": "blog",
+        "angle": "Versioned policy data modeling (effective dating / bitemporal)",
+        "claimCount": 4
+      },
+      {
+        "url": "https://forum.kirupa.com/t/how-should-a-team-decide-when-to-make-metrics-definitions-immutable-versus-backfilling-historical-changes/680030",
+        "quality": "forum",
+        "angle": "Versioned policy data modeling (effective dating / bitemporal)",
+        "claimCount": 4
+      },
+      {
+        "url": "https://softwarepatternslexicon.com/103/3/30/",
+        "quality": "blog",
+        "angle": "Versioned policy data modeling (effective dating / bitemporal)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Bitemporal_modeling",
+        "quality": "secondary",
+        "angle": "Versioned policy data modeling (effective dating / bitemporal)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://configcat.com/blog/how-to-target-features-by-tenants/",
+        "quality": "blog",
+        "angle": "Admin panel & entity-level feature toggle patterns",
+        "claimCount": 5
+      },
+      {
+        "url": "https://docs.getunleash.io/guides/feature-flag-best-practices",
+        "quality": "primary",
+        "angle": "Admin panel & entity-level feature toggle patterns",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.red-gate.com/blog/database-design-for-audit-logging/",
+        "quality": "blog",
+        "angle": "Admin panel & entity-level feature toggle patterns",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/benavlabs/crudadmin",
+        "quality": "primary",
+        "angle": "Admin panel & entity-level feature toggle patterns",
+        "claimCount": 5
+      },
+      {
+        "url": "https://aws.amazon.com/blogs/architecture/build-a-multi-tenant-configuration-system-with-tagged-storage-patterns/",
+        "quality": "blog",
+        "angle": "Admin panel & entity-level feature toggle patterns",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.getunleash.io/blog/feature-flag-security-best-practices",
+        "quality": "blog",
+        "angle": "Admin panel & entity-level feature toggle patterns",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.zenput.com/hc/en-us/sections/360006261533-Projects-Tasks",
+        "quality": "primary",
+        "angle": "How comparable products do it (competitive/product research)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.zenput.com/hc/en-us/articles/360003098774-Creating-a-monthly-recurring-project-in-Zenput-Admin-Video-",
+        "quality": "primary",
+        "angle": "How comparable products do it (competitive/product research)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.jolt.com/en/articles/9671176-lists-item-completion-report",
+        "quality": "primary",
+        "angle": "How comparable products do it (competitive/product research)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://get.jolt.com/products/lists/",
+        "quality": "primary",
+        "angle": "How comparable products do it (competitive/product research)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://goaudits.com/blog/audit-scheduling-feature/",
+        "quality": "blog",
+        "angle": "How comparable products do it (competitive/product research)",
+        "claimCount": 5
+      },
+      {
+        "url": "https://robertsahlin.substack.com/p/your-pipeline-succeeded-your-data",
+        "quality": "blog",
+        "angle": "Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics",
+        "claimCount": 5
+      },
+      {
+        "url": "https://eworkorders.com/pm-compliance-rate/",
+        "quality": "blog",
+        "angle": "Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics",
+        "claimCount": 5
+      },
+      {
+        "url": "https://cronbase.dev/guides/cron-timezone-guide",
+        "quality": "blog",
+        "angle": "Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.heap.io/blog/when-to-avoid-jsonb-in-a-postgresql-schema",
+        "quality": "blog",
+        "angle": "Practitioner pitfalls: ELT raw-first + expected-vs-actual metrics",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sourcesFetched": 24,
+      "claimsExtracted": 118,
+      "claimsVerified": 25,
+      "confirmed": 24,
+      "killed": 1,
+      "afterSynthesis": 10,
+      "urlDupes": 1,
+      "budgetDropped": 5,
+      "agentCalls": 106
+    }
+  }
+}

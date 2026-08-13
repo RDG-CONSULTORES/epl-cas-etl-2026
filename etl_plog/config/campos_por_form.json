@@ -1,0 +1,4150 @@
+{
+ "954598": {
+  "familia": "alistamiento_a",
+  "n_total": 729,
+  "n_analizadas": 200,
+  "desde": "2025-06-27",
+  "hasta": "2026-08-10",
+  "formulas": {
+   "Lunes (9 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Lunes",
+   "Firmas",
+   "Resumen de los Archivos Multimedia"
+  ]
+ },
+ "1010538": {
+  "familia": "alistamiento_a",
+  "n_total": 675,
+  "n_analizadas": 200,
+  "desde": "2025-07-15",
+  "hasta": "2026-08-09",
+  "formulas": {
+   "A7 - Alistamiento Domingo (22 Puntos Posibles):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "A7 - Alistamiento Domingo Porcentaje (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Domingo",
+   "Exterior - estacionamiento - fachada",
+   "Firmas"
+  ]
+ },
+ "1040520": {
+  "familia": "alistamiento_a",
+  "n_total": 662,
+  "n_analizadas": 200,
+  "desde": "2025-08-26",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Martes (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Martes Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 98
+   }
+  },
+  "secciones": [
+   "Martes",
+   "Exterior",
+   "Entrada (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Químicos en Bodega",
+   "Plagas",
+   "Abasto Cuarto Frio / Bodega",
+   "Producción (Foto de Barra y Freidoras)",
+   "Planeación: (Foto del reporte de venta de pollos x hora posteado)",
+   "Plantilla (Foto de posicionamiento)",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Sistema (Foto de Telemetría)",
+   "Plantilla",
+   "Horarios",
+   "Pizarrón de Comunicación",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "1040521": {
+  "familia": "alistamiento_a",
+  "n_total": 655,
+  "n_analizadas": 200,
+  "desde": "2025-08-27",
+  "hasta": "2026-08-05",
+  "formulas": {
+   "Miércoles (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Miércoles Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 98
+   }
+  },
+  "secciones": [
+   "Miércoles",
+   "Exterior",
+   "Entrada (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Revisión de Condiciones de Mesa de Comedor",
+   "Cortinas de Aire",
+   "Play Land",
+   "Planeación: (Foto del reporte de venta de pollos x hora posteado)",
+   "Plantilla (Foto de Posicionamiento)",
+   "Equipos",
+   "Sillas",
+   "Sillones",
+   "Lámparas de Emergencia",
+   "Apagadores",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "1040522": {
+  "familia": "alistamiento_a",
+  "n_total": 659,
+  "n_analizadas": 200,
+  "desde": "2025-08-28",
+  "hasta": "2026-08-06",
+  "formulas": {
+   "Jueves (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Jueves Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Jueves",
+   "Exterior - Estacionamiento - Fachada",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Abasto Cuarto Frio / Bodega",
+   "Producción (Foto de Barra y Freidoras)",
+   "Planeación: (Foto del reporte de venta de pollos x hora posteado)",
+   "Plantilla (Foto de posicionamiento)",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Sistema (Foto de Telemetría)",
+   "Cajas (Punto de Venta)",
+   "Comandera e Impresoras",
+   "Interior Comedor",
+   "Contactos y Apagadores",
+   "Terminales",
+   "Vitrina de Postres",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "1040523": {
+  "familia": "alistamiento_a",
+  "n_total": 654,
+  "n_analizadas": 200,
+  "desde": "2025-08-29",
+  "hasta": "2026-08-07",
+  "formulas": {
+   "Viernes (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Viernes Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 98
+   }
+  },
+  "secciones": [
+   "Viernes",
+   "Exterior - Estacionamiento - Fachada",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Químicos en Bodega",
+   "Plagas",
+   "Abasto Cuarto Frio / Bodega",
+   "Producción (Foto de Barra y Freidoras)",
+   "Planeación: (Foto del reporte de venta de pollos x hora posteado)",
+   "Plantilla (Foto de posicionamiento)",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Sistema (Foto de Telemetría)",
+   "Menú de Precios",
+   "Lay Out (Dibujo de distribución de Oficina 5´s)",
+   "Computadoras - Impresora",
+   "Botiquín Primeros Auxilios",
+   "Silla, Escritorio, Silla",
+   "Caja Fuerte",
+   "Pizarrones Informativos",
+   "Puerta",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "1040524": {
+  "familia": "alistamiento_a",
+  "n_total": 671,
+  "n_analizadas": 200,
+  "desde": "2025-08-30",
+  "hasta": "2026-08-08",
+  "formulas": {
+   "Sábado (9 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sábado Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Sábado",
+   "Exterior - Estacionamiento - Fachada",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Químicos en Bodega",
+   "Plagas",
+   "Abasto Cuarto Frio / Bodega",
+   "Producción (Foto de Barra y Freidoras)",
+   "Planeación: (Foto del reporte de venta de pollos x hora posteado)",
+   "Plantilla (Foto de posicionamiento)",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Sistema (Foto de Telemetría)",
+   "Jardineras",
+   "Anuncios Luminosos",
+   "Toldos",
+   "Lámparas de estacionamiento - Postes de luz",
+   "Cajones Discapacitados",
+   "Menú de Precios",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "997146": {
+  "familia": "alistamiento_hornos",
+  "n_total": 4617,
+  "n_analizadas": 200,
+  "desde": "2025-07-08",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Alistamiento Diario de Hornos (34 Puntos Posibles):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento Diario de Hornos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Exterior hornos (21 Puntos Posibles):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Exterior hornos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Campana y área de hornos (6 Puntos Posibles):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Campana y área de hornos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Equipos y herramientas de uso (6 Puntos Posibles):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Equipos y herramientas de uso (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Firmas (1 Puntos Posibles):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Firmas (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Alistamiento Diario de Hornos",
+   "1. Exterior hornos",
+   "2. Campana y área de hornos",
+   "3. Equipos y herramientas de uso",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "1038658": {
+  "familia": "alistamiento_l",
+  "n_total": 189,
+  "n_analizadas": 189,
+  "desde": "2025-08-31",
+  "hasta": "2026-08-09",
+  "formulas": {
+   "Domingo (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Domingo Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Domingo",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Produción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Firmas"
+  ]
+ },
+ "1038659": {
+  "familia": "alistamiento_l",
+  "n_total": 182,
+  "n_analizadas": 182,
+  "desde": "2025-08-30",
+  "hasta": "2026-08-08",
+  "formulas": {
+   "Sábado (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sábado Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   }
+  },
+  "secciones": [
+   "Sábado",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Produción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Cajas (PV) / Comanderas / Terminales",
+   "Firmas",
+   "Resumen de los Archivos Multimedia"
+  ]
+ },
+ "1038660": {
+  "familia": "alistamiento_l",
+  "n_total": 180,
+  "n_analizadas": 180,
+  "desde": "2025-08-29",
+  "hasta": "2026-08-07",
+  "formulas": {
+   "Viernes (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Viernes Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   }
+  },
+  "secciones": [
+   "Viernes ",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Produción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Botiquín Primeros Auxilios",
+   "Firmas"
+  ]
+ },
+ "1040504": {
+  "familia": "alistamiento_l",
+  "n_total": 182,
+  "n_analizadas": 182,
+  "desde": "2025-08-27",
+  "hasta": "2026-08-05",
+  "formulas": {
+   "Miércoles (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Miércoles Puntuación (100%)": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Miércoles ",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Produción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Lámparas de Emergencia",
+   "Firmas"
+  ]
+ },
+ "1040505": {
+  "familia": "alistamiento_l",
+  "n_total": 174,
+  "n_analizadas": 174,
+  "desde": "2025-08-28",
+  "hasta": "2026-08-06",
+  "formulas": {
+   "Jueves (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Jueves Puntuación (100%)": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Jueves",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Produción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Cajas (PV) / Comanderas",
+   "Firmas",
+   "Resumen de los archivos multimedia"
+  ]
+ },
+ "1040506": {
+  "familia": "alistamiento_l",
+  "n_total": 182,
+  "n_analizadas": 182,
+  "desde": "2025-08-26",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Martes (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Martes Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   }
+  },
+  "secciones": [
+   "Martes",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Producción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Estacionamiento / Exterior",
+   "Firmas",
+   "Resumendelos archivos multimedia"
+  ]
+ },
+ "1040507": {
+  "familia": "alistamiento_l",
+  "n_total": 185,
+  "n_analizadas": 185,
+  "desde": "2025-09-01",
+  "hasta": "2026-08-10",
+  "formulas": {
+   "Lunes (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Lunes Puntuación (100%)": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Lunes",
+   "Entrada Principal (Foto)",
+   "Baños (Foto)",
+   "Bebidas y Barra de Salsas (Foto)",
+   "Comedor",
+   "Play Land",
+   "Plagas",
+   "Hojas de Producción",
+   "Temperaturas",
+   "Equipos",
+   "Aplicaciones (Foto)",
+   "Menú de Precios",
+   "Pizarrón de Merma",
+   "Horarios",
+   "Firmas"
+  ]
+ },
+ "1040698": {
+  "familia": "alistamiento_servir",
+  "n_total": 569,
+  "n_analizadas": 200,
+  "desde": "2025-08-26",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Revisión de proceso (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Revisión de proceso (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE CAJAS (Toma de Ordenes Cajera) (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE CAJAS (Toma de Ordenes Cajera) (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE CAJAS (Entrega de Ordenes Cajera/Barra) (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE CAJAS (Entrega de Ordenes Cajera/Barra) (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE AUTOLOCO (Cajero Vendedor) (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE AUTOLOCO (Cajero Vendedor) (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE AUTOLOCO (Runner) (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE AUTOLOCO (Runner) (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE COMEDOR (Mesera) (30 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA DE COMEDOR (Mesera) (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LIMPIEZA DE COMEDOR (Mesas y Sillas) (9 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LIMPIEZA DE COMEDOR (Mesas y Sillas) (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SEÑALIZACION MODELO SERVIR (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SEÑALIZACION MODELO SERVIR (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Revisión de Proceso",
+   "1. AREA DE CAJAS (Toma de Ordenes Cajera)",
+   "2. AREA DE CAJAS (Entrega de Ordenes Cajera/Barra)",
+   "3. AREA DE AUTOLOCO (Cajero Vendedor)",
+   "4. AREA DE AUTOLOCO (Runner)",
+   "5. AREA DE COMEDOR (Mesera)",
+   "6. LIMPIEZA DE COMEDOR (Mesas y Sillas)",
+   "7. SEÑALIZACION MODELO SERVIR",
+   "Firmas"
+  ]
+ },
+ "1560060": {
+  "familia": "autogestion_calidad",
+  "n_total": 23,
+  "n_analizadas": 23,
+  "desde": "2026-04-12",
+  "hasta": "2026-08-09",
+  "formulas": {
+   "PUNTOS MAXIMOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area Marinado MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area Marinado Puntos TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area Marinado Calificación Porcentaje %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROCESO MARINADO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROCESO MARINADO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROCESO MARINADO CALIFICACION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 1 MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 1 PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 1 CALIFICACION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA COCINA FRIA/CALIENTE MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA COCINA FRIA/CALIENTE PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA COCINA FRIA/CALIENTE  CALIFICACIÓN PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "REFRIGERADORES DE SERVICIO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "REFRIGERADORES DE SERVICIO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "REFRIGERADORES DE SERVICIO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "CALIFICACION GENERAL SUPERVISION OPERATIVA EPL CAS",
+   "I. AREA DE MARINADO",
+   "II.PROCESO DE MARINADO",
+   "III. CUARTO FRIO 1",
+   "IV. AREA DE COCINA FRIA/CALIENTE",
+   "V. REFRIGERADORES DE SERVICIO",
+   "XXXI. FIRMAS DE RESPONSABLES"
+  ]
+ },
+ "1568530": {
+  "familia": "autogestion_calidad",
+  "n_total": 18,
+  "n_analizadas": 18,
+  "desde": "2026-04-15",
+  "hasta": "2026-07-15",
+  "formulas": {
+   "PUNTOS MAXIMOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 2 MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 2 PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 2 PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN JARABES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN JARABES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN JARABES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 94
+   },
+   "ALMACEN GENERAL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN GENERAL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN GENERAL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONGELADOR PAPA MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONGELADOR PAPA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONGELADOR PAPA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "MAQUINA DE HIELO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "MAQUINA DE HIELO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "MAQUINA DE HIELO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CAJAS DE TOTOPO EMPACADO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CAJAS DE TOTOPO EMPACADO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CAJAS DE TOTOPO EMPACADO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "CALIFICACION GENERAL SUPERVISION OPERATIVA EPL CAS",
+   "VI. CUARTO FRIO 2",
+   "VII. ALMACEN DE JARABES",
+   "VIII. ALMACEN GENERAL",
+   "IX. CONGELADOR DE PAPA",
+   "X. MAQUINA DE HIELO",
+   "XI. CAJAS TOTOPO EMPACADO",
+   "XXXI. FIRMAS DE RESPONSABLES"
+  ]
+ },
+ "1568532": {
+  "familia": "autogestion_calidad",
+  "n_total": 24,
+  "n_analizadas": 24,
+  "desde": "2026-04-15",
+  "hasta": "2026-07-22",
+  "formulas": {
+   "PUNTOS MAXIMOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO DE EMPLEADOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO DE EMPLEADOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO EMPLEADOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ESTACION DE LAVADO DE MANOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ESTACION DE LAVADO DE MANOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ESTACION DE LAVADO DE MANOS CALIFICACION %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LAVADO DE UTENSILIOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LAVADO DE UTENSILIOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LAVADO DE UTENSILIOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORA DE PAPA MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORA DE PAPA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORA DE PAPA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONSERVADOR PAPA FRITA MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONSERVADOR PAPA FRITA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONSERVADOR PAPA FRITA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "CALIFICACION GENERAL SUPERVISION OPERATIVA EPL CAS",
+   "XII. BAÑO PARA EMPLEADOS",
+   "XIII. ESTACION LAVADO DE MANOS",
+   "XIV. AREA LAVADO DE UTENSILIOS",
+   "XV. HORNOS",
+   "XVI. PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS",
+   "XVII. FREIDORA DE PAPA FRITA",
+   "XVIII. FREIDORAS",
+   "XIX. CONSERVADOR DE PAPA FRITA",
+   "XX. AREA DE ASADORES",
+   "XXXI. FIRMAS DE RESPONSABLES"
+  ]
+ },
+ "1568536": {
+  "familia": "autogestion_calidad",
+  "n_total": 14,
+  "n_analizadas": 14,
+  "desde": "2026-04-29",
+  "hasta": "2026-07-29",
+  "formulas": {
+   "PUNTOS MAXIMOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SERVICIO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SERVICIO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SERVICIO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR AREA COMEDOR PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO CLIENTES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO CLIENTES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO CLIENTES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "DISPENSADOR REFRESCOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "DISPENSADOR DE REFRESCOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "DISPENSADOR DE REFRESCOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SALSAS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SALSAS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SALSAS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "TIEMPOS DE SERVICIO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "TIEMPOS DE SERVICIO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "TIEMPOS DE SERVICIO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN QUÍMICOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN QUÍMICOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN QUÍMICOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 93
+   },
+   "EXTERIOR SUCURSAL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR SUCURSAL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR SUCURSAL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "UNIFORME INSTITUCIONAL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "UNIFORMA INSTITUCIONAL TOTAL PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "UNIFORMA INSTITUCIONSL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 93
+   }
+  },
+  "secciones": [
+   "CALIFICACION GENERAL SUPERVISION OPERATIVA EPL CAS",
+   "XX. AREA DE ASADORES",
+   "XXI. BARRA DE SERVICIO",
+   "XXII. AREA DE COMEDOR",
+   "XXIII. BAÑO PARA CLIENTES",
+   "XIV. DISPENSADOR DE REFRESCOS",
+   "XXV. BARRA DE SALSAS",
+   "XXVI. TIEMPOS DE SERVICIO",
+   "XXVII. ALMACEN DE QUIMICOS",
+   "XXVIII. EXTERIOR DE SUCURSAL",
+   "XXIX. AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL",
+   "XXX. UNIFORME INSTITUCIONAL",
+   "XXXI. FIRMAS DE RESPONSABLES"
+  ]
+ },
+ "1040519": {
+  "familia": "checklist_cierre",
+  "n_total": 3570,
+  "n_analizadas": 200,
+  "desde": "2025-08-26",
+  "hasta": "2026-08-10",
+  "formulas": {},
+  "secciones": [
+   "Alistamiento Sucursal - 12 - Cierre",
+   "1. Área de Baños y Colaboradores",
+   "2. Área de Comedor y Playland",
+   "3. Áreas de Producción",
+   "4. Áreas de Oficina y Bodegas",
+   "5. Área de Exterior",
+   "6. Seguridad y Exterior",
+   "11. Observaciones",
+   "12. Firmas"
+  ]
+ },
+ "954600": {
+  "familia": "comisariato_evaluacion",
+  "n_total": 81,
+  "n_analizadas": 81,
+  "desde": "2025-06-24",
+  "hasta": "2026-07-31",
+  "formulas": {
+   "Puntos Críticos (445 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Críticos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Loza (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Loza Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Verduras (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Verduras Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento (85 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento Puntuación (100%):<br>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Congeladores (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Congeladores Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area de Secos (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area de Secos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Quimicos (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Quimicos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeracion (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeracion Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina (35 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Totopos (35 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Totopos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Pollo (75 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Pollo Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Degustaciones de Productos (30 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Degustaciones de Productos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Agua y Hielo (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Agua y Hielo Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicios Sanitarios para Empleados (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicios Sanitarios para Empleados Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Plagas (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Plagas Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Personal (40 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Personal Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Transporte (40 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Transporte Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Microbiológico (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Microbiológico Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Puntos Críticos",
+   "Recepción",
+   "Área de Lavado de Loza",
+   "Área de Lavado de Verduras",
+   "Área de Almacenamiento",
+   "Congeladores",
+   "Area de Secos",
+   "Manejo de Productos Quimicos",
+   "Cámaras de Refrigeracion",
+   "Área de Cocina",
+   "Área de Pollo",
+   "Degustaciones de Productos",
+   "Agua y Hielo",
+   "Servicios Sanitarios para Empleados",
+   "Control de Plagas",
+   "Personal",
+   "Transporte",
+   "Control Microbiológico",
+   "Observaciones Aseguramiento de Calidad",
+   "Firmas",
+   "Área de Totopos"
+  ]
+ },
+ "954601": {
+  "familia": "comisariato_evaluacion",
+  "n_total": 15,
+  "n_analizadas": 15,
+  "desde": "2025-08-25",
+  "hasta": "2026-07-30",
+  "formulas": {
+   "Evaluación Comisariatos (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Evaluación Comisariatos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso integral de Inventarios (71 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso integral de Inventarios Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recibo / Embarques (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recibo / Embarques Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (19 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Operación Diaria (11 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Operación Diaria Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administración Diaria (18 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administración Diaria Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Diario de Embalaje (13 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Diario de Embalaje Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Uso de Vehículos de Carga (29 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Uso de Vehículos de Carga Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Formato de Revisión Diario de Transporte de Carga (17 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Formato de Revisión Diario de Transporte de Carga Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Responsivas (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Responsivas Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Evaluación Comisariatos",
+   "1. Proceso integral de Inventarios",
+   "1.1. Recibo / Embarques",
+   "1.2. Inventarios",
+   "1.3. Operación Diaria",
+   "1.4. Administración Diaria",
+   "1.4. Control Diario de Embalaje",
+   "2. Uso de Vehículos de Carga",
+   "2.1. Formato de Revisión Diario de Transporte de Carga",
+   "2.2. Responsivas",
+   "Observaciones",
+   "Firmas"
+  ]
+ },
+ "1059170": {
+  "familia": "comisariato_evaluacion",
+  "n_total": 13,
+  "n_analizadas": 13,
+  "desde": "2025-09-16",
+  "hasta": "2026-08-03",
+  "formulas": {
+   "<b>Puntuación (74 Puntos):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "<b>Puntuación (100%):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Evaluación Comisariatos (74 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Evaluación Comisariatos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso integral de Inventarios (49 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso integral de Inventarios (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recibo / Embarques (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recibo / Embarques (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (13 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Operación Diaria (11 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Operación Diaria (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administración Diaria (13 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administración Diaria (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Diario de Embalaje (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Diario de Embalaje (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Uso de Vehículos de Carga (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Uso de Vehículos de Carga (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Formato de Revisión Diario de Transporte de Carga (13 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Formato de Revisión Diario de Transporte de Carga (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Responsivas (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Responsivas (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Evaluación Comisariatos",
+   "1. Proceso integral de Inventarios",
+   "1.1. Recibo / Embarques",
+   "1.2. Inventarios",
+   "1.3. Operación Diaria",
+   "1.4. Administración Diaria",
+   "1.4. Control Diario de Embalaje",
+   "2. Uso de Vehículos de Carga",
+   "2.1. Formato de Revisión Diario de Transporte de Carga",
+   "2.2. Responsivas",
+   "Observaciones",
+   "Firmas"
+  ]
+ },
+ "1059182": {
+  "familia": "comisariato_evaluacion",
+  "n_total": 4,
+  "n_analizadas": 4,
+  "desde": "2025-09-30",
+  "hasta": "2026-03-31",
+  "formulas": {
+   "<b>Puntuación (250 Puntos):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "<b>Puntuación (100%):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Criticos (250 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Criticos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Loza y Embalaje (7 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Loza y Embalaje (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Verduras (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Lavado de Verduras (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento (38 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area de Secos (13 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area de Secos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Quimicos (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Quimicos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeracion (17 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeracion (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina (22 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Pollo (27 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Pollo (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Degustaciones de Productos (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Degustaciones de Productos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicios Sanitarios para Empleados (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicios Sanitarios para Empleados (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Olagas (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Olagas (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Personal (35 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Personal (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Transporte (35 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Transporte (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Microbiológico (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control Microbiológico (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Puntos Críticos",
+   "Recepción",
+   "Área de Lavado de Loza y Embalaje",
+   "Área de Lavado de Verduras",
+   "Área de Almacenamiento",
+   "Area de Secos",
+   "Manejo de Productos Quimicos",
+   "Cámaras de Refrigeracion",
+   "Área de Cocina",
+   "Área de Pollo",
+   "Degustaciones de Productos",
+   "Servicios Sanitarios para Empleados",
+   "Control de Plagas",
+   "Personal",
+   "Transporte",
+   "Control Microbiológico",
+   "Observaciones Aseguramiento de Calidad",
+   "Firmas"
+  ]
+ },
+ "997145": {
+  "familia": "deposito_valores",
+  "n_total": 9631,
+  "n_analizadas": 200,
+  "desde": "2025-07-13",
+  "hasta": "2026-08-11",
+  "formulas": {},
+  "secciones": [
+   "Deposito Diario",
+   "Deposito en Tómbola",
+   "Resumen de los Archivos Multimedia"
+  ]
+ },
+ "1043393": {
+  "familia": "deposito_valores",
+  "n_total": 2806,
+  "n_analizadas": 200,
+  "desde": "2025-08-27",
+  "hasta": "2026-08-11",
+  "formulas": {},
+  "secciones": [
+   "Deposito Diario",
+   "Deposito en Tómbola",
+   "Resumen de los Archivos Multimedia"
+  ]
+ },
+ "1043394": {
+  "familia": "deposito_valores",
+  "n_total": 5726,
+  "n_analizadas": 200,
+  "desde": "2025-08-27",
+  "hasta": "2026-08-11",
+  "formulas": {},
+  "secciones": [
+   "Deposito Diario",
+   "Deposito en Tómbola",
+   "Resumen de los Archivos Multimedia"
+  ]
+ },
+ "1161749": {
+  "familia": "do_control_seguridad",
+  "n_total": 33,
+  "n_analizadas": 33,
+  "desde": "2026-01-13",
+  "hasta": "2026-08-06",
+  "formulas": {
+   "PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES OBTENIDOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 91
+   },
+   "ASADORES PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA MARINADO PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA MARINADO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA MARINADO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BODEGA PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BODEGA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BODEGA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CENTRO DE CARGA PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CENTRO DE CARGA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CENTRO DE CARGA %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AZOTEA PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AZOTEA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AZOTEA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROGRAMA PROTECCIÓN CIVIL PUNTO MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROGRAMA PROTECCION CIVIL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROGRAMA PROTECCIÓN CIVIL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BITACORAS PUNTOS MAX": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BITACORAS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BITACORAS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "CONTROL OPERATIVO DE SEGURIDAD",
+   "I. AREA COMEDOR",
+   "II. AREA ASADORES",
+   "III. AREA DE MARINADO",
+   "IV. AREA DE BODEGA",
+   "V. AREA DE HORNO",
+   "VI. AREA FREIDORAS",
+   "VII. CENTRO DE CARGA",
+   "VIII. AREA AZOTEA",
+   "IX. AREA EXTERIOR",
+   "X. PROGRAMA INTERNO PROTECCION CIVIL",
+   "XI. BITACORAS",
+   "XII. NOMBRES Y FIRMAS"
+  ]
+ },
+ "1161748": {
+  "familia": "do_supervision_operativa",
+  "n_total": 102,
+  "n_analizadas": 102,
+  "desde": "2026-01-16",
+  "hasta": "2026-08-07",
+  "formulas": {
+   "PUNTOS MAXIMOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area Marinado MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area Marinado Puntos TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Area Marinado Calificación Porcentaje %": {
+    "presente_pct": 100,
+    "con_valor_pct": 96
+   },
+   "PROCESO MARINADO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROCESO MARINADO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PROCESO MARINADO CALIFICACION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 70
+   },
+   "CUARTO FRIO 1 MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 1 PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 1 CALIFICACION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA COCINA FRIA/CALIENTE MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA COCINA FRIA/CALIENTE PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AREA COCINA FRIA/CALIENTE  CALIFICACIÓN PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "REFRIGERADORES DE SERVICIO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "REFRIGERADORES DE SERVICIO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "REFRIGERADORES DE SERVICIO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "CUARTO FRIO 2 MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 2 PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CUARTO FRIO 2 PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 96
+   },
+   "ALMACEN JARABES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN JARABES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN JARABES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 81
+   },
+   "ALMACEN GENERAL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN GENERAL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN GENERAL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "CONGELADOR PAPA MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONGELADOR PAPA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONGELADOR PAPA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "MAQUINA DE HIELO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "MAQUINA DE HIELO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "MAQUINA DE HIELO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "CAJAS DE TOTOPO EMPACADO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CAJAS DE TOTOPO EMPACADO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CAJAS DE TOTOPO EMPACADO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "BAÑO DE EMPLEADOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO DE EMPLEADOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO EMPLEADOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 92
+   },
+   "ESTACION DE LAVADO DE MANOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ESTACION DE LAVADO DE MANOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ESTACION DE LAVADO DE MANOS CALIFICACION %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LAVADO DE UTENSILIOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LAVADO DE UTENSILIOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "LAVADO DE UTENSILIOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "HORNOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "HORNOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 98
+   },
+   "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "FREIDORA DE PAPA MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORA DE PAPA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORA DE PAPA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 98
+   },
+   "FREIDORAS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "FREIDORAS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 75
+   },
+   "CONSERVADOR PAPA FRITA MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONSERVADOR PAPA FRITA PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CONSERVADOR PAPA FRITA PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 88
+   },
+   "ASADORES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ASADORES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SERVICIO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SERVICIO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SERVICIO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 98
+   },
+   "COMEDOR MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "COMEDOR AREA COMEDOR PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 80
+   },
+   "BAÑO CLIENTES MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO CLIENTES PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BAÑO CLIENTES PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 79
+   },
+   "DISPENSADOR REFRESCOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "DISPENSADOR DE REFRESCOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "DISPENSADOR DE REFRESCOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 79
+   },
+   "BARRA DE SALSAS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SALSAS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "BARRA DE SALSAS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 70
+   },
+   "TIEMPOS DE SERVICIO MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "TIEMPOS DE SERVICIO PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "TIEMPOS DE SERVICIO PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN QUÍMICOS MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN QUÍMICOS PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ALMACEN QUÍMICOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "EXTERIOR SUCURSAL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR SUCURSAL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "EXTERIOR SUCURSAL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "UNIFORME INSTITUCIONAL MAX PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "UNIFORMA INSTITUCIONAL TOTAL PUNTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "UNIFORMA INSTITUCIONSL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   }
+  },
+  "secciones": [
+   "CALIFICACION GENERAL SUPERVISION OPERATIVA EPL CAS",
+   "I. AREA DE MARINADO",
+   "II.PROCESO DE MARINADO",
+   "III. CUARTO FRIO 1",
+   "IV. AREA DE COCINA FRIA/CALIENTE",
+   "V. REFRIGERADORES DE SERVICIO",
+   "VI. CUARTO FRIO 2",
+   "VII. ALMACEN DE JARABES",
+   "VIII. ALMACEN GENERAL",
+   "IX. CONGELADOR DE PAPA",
+   "X. MAQUINA DE HIELO",
+   "XI. CAJAS TOTOPO EMPACADO",
+   "XII. BAÑO PARA EMPLEADOS",
+   "XIII. ESTACION LAVADO DE MANOS",
+   "XIV. AREA LAVADO DE UTENSILIOS",
+   "XV. HORNOS",
+   "XVI. PLANCHA Y MESA DE TRABAJO PARA QUESADILLAS Y BURRITOS",
+   "XVII. FREIDORA DE PAPA FRITA",
+   "XVIII. FREIDORAS",
+   "XIX. CONSERVADOR DE PAPA FRITA",
+   "XX. AREA DE ASADORES",
+   "XXI. BARRA DE SERVICIO",
+   "XXII. AREA DE COMEDOR",
+   "XXIII. BAÑO PARA CLIENTES",
+   "XIV. DISPENSADOR DE REFRESCOS",
+   "XXV. BARRA DE SALSAS",
+   "XXVI. TIEMPOS DE SERVICIO",
+   "XXVII. ALMACEN DE QUIMICOS",
+   "XXVIII. EXTERIOR DE SUCURSAL",
+   "XXIX. AVISO DE FUNCIONAMIENTO, BITACORAS, CARPETA DE FUMIGACION CONTROL",
+   "XXX. UNIFORME INSTITUCIONAL",
+   "XXXI. FIRMAS DE RESPONSABLES"
+  ]
+ },
+ "1638942": {
+  "familia": "gestion_finanzas_plog",
+  "n_total": 3,
+  "n_analizadas": 3,
+  "desde": "2026-06-17",
+  "hasta": "2026-07-14",
+  "formulas": {
+   "SUBTOTAL - PROCESOS ADMINISTRATIVOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SUBTOTAL - INDICADORES FINANCIEROS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "RESULTADO TOTAL DE 38%": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "I. PROCESOS ADMINISTRATIVOS  -  PESO DE SECCIÓN: 13 %",
+   "II. ?  INDICADORES FINANCIEROS  -  PESO DE SECCIÓN: 25 %"
+  ]
+ },
+ "1572636": {
+  "familia": "mtto_mensual",
+  "n_total": 36,
+  "n_analizadas": 36,
+  "desde": "2026-04-24",
+  "hasta": "2026-08-07",
+  "formulas": {
+   "AREA Equipos de Cocina": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Calificación Campanas": {
+    "presente_pct": 100,
+    "con_valor_pct": 86
+   },
+   "Calificación Parrillas": {
+    "presente_pct": 100,
+    "con_valor_pct": 86
+   },
+   "Calificación Flautas": {
+    "presente_pct": 100,
+    "con_valor_pct": 81
+   },
+   "Calificación Freidora": {
+    "presente_pct": 100,
+    "con_valor_pct": 89
+   },
+   "Calificación Cuarto Frío": {
+    "presente_pct": 100,
+    "con_valor_pct": 86
+   },
+   "Calificación Mircrondas": {
+    "presente_pct": 100,
+    "con_valor_pct": 81
+   },
+   "Califiación Maquina de Hielo": {
+    "presente_pct": 100,
+    "con_valor_pct": 58
+   },
+   "AREA Iluminación": {
+    "presente_pct": 100,
+    "con_valor_pct": 92
+   },
+   "Calificación Tableros": {
+    "presente_pct": 100,
+    "con_valor_pct": 89
+   },
+   "Calificación Iliuminación": {
+    "presente_pct": 100,
+    "con_valor_pct": 89
+   },
+   "Calificación Timer": {
+    "presente_pct": 100,
+    "con_valor_pct": 83
+   },
+   "AREA Jardinería": {
+    "presente_pct": 100,
+    "con_valor_pct": 81
+   },
+   "Calificación Árboles": {
+    "presente_pct": 100,
+    "con_valor_pct": 31
+   },
+   "Calificación Maleza": {
+    "presente_pct": 100,
+    "con_valor_pct": 61
+   },
+   "Calificación Arbustos": {
+    "presente_pct": 100,
+    "con_valor_pct": 31
+   },
+   "AREA Juegos Infantiles": {
+    "presente_pct": 100,
+    "con_valor_pct": 72
+   },
+   "Calificación Sinchos": {
+    "presente_pct": 100,
+    "con_valor_pct": 58
+   },
+   "Calificacion Protectores": {
+    "presente_pct": 100,
+    "con_valor_pct": 72
+   },
+   "Calificación General Mantenimiento Preventivo Mensual": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "AREA de Cocina",
+   "Campanas",
+   "Parrillas",
+   "Flautas",
+   "Freidora",
+   "Cuarto Frío",
+   "Microondas",
+   "Maquina de Hielo",
+   "AREAluminación",
+   "Tableros",
+   "Iluminación",
+   "Timer",
+   "AREA Jardinería",
+   "Árboles",
+   "Maleza",
+   "Arbustos",
+   "AREA Juegos Infantiles",
+   "Sinchos",
+   "Protectores",
+   "FIRMAS EVIDENCIA"
+  ]
+ },
+ "1572620": {
+  "familia": "mtto_semestral",
+  "n_total": 8,
+  "n_analizadas": 8,
+  "desde": "2026-06-20",
+  "hasta": "2026-07-28",
+  "formulas": {
+   "Calificación Hidroneumativo": {
+    "presente_pct": 100,
+    "con_valor_pct": 62
+   },
+   "Calificación Tinaco": {
+    "presente_pct": 100,
+    "con_valor_pct": 62
+   },
+   "Calificación Obra Civil": {
+    "presente_pct": 100,
+    "con_valor_pct": 62
+   },
+   "Calificación Imagen": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACIÓN MANTENIMIENTO PREVENTIVO SEMESTRAL PLOG": {
+    "presente_pct": 100,
+    "con_valor_pct": 75
+   }
+  },
+  "secciones": [
+   "Hidroneumático",
+   "TINACO",
+   "Obra Civil",
+   "IMAGEN"
+  ]
+ },
+ "1572200": {
+  "familia": "mtto_trimestral",
+  "n_total": 6,
+  "n_analizadas": 6,
+  "desde": "2026-05-22",
+  "hasta": "2026-07-24",
+  "formulas": {
+   "Calificación Ductos": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Calificación Cuarto Frío": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Calificación Equipos de Cocina": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Calificación HVAC / AIRES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Calificación Obra Civil": {
+    "presente_pct": 100,
+    "con_valor_pct": 83
+   },
+   "Calificación Extracción": {
+    "presente_pct": 100,
+    "con_valor_pct": 67
+   },
+   "Calificación Inyección": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Calificación Aire Acondicionado": {
+    "presente_pct": 100,
+    "con_valor_pct": 83
+   },
+   "Calificación Edificio": {
+    "presente_pct": 100,
+    "con_valor_pct": 83
+   },
+   "Calificación General Mto Preventivo Trimestral": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Equipos de cocina",
+   "DUCTOS",
+   "CUARTO FRIO",
+   "HVAC / Aires Acondicionados",
+   "EXTRACCIÓN",
+   "INYECCIÓN",
+   "AIRE ACONDICIONADO",
+   "EDIFICIO",
+   "FIRMAS EVIDENCIAS",
+   "Obra civil"
+  ]
+ },
+ "954594": {
+  "familia": "pro_csc_5_vehiculos",
+  "n_total": 5,
+  "n_analizadas": 5,
+  "desde": "2025-06-26",
+  "hasta": "2026-06-03",
+  "formulas": {
+   "Revisión de Interiores (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Revisión de Interiores Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Papelería (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Interiores (Vestiduras, Tablero, etc.) (7 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Exteriores (9 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Motor (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Datos de Vehículo",
+   "Revisión de Interiores",
+   "1. Papelería",
+   "2. Interiores (Vestiduras, Tablero, etc.)",
+   "3. Exteriores",
+   "4. Motor",
+   "5. Revisión Física de Vehículo",
+   "6. Observaciones",
+   "7. Firmas"
+  ]
+ },
+ "954603": {
+  "familia": "pro_sc_6_seguridad",
+  "n_total": 24,
+  "n_analizadas": 24,
+  "desde": "2025-08-28",
+  "hasta": "2025-12-09",
+  "formulas": {
+   "Seguridad General (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Seguridad General Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Lay Out (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Extintores (17 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Rutas de Evacuación (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Punto de Reunión (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Comisión Mixta de Seguridad e Higiene (25 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Carpeta Plan de Contingencia (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Botiquín de Primeros Auxilios (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Condiciones Generales de Seguridad (22 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Seguridad General",
+   "Lay Out",
+   "Extintores",
+   "Rutas de Evacuación",
+   "Punto de Reunión",
+   "Comisión Mixta de Seguridad e Higiene",
+   "Carpeta Plan de Contingencia",
+   "Botiquín de Primeros Auxilios",
+   "Condiciones Generales de Seguridad",
+   "Observaciones Generales",
+   "Firmas"
+  ]
+ },
+ "954592": {
+  "familia": "pro_suc_1",
+  "n_total": 50,
+  "n_analizadas": 50,
+  "desde": "2025-07-08",
+  "hasta": "2026-07-30",
+  "formulas": {
+   "Procesos Operativos Gerente de Sucursal (67 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Procesos Operativos Gerente de Sucursal Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento de Sucursal (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Asignación de Funciones (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Entrega de Turno (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Programa 5´s (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Calidad (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Hornos (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cajas (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Protocolo SERVIR (14 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Revisión Ordenes Plataformas (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Quejas (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Procesos Operativos Gerente de Sucursal",
+   "1. Alistamiento de Sucursal",
+   "2. Asignación de Funciones",
+   "3. Entrega de Turno",
+   "4. Programa 5´s",
+   "5. Autogestión de Calidad",
+   "6. Autogestión de Hornos",
+   "7. Cajas",
+   "8. Protocolo SERVIR",
+   "10. Revisión Ordenes Plataformas",
+   "11. Manejo de Quejas",
+   "12. Visitas de Autoridades",
+   "13. Firmas"
+  ]
+ },
+ "954599": {
+  "familia": "pro_suc_1",
+  "n_total": 159,
+  "n_analizadas": 159,
+  "desde": "2025-06-29",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "PRO-SUC-1 Evaluación de Procesos 2025V1 (96 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PRO-SUC-1 Evaluación de Procesos 2025V1 (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos (62 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Críticos (42 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Folder de Negocio (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Depósitos (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Asignación de Fondos (1 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Oficina Gerencial (1 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Cobro en Cajas (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Devoluciones / Cancelaciones (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Integral de Inventarios (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Integral de Inventarios Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Conteo de Pollo (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administrativos (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "PRO-SUC-1 Evaluación de Procesos 2025V1",
+   "Gestión de Procesos",
+   "1. Puntos Críticos",
+   "Inventarios",
+   "2. Folder de Negocio",
+   "3. Depósitos",
+   "4. Asignación de Fondos",
+   "5. Oficina Gerencial",
+   "6. Gestión de Cobro en Cajas",
+   "8. Devoluciones / Cancelaciones",
+   "Proceso Integral de Inventarios",
+   "9. Inventarios",
+   "10. Conteo de Pollo",
+   "11. Administrativos",
+   "Comunicación",
+   "12. Observaciones",
+   "13. Firmas"
+  ]
+ },
+ "1038657": {
+  "familia": "pro_suc_3",
+  "n_total": 170,
+  "n_analizadas": 170,
+  "desde": "2025-08-27",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Procesos Operativos Gerente de Sucursal (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Procesos Operativos Gerente de Sucursal Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento de Sucursal (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento de Sucursal Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Asignación de Funciones (9 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Asignación de Funciones Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "Entrega de Turno (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Entrega de Turno Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Programa 5´s (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Programa 5´s Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Calidad (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Calidad Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Hornos (13 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Hornos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cajeros / Autoloco / Telemetría (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cajeros / Autoloco / Telemetría Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Protocolo SERVIR (26 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Protocolo SERVIR Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento de Servicios (Alistamiento de Cierre) (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento de Servicios (Alistamiento de Cierre) Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Revisión Ordenes Plataformas (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Revisión Ordenes Plataformas Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Quejas (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Quejas Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Procesos Operativos Gerente de Sucursal",
+   "1. Alistamiento de Sucursal",
+   "2. Asignación de Funciones",
+   "3. Entrega de Turno",
+   "4. Programa 5´s",
+   "5. Autogestión de Calidad",
+   "6. Autogestión de Hornos",
+   "7. Cajeros / Autoloco / Telemetría",
+   "8. Protocolo SERVIR",
+   "9. Alistamiento de Servicios (Alistamiento de Cierre)",
+   "10. Revisión Ordenes Plataformas",
+   "11. Manejo de Quejas",
+   "12. Visitas de Autoridades",
+   "13. Firmas"
+  ]
+ },
+ "1059183": {
+  "familia": "pro_suc_3",
+  "n_total": 44,
+  "n_analizadas": 44,
+  "desde": "2025-09-15",
+  "hasta": "2026-07-30",
+  "formulas": {
+   "<b>Puntuación (100 Puntos):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "<b>Puntuación (100%):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Críticos (46 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Críticos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Folder de Negocio (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Folder de Negocio (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Depósitos (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Depósitos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Comprobación de Gastos (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Comprobación de Gastos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Cobro en Cajas (7 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Cobro en Cajas (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Pedidos Cancelados (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Pedidos Cancelados (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Integral de Inventarios (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Integral de Inventarios (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Conteo de Pollo (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Conteo de Pollo (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administrativos (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administrativos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Gestión de Procesos",
+   "Puntos Críticos",
+   "Inventarios",
+   "Folder de Negocio",
+   "Depósitos",
+   "Comprobación de Gastos",
+   "Gestión de Cobro en Cajas",
+   "Pedidos Cancelados",
+   "Proceso Integral de Inventarios",
+   "Conteo de Pollo",
+   "Administrativos",
+   "Comunicación",
+   "Observaciones",
+   "Firmas"
+  ]
+ },
+ "954596": {
+  "familia": "pro_suc_4_autoeval",
+  "n_total": 343,
+  "n_analizadas": 200,
+  "desde": "2025-06-29",
+  "hasta": "2026-08-09",
+  "formulas": {
+   "PRO-SUC- 4 Autoevaluación de Procesos (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PRO-SUC- 4 Autoevaluación de Procesos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos (81 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Procesos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntos Críticos (50 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Folder de Negocio (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Depósitos (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Asignación de Fondos (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Oficina Gerencial (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Cobro en Cajas (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Devoluciones / Cancelaciones (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Integral de Inventarios (19 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Integral de Inventarios Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Conteo de Pollo (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Administrativos (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Embalaje (6 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Gestión de Procesos",
+   "1. Puntos Críticos",
+   "2. Folder de Negocio",
+   "3. Depósitos",
+   "4. Asignación de Fondos",
+   "5. Oficina Gerencial",
+   "6. Gestión de Cobro en Cajas",
+   "8. Devoluciones / Cancelaciones",
+   "Proceso Integral de Inventarios",
+   "9. Inventarios",
+   "10. Conteo de Pollo",
+   "11. Administrativos",
+   "12. Embalaje",
+   "Comunicación",
+   "13. Firmas"
+  ]
+ },
+ "1161752": {
+  "familia": "recorrido_comisariato",
+  "n_total": 67,
+  "n_analizadas": 67,
+  "desde": "2026-01-14",
+  "hasta": "2026-08-05",
+  "formulas": {
+   "PUNTOS RECEPCION TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS RECEPCION": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION RECEPCION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION GENERAL PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS ALMACEN": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES ALMACEN": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION ALMACEN PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS REFRIGERACION / CONGELACION": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES REFRIGERACION / CONGELACION": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION REFRIGERACION PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS AREA LAVADO LOZA Y COCHAMBRE": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES AREA LAVADO LOZA Y COCHAMBRE": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION AREA LAVADO LOZA Y COCHAMBRE PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS FORMATOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES FORMATOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION FORMATOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS PERSONAL": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES PERSONAL": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION PERSONAL %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS PLAGAS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES PLAGAS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION PLAGAS PORCENTAJE%": {
+    "presente_pct": 100,
+    "con_valor_pct": 97
+   },
+   "PUNTOS MAXIMOS ÁREA DE QUÍMICOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES ÁREA DE QUÍMICOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION ÁREA DE QUÍMICOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS COCINA Y PREPARACIÓN DE ALIMENTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES COCINA Y PREPARACIÓN DE ALIMENTOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION GENERAL COCINA Y PREPARACIÓN COCINA Y PREPARACIÓN DE ALIMENTOS PORCENTAJE %": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS MAXIMOS MANTENIMIENTO E INSTALACIONES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES MANTENIMIENTO E INSTALACIONES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFIFACION MANTENIMIENTO E INSTALACIONES PORCENTAJE%": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "PUNTOS MAXIMOS INCIDENTES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "PUNTOS TOTALES INCIDENTES": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "CALIFICACION INCIDENTES PORCENTAJE%": {
+    "presente_pct": 100,
+    "con_valor_pct": 94
+   }
+  },
+  "secciones": [
+   "1. RECEPCIÓN",
+   "2. ALMACÉN",
+   "CALIFICACION GENERAL",
+   "REFRIGERACION / CONGELACION",
+   "AREA LAVADO LOZA Y COCHAMBRE",
+   "FORMATOS",
+   "PERSONAL",
+   "PLAGAS",
+   "COCINA Y PREPARACIÓN DE ALIMENTOS",
+   "ÁREA DE QUÍMICOS",
+   "MANTENIMIENTO E INSTALACIONES",
+   "INCIDENTES"
+  ]
+ },
+ "1638930": {
+  "familia": "revision_operativa_plog",
+  "n_total": 3,
+  "n_analizadas": 3,
+  "desde": "2026-06-17",
+  "hasta": "2026-07-14",
+  "formulas": {
+   "Subtotal - Mantenimiento": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SUBTOTAL - LIMPIEZA E HIGIENE": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SUBTOTAL - IMAGEN DE LA TIENDA": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SUBTOTAL - PROCESOS OPERATIVOS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "SUBTOTAL - TEMPERATURAS - PAPA Y PLATAFORMAS": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "RESULTADO TOTAL SOBRE 62%": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "MANTENIMIENTO  -  PESO DE SECCIÓN: 12 %",
+   "II. LIMPIEZA E HIGIENE  -  PESO DE SECCIÓN: 15 %",
+   "III.  IMAGEN DE LA TIENDA  -  PESO DE SECCIÓN: 10 %",
+   "IV. PROCESOS OPERATIVOS  -  PESO DE SECCIÓN: 15 %",
+   "V. TEMPERATURAS - PAPA Y PLATAFORMAS  -  PESO DE SECCIÓN: 10 %",
+   "VI. FIRMAS Y VoBo"
+  ]
+ },
+ "954604": {
+  "familia": "rh1_visita",
+  "n_total": 194,
+  "n_analizadas": 194,
+  "desde": "2025-10-29",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Seguimiento RH (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Seguimiento RH Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Junta de Comunicación / Colaboradores (26 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Junta de Comunicación / Colaboradores Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Promesa a Nuestros Colaboradores (74 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Promesa a Nuestros Colaboradores Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Seguimiento RH",
+   "1. Junta de Comunicación / Colaboradores",
+   "2. Promesa a Nuestros Colaboradores",
+   "3. Observaciones Generales",
+   "Firmas"
+  ]
+ },
+ "954595": {
+  "familia": "rl1_entrega_t1",
+  "n_total": 4441,
+  "n_analizadas": 200,
+  "desde": "2025-06-27",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Primer Turno - Entrega (36 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Primer Turno - Entrega Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Entrega de Pendientes (36 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Primer Turno - Entrega",
+   "1. Entrega de Pendientes",
+   "2. Firmas de Entrega - Recepción de Turno"
+  ]
+ },
+ "954602": {
+  "familia": "rl2_entrega_t2",
+  "n_total": 5768,
+  "n_analizadas": 200,
+  "desde": "2025-06-28",
+  "hasta": "2026-08-11",
+  "formulas": {
+   "Segundo Turno (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Entrega de Pendientes (100 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Entrega de Pendientes Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Segundo Turno Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Segundo Turno",
+   "1. Entrega de Pendientes",
+   "6. Firmas de Entrega - Recepción de Turno"
+  ]
+ },
+ "954593": {
+  "familia": "vcal_calidad_integral",
+  "n_total": 69,
+  "n_analizadas": 69,
+  "desde": "2025-06-23",
+  "hasta": "2025-10-31",
+  "formulas": {
+   "Verificación Calidad Integral 2025 (530 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Almacenamiento y Recepción (90 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Almacenamiento y Recepción Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Congeladores (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Químicos (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeración (40 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Producción (150 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Producción Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Producción (45 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Complementos (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Barra (30 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Parrillas y Hornos (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Preparación y Marinado de Pollo (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Asado (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Verificación de Pollo Asado (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Verificación de Caducidades (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Limpieza (60 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Limpieza Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Freido (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Hornos (30 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Marinado (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicio al Comensal (55 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicio al Comensal Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicio al Comensal (45 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sanitarios para Comensales (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sabor (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sabor Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Plagas (115 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Plagas Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Equipos (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Equipos Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 99
+   },
+   "Control del Personal (40 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control del Personal Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Documentación (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Documentación Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Fases de Producción (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Degustaciones (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Producción",
+   "Servicio al Comensal",
+   "Almacenamiento y Recepción",
+   "Recepción",
+   "Congeladores",
+   "Área de Almacenamiento",
+   "Manejo de Productos Químicos",
+   "Cámaras de Refrigeración",
+   "Complementos",
+   "Barra",
+   "Área de Parrillas y Hornos",
+   "Preparación y Marinado de Pollo",
+   "Proceso Asado",
+   "Verificación de Pollo Asado",
+   "Verificación de Caducidades",
+   "Limpieza",
+   "Área de Cocina",
+   "Área de Freido",
+   "Área de Hornos",
+   "Área de Marinado",
+   "Sanitarios para Comensales",
+   "Sabor",
+   "Control de Plagas",
+   "Equipos",
+   "Control del Personal",
+   "Documentación",
+   "Control de Fases de Producción",
+   "Degustaciones",
+   "Observaciones",
+   "Firmas"
+  ]
+ },
+ "1059169": {
+  "familia": "vcal_calidad_integral",
+  "n_total": 8,
+  "n_analizadas": 8,
+  "desde": "2025-09-09",
+  "hasta": "2025-10-29",
+  "formulas": {
+   "<b>Puntuación (315 Puntos):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "<b>Puntuación (100%):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Almacenamiento y Recepción (48 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Almacenamiento y Recepción (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recepción (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeración y Congelación (28 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cámaras de Refrigeración y Congelación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Almacenamiento (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Químicos (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Manejo de Productos Químicos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Producción (88 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Producción (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Complementos (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Complementos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Barra (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Barra (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Barra (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Barra (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Asado (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Proceso Asado (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Marinado y Asado (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Marinado y Asado (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Verificación de Pollo Asado (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Verificación de Pollo Asado (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Verificación de Caducidades (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Verificación de Caducidades (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Limpieza (56 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Limpieza (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Cocina (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Freido (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Freido (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Hornos (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Hornos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Marinado (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Área de Marinado (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "5's, Orden y Limpieza General (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "5's, Orden y Limpieza General (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicio al Comensal (20 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Servicio al Comensal (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sanitarios para Comensales (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Sanitarios para Comensales (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Plagas (71 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Plagas (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Buenas Practicas del Personal (32 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Buenas Practicas del Personal (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Personal (32 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Personal (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Servicio al Comensal",
+   "Almacenamiento y Recepción",
+   "Recepción",
+   "Cámaras de Refrigeración y Congelación",
+   "Área de Almacenamiento",
+   "Manejo de Productos Químicos",
+   "Producción",
+   "Complementos",
+   "Barra",
+   "Área de Barra",
+   "Proceso Asado",
+   "Marinado y Asado",
+   "Verificación de Pollo Asado",
+   "Verificación de Caducidades",
+   "Limpieza",
+   "Área de Cocina",
+   "Área de Freido",
+   "Área de Hornos",
+   "Área de Marinado",
+   "5's, Orden y Limpieza General",
+   "Sanitarios para Comensales",
+   "Control de Plagas",
+   "Buenas Practicas del Personal",
+   "Personal",
+   "Cierre",
+   "Degustaciones",
+   "Observaciones",
+   "Firmas"
+  ]
+ },
+ "1059179": {
+  "familia": "visita_negocio",
+  "n_total": 149,
+  "n_analizadas": 149,
+  "desde": "2025-09-10",
+  "hasta": "2026-08-05",
+  "formulas": {
+   "<b>Puntuación (108 Puntos):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "<b>Puntuación (100%):</b>": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento a Gerente de Sucursal Visita de Negocio (108 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento a Gerente de Sucursal Visita de Negocio (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Ventas (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gestión de Ventas (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Folder de Negocio (8 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Folder de Negocio (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Reportes de Manejo de Dinero (21 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Reportes de Manejo de Dinero (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Gramajes y Rendimientos (12 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Control de Gramajes y Rendimientos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ODOO (11 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "ODOO (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Plantilla y Rotación (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Plantilla y Rotación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gastos TRAVEX (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Gastos TRAVEX (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Estado de Resultados (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Estado de Resultados (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recursos Humanos (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Recursos Humanos (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Pizarrones de Comunicación (7 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Pizarrones de Comunicación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (15 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Inventarios (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cajeros (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Cajeros (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Alistamiento a Gerente de Sucursal Visita de Negocio",
+   "1. Gestión de Ventas",
+   "2. Folder de Negocio",
+   "3. Reportes de Manejo de Dinero",
+   "4. Control de Gramajes y Rendimientos",
+   "5. ODOO",
+   "6. Plantilla y Rotación",
+   "7. Gastos TRAVEX",
+   "8. Estado de Resultados",
+   "9. Recursos Humanos",
+   "10. Pizarrones de Comunicación",
+   "11. Inventarios",
+   "12. Cajeros",
+   "13. Observaciones Gerente Regional",
+   "14. Firmas"
+  ]
+ },
+ "954591": {
+  "familia": "visita_seguimiento",
+  "n_total": 66,
+  "n_analizadas": 66,
+  "desde": "2025-09-14",
+  "hasta": "2026-07-29",
+  "formulas": {
+   "Alistamiento a Gerente de Sucursal Visita de Seguimiento (87 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento a Gerente de Sucursal Visita de Seguimiento Puntuación (100%):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Tableros de Control, Plataformas (17 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamientos de Sucursal (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Asignación de Funciones (16 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Entrega de Turno (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Programa 5´s (5 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Calidad (10 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Autogestión de Hornos (7 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Áreas de Servicio (4 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Encuestas de Servicio (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Telemetria y Servicio en Autoloco (3 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   },
+   "Alistamiento SERVIR (2 Puntos):": {
+    "presente_pct": 100,
+    "con_valor_pct": 100
+   }
+  },
+  "secciones": [
+   "Alistamiento a Gerente de Sucursal Visita de Seguimiento",
+   "1. Tableros de Control, Plataformas",
+   "2. Alistamientos de Sucursal",
+   "3. Asignación de Funciones",
+   "4. Entrega de Turno",
+   "5. Programa 5´s",
+   "6. Autogestión de Calidad",
+   "7. Autogestión de Hornos",
+   "8. Áreas de Servicio",
+   "9. Encuestas de Servicio",
+   "10. Telemetria y Servicio en Autoloco",
+   "11. Alistamiento SERVIR",
+   "12. Observaciones Gerente Regional",
+   "13. Firmas"
+  ]
+ }
+}
