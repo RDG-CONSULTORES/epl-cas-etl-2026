@@ -1,14 +1,5 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile"
-  },
-  "deploy": {
-    "numReplicas": 1,
-    "healthcheckPath": "/api/health",
-    "healthcheckTimeout": 300,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
-  }
+  "build": { "builder": "DOCKERFILE", "dockerfilePath": "etl_plog/Dockerfile" },
+  "deploy": { "startCommand": "uvicorn etl_plog.api.main:app --host 0.0.0.0 --port $PORT", "restartPolicyType": "ON_FAILURE" }
 }
