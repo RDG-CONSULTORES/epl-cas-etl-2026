@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<title>Admin · Cumplimiento PLOG</title>
+<style>
+  :root{
+    --bg:#0a0a0f; --bg-2:#14141b; --card:#1e1e27; --card-2:#26262f; --line:#2c2c38;
+    --ink:#f4f4f7; --ink-2:#a4a4b4; --ink-3:#6d6d7e;
+    --accent:#ff6b35; --accent-2:#ff8c5a;
+    --ok:#34d399; --ok-dim:#0f3d31; --late:#fbbf24; --miss:#f0526a; --miss-dim:#3d1620;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-size:14px}
+  .num{font-variant-numeric:tabular-nums}
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer}
+
+  /* Login gate */
+  #gate{display:none;min-height:100vh;place-content:center;justify-items:center;gap:14px;padding:30px}
+  #gate.on{display:grid}
+  #gate input{width:280px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:15px}
+  #gate button{width:280px;padding:12px;background:var(--accent);color:#1a0d06;border:0;border-radius:10px;font-weight:700}
+  #gate .err{color:var(--miss);font-size:13px;min-height:16px}
+
+  /* Layout */
+  #shell{display:none;grid-template-columns:230px 1fr;min-height:100vh}
+  #shell.on{display:grid}
+  aside{background:var(--bg-2);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:750;font-size:15px;padding:6px 8px 18px}
+  .logo .mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#1a0d06;font-weight:800;font-size:13px}
+  nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;color:var(--ink-2);font-weight:600;font-size:13.5px;text-decoration:none;margin-bottom:2px}
+  nav a.on{background:var(--card);color:var(--ink)}
+  nav a:hover{background:var(--card-2)}
+  nav a svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9}
+  aside .foot{position:absolute;bottom:16px;left:12px;right:12px;font-size:12px;color:var(--ink-3)}
+  aside .foot button{background:none;border:0;color:var(--ink-3);font-size:12px;margin-top:6px;text-decoration:underline}
+
+  main{padding:26px 30px;max-width:1100px}
+  .htop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  h1{font-size:22px;font-weight:750;letter-spacing:-.02em}
+  .sub{color:var(--ink-3);font-size:13px;margin-bottom:20px}
+  .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .toolbar input,.toolbar select{padding:8px 11px;background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-size:13px}
+  .btn{padding:9px 15px;background:var(--accent);color:#1a0d06;border:0;border-radius:8px;font-weight:700;font-size:13px}
+  .btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+  .btn.danger{background:var(--miss-dim);color:var(--miss)}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);font-weight:700;padding:0 12px 10px}
+  td{padding:12px;border-top:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+  tr:hover td{background:var(--card)}
+  .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .b-plog{background:var(--ok-dim);color:var(--ok)} .b-cas{background:#3d3212;color:var(--late)}
+  .b-com{background:rgba(255,107,53,.14);color:var(--accent)} .b-admin{background:var(--miss-dim);color:var(--miss)}
+  .b-dir{background:#1e2b4d;color:#7aa2f7} .b-view{background:var(--card-2);color:var(--ink-2)}
+  .muted{color:var(--ink-3);font-size:12px}
+  .rowbtn{background:var(--card-2);border:1px solid var(--line);color:var(--ink-2);border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600}
+
+  /* Toggle switch */
+  .sw{position:relative;width:38px;height:22px;display:inline-block;flex:0 0 auto}
+  .sw input{opacity:0;width:0;height:0}
+  .sw span{position:absolute;inset:0;background:var(--card-2);border:1px solid var(--line);border-radius:999px;transition:.18s;cursor:pointer}
+  .sw span::before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--ink-3);border-radius:50%;transition:.18s}
+  .sw input:checked+span{background:var(--ok-dim);border-color:var(--ok)}
+  .sw input:checked+span::before{transform:translateX(16px);background:var(--ok)}
+
+  /* Drawer */
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+  #scrim.on{opacity:1;pointer-events:auto}
+  #drawer{position:fixed;top:0;right:0;width:420px;max-width:92vw;height:100vh;background:var(--bg-2);border-left:1px solid var(--line);
+    transform:translateX(100%);transition:transform .24s cubic-bezier(.16,1,.3,1);z-index:50;overflow-y:auto;padding:24px}
+  #drawer.on{transform:none}
+  #drawer h3{font-size:17px;font-weight:750;margin-bottom:4px}
+  #drawer .dsub{color:var(--ink-3);font-size:12.5px;margin-bottom:20px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:6px}
+  .field input,.field select{width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:14px}
+  .field .hint{font-size:11px;color:var(--ink-3);margin-top:5px}
+  .zchecks{display:flex;flex-direction:column;gap:8px}
+  .zchecks label{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink);font-weight:500;cursor:pointer}
+  .zchecks input{width:auto}
+  .drawer-actions{display:flex;gap:10px;margin-top:24px}
+  .drawer-actions .btn{flex:1;padding:12px}
+
+  /* Toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--line);
+    padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.ok{border-color:var(--ok)} #toast.err{border-color:var(--miss)}
+  .loading{color:var(--ink-3);padding:30px;text-align:center}
+</style>
+</head>
+<body>
+<!-- Gate -->
+<div id="gate">
+  <div class="logo" style="font-size:20px"><span class="mark">PL</span> Admin PLOG</div>
+  <input id="gu" placeholder="Usuario" autocapitalize="none">
+  <input id="gp" type="password" placeholder="Contraseña">
+  <div class="err" id="gerr"></div>
+  <button id="gbtn">Entrar</button>
+</div>
+
+<!-- Shell -->
+<div id="shell">
+  <aside>
+    <div class="logo"><span class="mark">PL</span> Admin PLOG</div>
+    <nav id="nav">
+      <a data-s="formularios" class="on"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg> Formularios</a>
+      <a data-s="usuarios"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2M16 3.1a4 4 0 010 7.8"/></svg> Usuarios y accesos</a>
+      <a data-s="sucursales"><svg viewBox="0 0 24 24"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg> Sucursales</a>
+      <a data-s="reportes"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 12h8M8 16h5M8 8h8"/></svg> Reportes</a>
+      <a data-s="bitacora"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg> Bitácora</a>
+    </nav>
+    <div class="foot">Admin: <b id="whoami">—</b><br><button id="logout">Cerrar sesión</button></div>
+  </aside>
+  <main id="main"><div class="loading">Cargando…</div></main>
+</div>
+
+<div id="scrim"></div>
+<div id="drawer"></div>
+<div id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const api=(p,opt)=>fetch(p,{credentials:'same-origin',...opt}).then(async r=>{if(!r.ok)throw await r.json().catch(()=>({detail:r.status}));return r.json();});
+const put=(p,body)=>api(p,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+const post=(p,body)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+const ZN={nuevo_leon:'Nuevo León',laguna:'Laguna',queretaro:'Querétaro'};
+const FREQ=['diario','diario_por_dia','semanal','quincenal','semana_del_mes','mensual','bimestral','trimestral','semestral','anual','por_visita'];
+let ME=null, DATA={};
+
+function toast(msg,cls='ok'){const t=$('#toast');t.textContent=msg;t.className='on '+cls;setTimeout(()=>t.className=cls,2200);}
+function openDrawer(html){$('#drawer').innerHTML=html;$('#drawer').classList.add('on');$('#scrim').classList.add('on');}
+function closeDrawer(){$('#drawer').classList.remove('on');$('#scrim').classList.remove('on');}
+$('#scrim').onclick=closeDrawer;
+
+// ── Gate ──
+async function boot(){
+  try{ME=await api('/api/me');}catch(e){$('#shell').classList.remove('on');$('#gate').classList.add('on');return;}
+  if(ME.rol!=='admin'){$('#gate').classList.add('on');$('#gerr').textContent='Esta cuenta no es administrador.';return;}
+  $('#gate').classList.remove('on');$('#shell').classList.add('on');
+  $('#whoami').textContent=ME.usuario;
+  show('formularios');
+}
+async function gate(){
+  $('#gerr').textContent='';
+  try{await post('/api/login',{usuario:$('#gu').value.trim(),password:$('#gp').value});boot();}
+  catch(e){$('#gerr').textContent='Usuario o contraseña incorrectos';}
+}
+$('#gbtn').onclick=gate; $('#gp').addEventListener('keydown',e=>{if(e.key==='Enter')gate();});
+$('#logout').onclick=async()=>{await post('/api/logout',{});location.reload();};
+
+// ── Router ──
+document.querySelectorAll('#nav a').forEach(a=>a.onclick=e=>{e.preventDefault();show(a.dataset.s);});
+function show(s){
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.s===s));
+  ({formularios:vForms,usuarios:vUsers,sucursales:vSuc,reportes:vRep,bitacora:vAudit}[s])();
+}
+
+// ── FORMULARIOS ──
+async function vForms(){
+  $('#main').innerHTML='<h1>Formularios</h1><div class="sub">Activa o desactiva por zona y edita la política (cadencia, hora límite, gracia). Los cambios se auditan.</div><div class="loading">Cargando…</div>';
+  const d=await api('/api/admin/formularios'); DATA.forms=d.formularios;
+  const zonas=[...new Set(d.formularios.map(f=>f.zona))];
+  $('#main').innerHTML=`<h1>Formularios</h1><div class="sub">Activa/desactiva por zona y edita la política. Cambios auditados.</div>
+    <div class="toolbar"><input id="fq" placeholder="Buscar formulario…" oninput="filtForms()">
+      <select id="fz" onchange="filtForms()"><option value="">Todas las zonas</option>${zonas.map(z=>`<option value="${z}">${ZN[z]||z}</option>`).join('')}</select>
+      <select id="ft" onchange="filtForms()"><option value="">Todos los tipos</option><option>cumplimiento</option><option>calificacion</option><option>ambos</option></select></div>
+    <table><thead><tr><th>Formulario</th><th>Zona</th><th>Origen</th><th>Tipo</th><th>Cadencia</th><th>Hora</th><th>Activo</th><th></th></tr></thead><tbody id="fbody"></tbody></table>`;
+  filtForms();
+}
+function filtForms(){
+  const q=($('#fq').value||'').toLowerCase(),z=$('#fz').value,t=$('#ft').value;
+  const rows=DATA.forms.filter(f=>(!q||f.nombre.toLowerCase().includes(q))&&(!z||f.zona===z)&&(!t||f.medicion===t));
+  const ob={exclusivo:['PLOG','b-plog'],'exclusivo*':['PLOG','b-plog'],compartido:['CAS','b-cas'],comisariato:['Comis.','b-com']};
+  $('#fbody').innerHTML=rows.map(f=>{const o=ob[f.origen]||['—','b-view'];return `
+    <tr><td><b>${f.nombre}</b></td><td>${ZN[f.zona]||f.zona}</td>
+      <td><span class="badge ${o[1]}">${o[0]}</span></td><td class="muted">${f.medicion}</td>
+      <td class="muted">${f.frecuencia}</td><td class="num muted">${f.hora_limite||'—'}</td>
+      <td><label class="sw"><input type="checkbox" ${f.activo?'checked':''} onchange="toggleForm('${f.familia}','${f.zona}',this.checked)"><span></span></label></td>
+      <td><button class="rowbtn" onclick="editForm('${f.familia}','${f.zona}')">Editar</button></td></tr>`}).join('')
+    ||'<tr><td colspan="8" class="loading">Sin resultados.</td></tr>';
+}
+async function toggleForm(familia,zona,activo){
+  try{await put(`/api/admin/formularios/${familia}/${zona}`,{activo});
+    const f=DATA.forms.find(x=>x.familia===familia&&x.zona===zona);f.activo=activo;
+    toast(`${f.nombre} · ${ZN[zona]}: ${activo?'activado':'desactivado'}`);}
+  catch(e){toast('Error al guardar','err');vForms();}
+}
+function editForm(familia,zona){
+  const f=DATA.forms.find(x=>x.familia===familia&&x.zona===zona);
+  openDrawer(`<h3>${f.nombre}</h3><div class="dsub">${ZN[zona]||zona} · ${f.caso_uso||''}</div>
+    <div class="field"><label>Tipo de medición</label><select id="e_med">${['cumplimiento','calificacion','ambos'].map(m=>`<option ${f.medicion===m?'selected':''}>${m}</option>`).join('')}</select></div>
+    <div class="field"><label>Cadencia esperada</label><select id="e_freq">${FREQ.map(x=>`<option ${f.frecuencia===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Hora límite (HH:MM, vacío = fin del día)</label><input id="e_hora" value="${f.hora_limite||''}" placeholder="15:00"></div>
+    <div class="field"><label>Días de gracia</label><input id="e_gracia" type="number" min="0" value="${f.dias_gracia||0}"><div class="hint">Tolerancia después del límite antes de marcar "faltó".</div></div>
+    <div class="drawer-actions"><button class="btn sec" onclick="closeDrawer()">Cancelar</button><button class="btn" onclick="saveForm('${familia}','${zona}')">Guardar política</button></div>`);
+}
+async function saveForm(familia,zona){
+  try{await put(`/api/admin/formularios/${familia}/${zona}`,{
+    medicion:$('#e_med').value,frecuencia:$('#e_freq').value,
+    hora_limite:$('#e_hora').value.trim(),dias_gracia:parseInt($('#e_gracia').value)||0});
+    toast('Política guardada');closeDrawer();vForms();}
+  catch(e){toast(e.detail||'Error','err');}
+}
+
+// ── USUARIOS ──
+async function vUsers(){
+  $('#main').innerHTML='<div class="loading">Cargando…</div>';
+  const [d,s]=await Promise.all([api('/api/admin/usuarios'),api('/api/admin/sucursales')]);
+  DATA.users=d.usuarios; DATA.sucs=s.sucursales;
+  $('#main').innerHTML=`<div class="htop"><h1>Usuarios y accesos</h1><button class="btn" onclick="newUser()">+ Nuevo usuario</button></div>
+    <div class="sub">Alta con contraseña (sin auto-registro). El acceso de cada quien se muestra explícito.</div>
+    <table><thead><tr><th>Usuario</th><th>Rol</th><th>Ve</th><th>Últ. acceso</th><th>Activo</th><th></th></tr></thead><tbody>${
+      d.usuarios.map(u=>{const rb={admin:'b-admin',director:'b-dir',viewer:'b-view'}[u.rol];
+        const sc=scopeTxt(u.scopes);
+        return `<tr><td><b>${u.usuario}</b>${u.nombre?`<div class="muted">${u.nombre}</div>`:''}</td>
+          <td><span class="badge ${rb}">${u.rol}</span></td><td class="muted">${sc}</td>
+          <td class="muted">${u.ultimo_login?new Date(u.ultimo_login).toLocaleDateString('es-MX'):'nunca'}</td>
+          <td><label class="sw"><input type="checkbox" ${u.activo?'checked':''} onchange="toggleUser(${u.id},this.checked)"><span></span></label></td>
+          <td><button class="rowbtn" onclick="editUser(${u.id})">Editar</button></td></tr>`}).join('')}</tbody></table>`;
+}
+function scopeTxt(scopes){
+  if(!scopes||!scopes.length)return '<span style="color:var(--miss)">nada</span>';
+  if(scopes.some(s=>s.zona===null))return 'Todas las zonas';
+  return scopes.map(s=>`${ZN[s.zona]||s.zona}${s.location_ids?' · '+s.location_ids.length+' suc':''}`).join(', ');
+}
+function userDrawer(u){
+  const zonas=['nuevo_leon','laguna','queretaro'];
+  const has=z=>u&&u.scopes&&(u.scopes.some(s=>s.zona===null)||u.scopes.some(s=>s.zona===z));
+  const todo=u&&u.scopes&&u.scopes.some(s=>s.zona===null);
+  return `<h3>${u?u.usuario:'Nuevo usuario'}</h3><div class="dsub">${u?'Editar rol, accesos y contraseña':'Alta de usuario con contraseña'}</div>
+    ${u?'':`<div class="field"><label>Usuario</label><input id="u_user" placeholder="director.queretaro"></div>`}
+    ${u?'':`<div class="field"><label>Nombre</label><input id="u_nom" placeholder="Dir. Querétaro"></div>`}
+    <div class="field"><label>${u?'Nueva contraseña (vacío = no cambiar)':'Contraseña'}</label><input id="u_pass" type="password" placeholder="≥6 caracteres"></div>
+    <div class="field"><label>Rol</label><select id="u_rol">${['admin','director','viewer'].map(r=>`<option ${u&&u.rol===r?'selected':''}>${r}</option>`).join('')}</select>
+      <div class="hint">admin: todo · director: sus zonas · viewer: solo lectura</div></div>
+    <div class="field"><label>Acceso a zonas</label>
+      <div class="zchecks"><label><input type="checkbox" id="z_todo" ${todo?'checked':''} onchange="document.querySelectorAll('.zchk').forEach(c=>{c.disabled=this.checked})"> Todas las zonas</label>
+      ${zonas.map(z=>`<label><input type="checkbox" class="zchk" value="${z}" ${!todo&&has(z)?'checked':''} ${todo?'disabled':''}> ${ZN[z]}</label>`).join('')}</div>
+      <div class="hint">Ve solo las zonas marcadas. (Selección de sucursales específicas: próxima versión — hoy = toda la zona.)</div></div>
+    <div class="drawer-actions"><button class="btn sec" onclick="closeDrawer()">Cancelar</button><button class="btn" onclick="${u?`saveUser(${u.id})`:'createUser()'}">${u?'Guardar':'Crear usuario'}</button></div>`;
+}
+function newUser(){openDrawer(userDrawer(null));}
+function editUser(id){openDrawer(userDrawer(DATA.users.find(u=>u.id===id)));}
+function collectScopes(){
+  if($('#z_todo').checked)return[{zona:null,location_ids:null}];
+  return [...document.querySelectorAll('.zchk:checked')].map(c=>({zona:c.value,location_ids:null}));
+}
+async function createUser(){
+  try{await post('/api/admin/usuarios',{usuario:$('#u_user').value.trim(),nombre:$('#u_nom').value.trim(),
+    password:$('#u_pass').value,rol:$('#u_rol').value,scopes:collectScopes()});
+    toast('Usuario creado');closeDrawer();vUsers();}
+  catch(e){toast(e.detail||'Error','err');}
+}
+async function saveUser(id){
+  const body={rol:$('#u_rol').value,scopes:collectScopes()};
+  if($('#u_pass').value)body.password=$('#u_pass').value;
+  try{await put(`/api/admin/usuarios/${id}`,body);toast('Usuario actualizado');closeDrawer();vUsers();}
+  catch(e){toast(e.detail||'Error','err');}
+}
+async function toggleUser(id,activo){try{await put(`/api/admin/usuarios/${id}`,{activo});toast(activo?'Activado':'Bloqueado');}catch(e){toast('Error','err');}}
+
+// ── SUCURSALES ──
+async function vSuc(){
+  $('#main').innerHTML='<div class="loading">Cargando…</div>';
+  const d=await api('/api/admin/sucursales');DATA.sucs=d.sucursales;
+  $('#main').innerHTML=`<h1>Sucursales</h1><div class="sub">Pausar/activar, marcar comisariato y fijar serie de alistamiento.</div>
+    <table><thead><tr><th>Sucursal</th><th>Zona</th><th>Serie requerida</th><th>Comisariato</th><th>Activa</th></tr></thead><tbody>${
+      d.sucursales.filter(s=>s.location_id>0).map(s=>`<tr><td><b>${s.nombre}</b>${s.director?`<div class="muted">${s.director}</div>`:''}</td>
+        <td class="muted">${ZN[s.zona]||s.zona}</td>
+        <td><select onchange="saveSuc(${s.location_id},{serie_requerida:this.value})">
+          <option value="" ${!s.serie_requerida?'selected':''}>Cualquiera (${s.serie_alistamiento||'?'})</option>
+          <option value="A" ${s.serie_requerida==='A'?'selected':''}>Solo A</option>
+          <option value="L" ${s.serie_requerida==='L'?'selected':''}>Solo L</option></select></td>
+        <td><label class="sw"><input type="checkbox" ${s.es_comisariato?'checked':''} onchange="saveSuc(${s.location_id},{es_comisariato:this.checked})"><span></span></label></td>
+        <td><label class="sw"><input type="checkbox" ${s.activo?'checked':''} onchange="saveSuc(${s.location_id},{activo:this.checked})"><span></span></label></td></tr>`).join('')}</tbody></table>`;
+}
+async function saveSuc(id,body){try{await put(`/api/admin/sucursales/${id}`,body);toast('Sucursal actualizada');}catch(e){toast('Error','err');}}
+
+// ── REPORTES ──
+async function vRep(){
+  const d=await api('/api/admin/reportes');
+  $('#main').innerHTML=`<div class="htop"><h1>Reportes</h1><button class="btn sec" disabled>+ Nueva programación</button></div>
+    <div class="sub">Reportes automáticos por cadencia y canal. (Constructor de programaciones: próxima fase.)</div>
+    ${d.reportes.length?`<table><thead><tr><th>Nombre</th><th>Cadencia</th><th>Canal</th><th>Destinatarios</th><th>Activo</th></tr></thead><tbody>${
+      d.reportes.map(r=>`<tr><td><b>${r.nombre}</b></td><td class="muted">${r.cadencia}</td><td class="muted">${r.canal}</td><td class="muted">${(r.destinatarios||[]).length}</td><td>${r.activo?'Sí':'No'}</td></tr>`).join('')}</tbody></table>`
+      :'<div class="loading">Aún no hay reportes programados. El motor de reportes se conecta en la fase de entrega (correo/WhatsApp).</div>'}`;
+}
+
+// ── BITÁCORA ──
+async function vAudit(){
+  $('#main').innerHTML='<div class="loading">Cargando…</div>';
+  const d=await api('/api/admin/audit?limite=120');
+  $('#main').innerHTML=`<h1>Bitácora</h1><div class="sub">Historial de cambios de configuración y accesos: quién cambió qué y cuándo.</div>
+    <table><thead><tr><th>Cuándo</th><th>Tipo</th><th>Entidad</th><th>Cambio</th><th>Usuario</th></tr></thead><tbody>${
+      d.eventos.map(e=>`<tr><td class="muted num">${new Date(e.ts).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}</td>
+        <td><span class="badge ${e.tipo==='config'?'b-com':'b-view'}">${e.tipo}</span></td>
+        <td>${e.entidad||'—'}${e.zona&&e.zona!=='-'?' · '+(ZN[e.zona]||e.zona):''}</td>
+        <td class="muted" style="max-width:340px">${(e.detalle||'').replace(/[{}"]/g,'').slice(0,120)}</td>
+        <td class="muted">${e.usuario||'—'}</td></tr>`).join('')||'<tr><td colspan="5" class="loading">Sin eventos.</td></tr>'}</tbody></table>`;
+}
+
+boot();
+</script>
+</body>
+</html>

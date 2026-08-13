@@ -1,0 +1,337 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 104,
+  "logs": [
+    "Q: Diseño (UX/UI) de un ADMIN PANEL profesional para un sistema de compliance track…",
+    "Decomposed into 5 angles: Navigation architecture and dashboard benchmarks, Edit patterns: inline vs modal vs drawer and row toggles, Dense admin data tables, RBAC roles/scoping and audit log UI, Conditional config forms and destructive actions",
+    "Dense admin data tables: 6 results",
+    "Conditional config forms and destructive actions: 6 results",
+    "Edit patterns: inline vs modal vs drawer and row toggles: 6 results",
+    "Edit patterns: inline vs modal vs drawer and row toggles: 3 novel (3 filtered)",
+    "RBAC roles/scoping and audit log UI: 6 results",
+    "RBAC roles/scoping and audit log UI: 3 novel (3 filtered)",
+    "Navigation architecture and dashboard benchmarks: 6 results",
+    "Navigation architecture and dashboard benchmarks: 4 novel (2 filtered)",
+    "Fetched 22 sources → 108 claims → verifying top 25",
+    "\"Config-editing forms should not present multiple a…\": 3-0 ✓",
+    "\"Destructive actions (delete buttons) in an admin/c…\": 3-0 ✓",
+    "\"Autosave is best suited for simple, easily reversi…\": 3-0 ✓",
+    "\"Admin config actions (save config, delete, apply u…\": 3-0 ✓",
+    "\"Inline editing of grid cells (inline create/edit/d…\": 3-0 ✓",
+    "\"Admin permissions UI should be structured around r…\": 3-0 ✓",
+    "\"A user's access scope must be shown explicitly in …\": 3-0 ✓",
+    "\"Stripe Dashboard navigation labels are named after…\": 3-0 ✓",
+    "\"Color in the dashboard is reserved exclusively for…\": 3-0 ✓",
+    "\"Side/sidebar navigation is the recommended pattern…\": 3-0 ✓",
+    "\"Side navigation scales better than top navigation …\": 3-0 ✓",
+    "\"Sidebar navigation is the recommended primary-navi…\": 3-0 ✓",
+    "\"Enterprise admin products should combine both: a t…\": 3-0 ✓",
+    "\"Primary sidebar navigation items should be capped …\": 0-3 ✗",
+    "\"Whether settings save automatically or via an expl…\": 3-0 ✓",
+    "\"Use a side drawer (sliding panel) rather than a mo…\": 3-0 ✓",
+    "\"Small, frequent changes such as renaming an item, …\": 3-0 ✓",
+    "\"Toggles must apply changes instantly without a sav…\": 1-2 ✗",
+    "\"If a setting does not take effect immediately and …\": 3-0 ✓",
+    "\"For editing rows within data tables, multiple patt…\": 3-0 ✓",
+    "\"Data tables must always show total count/pages wit…\": 0-3 ✗",
+    "\"Inline editing should be reserved for single-field…\": 0-3 ✗",
+    "\"Inline editing directly in the data table removes …\": 0-3 ✗",
+    "\"For dense admin data tables, inline editing lets u…\": 3-0 ✓",
+    "\"A small, standardized role set (Owner, Admin, Memb…\": 2-1 ✓",
+    "Verify done: 25 claims → 20 confirmed, 5 killed"
+  ],
+  "result": {
+    "question": "Diseño (UX/UI) de un ADMIN PANEL profesional para un sistema de compliance tracking operativo multi-tienda, stack FastAPI + Postgres + vanilla JS (mismo design system oscuro que el dashboard: fondo #0a0a0f, acento naranja), mantenido por 1 desarrollador, usado por administradores no técnicos (gerentes de operaciones en México). El admin panel debe gobernar configuración VIVA en BD sin deploys. Entidades a administrar: (1) FORMULARIOS/políticas — activar/desactivar por zona (feature toggle por entidad), editar cadencia (diario/semanal/mensual/etc), día esperado, hora límite, días de gracia, tipo cumplimiento vs calificación, con bitácora de cambios; (2) USUARIOS Y ACCESOS — alta de usuarios con contraseña (sin self-signup), roles admin/director/viewer, scoping por zona Y por lista de sucursales (row-level), reset de contraseñas, bloqueo; (3) SUCURSALES — activar/pausar, marcar comisariato, serie de alistamiento; (4) REPORTES — destinatarios, cadencia, canal. Investigar mejores prácticas 2025-2026 de: (A) LAYOUT y navegación de admin panels densos en datos (sidebar vs topbar, secciones, breadcrumbs, cómo estructuran settings/admin productos como Stripe Dashboard, Linear, Retool, Supabase Studio, Django admin, shadcn/ui admin, Vercel/Railway dashboards); (B) EDICIÓN de configuración: inline-edit vs modal vs panel lateral (drawer), cuándo usar cada uno, edición en tablas (data grids), validación en vivo, guardado optimista vs explícito, feedback de guardado, cómo mostrar y editar un feature toggle por fila; (C) TABLAS DE DATOS admin: paginación, filtros, búsqueda, ordenamiento, acciones por fila, selección múltiple, densidad; (D) GESTIÓN DE USUARIOS Y PERMISOS: patrones de UI para asignar roles y scopes (checkboxes de zonas + selector de sucursales), invitar/dar de alta, mostrar quién ve qué; (E) AUDIT LOG / bitácora: cómo mostrar historial de cambios de config de forma legible (quién cambió qué y cuándo), diffs; (F) formularios de configuración complejos (un editor de política con muchos campos condicionales según frecuencia); (G) accesibilidad, responsive (¿el admin debe funcionar en móvil o es desktop-first?), y errores/estados vacíos/confirmaciones de acciones destructivas. Entregar: recomendación de arquitectura de navegación (mapa de secciones del admin), patrón de edición recomendado por tipo de entidad, wireframe verbal de cada pantalla del admin (Formularios, Usuarios, Sucursales, Reportes, Bitácora), componentes reutilizables necesarios en vanilla JS, y lista priorizada de qué construir primero.",
+    "summary": "For a data-dense compliance-tracking admin panel maintained by a solo developer and used by non-technical Mexican operations managers, the research converges on a clear architecture: a persistent left sidebar for primary navigation (Formularios, Usuarios, Sucursales, Reportes, Bitácora) named after the operator's jobs rather than the database schema, paired with a thin top bar for global context (search, account, save/activity feedback). The recommended editing pattern is entity-dependent: inline edit-in-place for small frequent changes (toggling a form on/off per zone, renaming, fixing a value), a side drawer for editing a full record while keeping the list visible (a policy/form config, a user's roles+scopes), and modals reserved for destructive confirmations. Feature toggles that take effect instantly can be true toggle switches; anything requiring review-before-commit (like a policy's cadence/day/hour that only applies on save) should be a checkbox/field set with an explicit prominent Save button and always-on save feedback (toast) plus an audit trail. Permissions UI should be role-centric (admin/director/viewer with plain-language descriptions) and must render each user's zone+branch scope explicitly (\"puede editar reportes en las sucursales asignadas\") rather than implying it from context. Destructive actions require confirmation, save buttons must be unambiguous (one clear primary verb, not Save/Apply/Update), and color must be reserved for status signals (green/red/yellow) with hierarchy carried by typography and whitespace, matching the existing dark #0a0a0f / orange design system.",
+    "findings": [
+      {
+        "claim": "Use a left sidebar for primary admin navigation and a thin top bar for global context (search, account, save/activity feedback); this hybrid is the standard for data-dense enterprise admin products.",
+        "confidence": "high",
+        "vote": "3-0 (merged across 5 claims)",
+        "sources": [
+          "https://uxdesign.cc/top-navigation-vs-side-navigation-wich-one-is-better-24aa5d835643",
+          "https://www.alfdesigngroup.com/post/improve-your-sidebar-design-for-web-apps",
+          "https://www.saasui.design/blog/saas-navigation-ux-patterns",
+          "https://www.nngroup.com/articles/vertical-nav/"
+        ],
+        "evidence": "Side navigation is the recommended pattern for complex applications, admin apps, and content-management products with hierarchy, while top nav suits shallow content sites. Side nav scales better, showing at least double the links above the fold (corroborated by NN/g on left-side vertical nav scalability). Mature/enterprise products combine both: a top bar for global context (search, account) plus a sidebar for primary navigation — the same pattern used by Stripe, Linear, Vercel, and Supabase Studio named in the question. For this admin the sidebar carries the 5 top-level sections; the top bar carries global search, the signed-in admin, and the save/activity feedback surface."
+      },
+      {
+        "claim": "Name admin navigation sections after the operator's jobs, not the data model, so non-technical managers understand them.",
+        "confidence": "high",
+        "vote": "3-0",
+        "sources": [
+          "https://www.925studios.co/blog/stripe-dashboard-design-breakdown",
+          "https://docs.stripe.com/disputes"
+        ],
+        "evidence": "Stripe labels nav items as jobs the user came to do ('Disputes' not 'Chargebacks and Refund Requests'), not categories of the data model — a pattern the verifier confirmed is live and applicable to naming admin sections for non-technical operators. For Spanish-speaking ops managers this means sections like 'Formularios/Políticas', 'Usuarios y accesos', 'Sucursales', 'Reportes', 'Bitácora' rather than table names. Caveat: Stripe itself renamed 'Payments' to 'Transactions' in May 2024, so the specific 'Payments not Transactions' example is dated, but the job-based-naming principle stands."
+      },
+      {
+        "claim": "Choose the editing surface by entity: inline edit-in-place for small frequent changes, a side drawer for editing a full record while keeping the list visible, and modals for destructive confirmations.",
+        "confidence": "high",
+        "vote": "3-0 (merged across 6 claims)",
+        "sources": [
+          "https://www.saasui.design/blog/saas-modal-dialog-ux-patterns",
+          "https://www.justinmind.com/ui-design/data-table",
+          "https://reui.io/blocks/data-grid/base",
+          "https://stephaniewalter.design/blog/essential-resources-design-complex-data-tables/"
+        ],
+        "evidence": "Inline edit-in-place is for small frequent changes (rename, toggle a status, fix a value) directly in the table to keep users in flow and preserve context of neighbouring rows. A side drawer (sliding panel) wins over a modal when the user edits a row but must keep the surrounding list/context visible — the standard for record-detail and quick-edit flows in mature admin panels (corroborated by Smashing Magazine, Microsoft Fluent 2, PatternFly). Multiple row-edit patterns are viable by context (inline, expandable rows, quick view, modal, drawer, row-to-details). Mapping for this admin: per-zone activation toggle and single-field edits = inline; the full policy editor (cadence, día esperado, hora límite, días de gracia, tipo) and the user roles+scopes editor = side drawer; delete/pause a sucursal or user = confirmation modal."
+      },
+      {
+        "claim": "Distinguish instant toggles from review-before-commit settings: use a true toggle switch only when the change applies immediately; use a checkbox/fields + prominent explicit Save button when the change needs confirmation, and always show save feedback.",
+        "confidence": "high",
+        "vote": "3-0 (merged across 5 claims; toggle-instant sub-claim was 1-2 refuted)",
+        "sources": [
+          "https://www.eleken.co/blog-posts/toggle-ux",
+          "https://www.nngroup.com/articles/toggle-switch-guidelines/",
+          "https://uxcel.com/lessons/saving-changes-390",
+          "https://www.toptal.com/designers/ux/settings-ux",
+          "https://gitlab.com/gitlab-org/gitlab-services/design.gitlab.com"
+        ],
+        "evidence": "NN/g and Eleken: if a setting does not take effect immediately and needs confirmation, a toggle is the wrong control — use a checkbox paired with a Save button. Autosave suits simple easily-reversible settings (toggles, checkboxes); explicit Save suits changes users must review before committing (GitLab Pajamas: automatic for imperative toggle controls, explicit for declarative controls). Whether autosave or explicit, users must always get feedback confirming the save, and a Save button must be prominent without requiring scroll. Application: 'form active in zone' can be an instant toggle; a policy's cadence/day/hour/grace-days edited in a drawer should use fields + one explicit Save with a confirmation toast. Note: the stronger blanket claim 'toggles must always apply instantly with no save' was refuted (1-2) as too absolute — the nuanced instant-vs-confirm distinction is what holds."
+      },
+      {
+        "claim": "Config actions require explicit save feedback (e.g. toasts) plus an audit trail/bitácora; lacking them is a UX defect, and critical/destructive actions warrant more persistent feedback than a transient toast.",
+        "confidence": "high",
+        "vote": "3-0 (merged 2 claims)",
+        "sources": [
+          "https://github.com/openclaw/openclaw/issues/38420",
+          "https://blog.logrocket.com/ux-design/toast-notifications/"
+        ],
+        "evidence": "Save config / delete / apply update actions with no feedback are flagged as a defect; a toast plus an activity log in the header is the recommended fix. Toasts confirm completed actions with instant assurance, but the verifier's qualification is important: destructive/critical actions (delete, apply update) warrant more persistent feedback (banners, confirmation dialogs, non-auto-dismissing alerts) rather than a fleeting toast. The system's required bitácora de cambios directly satisfies the audit-trail half of this finding and should be surfaced legibly (who changed what, when)."
+      },
+      {
+        "claim": "Structure permissions around a small standardized role set (admin/director/viewer) with plain-language descriptions rather than per-user permission matrices.",
+        "confidence": "high",
+        "vote": "3-0 / 2-1 (merged)",
+        "sources": [
+          "https://setting.page/user-permissions-settings-ux",
+          "https://www.saasui.design/blog/saas-permissions-roles-ux-patterns",
+          "https://www.osohq.com/post/rbac-best-practices"
+        ],
+        "evidence": "Roles are easier to understand, document, and maintain than long matrices of per-user rules; each role should show a plain-language description, a capability summary, and a list of sensitive actions it grants. A small standardized role set (the pattern's baseline is Owner/Admin/Member/Viewer) with plain-language descriptions is a proven baseline that reduces over-granting. This maps cleanly onto the required admin/director/viewer roles — describe each in situ ('Director — ve reportes de sus zonas asignadas, no puede editar políticas'). The 2-1 sub-vote reflects RBAC 'role explosion' critiques, but those target enterprise role bloat, not a fixed 3-role starter set, so they reinforce rather than refute the recommendation."
+      },
+      {
+        "claim": "Show each user's access scope explicitly in the UI (zone + branch list) rather than implying it from page context, breadcrumbs, or tooltips.",
+        "confidence": "high",
+        "vote": "3-0",
+        "sources": [
+          "https://setting.page/user-permissions-settings-ux",
+          "https://learn.microsoft.com/en-us/azure/role-based-access-control/best-practices"
+        ],
+        "evidence": "If scope is hidden behind a tooltip or implied by page context, administrators will miss it; the source uses the exact example 'Can edit reports in assigned workspaces' and states repeated context is a feature, not clutter (corroborated by Microsoft RBAC guidance and Oso that scope is where access-settings UIs commonly fail). For this admin's row-level scoping (por zona AND por lista de sucursales), the user editor must render a readable scope summary — e.g. checkboxes for zones plus an explicit multi-select branch list, and a plain-language line summarizing effective access — not leave it inferred."
+      },
+      {
+        "claim": "Destructive actions must trigger a confirmation dialog/popover rather than executing immediately, even when styled as prominent red buttons.",
+        "confidence": "high",
+        "vote": "3-0",
+        "sources": [
+          "https://github.com/openclaw/openclaw/issues/38420",
+          "https://www.nngroup.com/articles/confirmation-dialog/"
+        ],
+        "evidence": "Prominent red delete buttons with no confirmation are a defect; destructive/irreversible actions need a confirmation popover (NN/g heuristic #5, error prevention). Red styling alone is a warning cue, not a safeguard. For infrequent, hard-to-reverse admin actions (delete user, hard-delete a form/policy, pause a comisariato) confirmation is squarely recommended; an UNDO pattern is the accepted alternative only for frequent low-stakes actions."
+      },
+      {
+        "claim": "Use one unambiguous primary Save button (clear verb+object) rather than multiple near-identical Save/Apply/Update buttons; apply a primary/secondary/danger hierarchy with a single primary per group.",
+        "confidence": "high",
+        "vote": "3-0",
+        "sources": [
+          "https://github.com/openclaw/openclaw/issues/38420",
+          "https://primer.style/product/components/button/"
+        ],
+        "evidence": "Three nearly identical Save/Apply/Update buttons with no explanation confuse users; the fix is descriptive labels or tooltips and a clear button system. Design systems (GitHub Primer, Red Hat, UX Planet) prescribe verb+object labels ('Save changes', not 'Submit/OK/Apply'), one primary per group, and danger styling only for destructive actions. For the policy editor and user forms, use a single clear primary ('Guardar cambios') plus a secondary Cancel, and reserve red for the destructive action only."
+      },
+      {
+        "claim": "Reserve color exclusively for status signals (green=ok/succeeded, red=failed, yellow=pending); carry visual hierarchy through typography and whitespace, consistent with the dark #0a0a0f + orange design system.",
+        "confidence": "high",
+        "vote": "3-0",
+        "sources": [
+          "https://www.925studios.co/blog/stripe-dashboard-design-breakdown",
+          "https://www.uxpin.com/studio/blog/dashboard-design-principles/"
+        ],
+        "evidence": "Stripe reserves color for status signals (green/red/yellow); coloring every data point makes color lose meaning, so hierarchy is enforced through typography and whitespace, not color. Corroborated by 2025-2026 dashboard best practices (semantic status color, 1-2 colors + one accent, Tufte data-ink ratio). For this admin the orange accent should mark primary actions/active state only; compliance-status cells (cumple/atrasado/pendiente) use green/red/yellow, and the dense tables lean on type weight and whitespace for scanability rather than colored rows."
+      }
+    ],
+    "caveats": "Source quality is mixed and skews toward practitioner blogs and design-system docs rather than primary empirical research. The strongest-backed findings (sidebar vs top nav scalability, toggle-vs-checkbox confirmation semantics, explicit scope visibility, confirmation for destructive actions) are anchored by authoritative primary sources (Nielsen Norman Group, Microsoft RBAC, GitHub Primer, GitLab Pajamas), so confidence is high there. Several findings lean on a single self-audit GitHub issue (openclaw/openclaw#38420) as the primary citation — these are mundane, well-established UX principles independently corroborated by design systems, so the weak primary source is offset, but they are not empirically measured. Two minor time-sensitivity notes: Stripe renamed 'Payments' to 'Transactions' in May 2024, so that specific example of job-based naming is dated (the principle holds via 'Disputes not Chargebacks'); and the blanket 'toggles always apply instantly' claim was explicitly refuted as too absolute — treat the instant-vs-confirm distinction as the correct nuance. Refuted claims worth flagging: the '5-7 sidebar items max' cap failed (0-3), so do not artificially limit sections; 'always show total count/pages' and keyset-vs-offset paging failed (0-3), so pagination strategy is left open; and 'inline editing only for single-field' failed (0-3), so multi-field inline is not forbidden but drawer is still preferred for complex forms. Finally, the research did not surface strong evidence on the mobile-vs-desktop question for the admin specifically — the sidebar/enterprise consensus implies desktop-first, but this was not directly verified.",
+    "openQuestions": [
+      "Should this admin panel be desktop-first only, or must it function on mobile for ops managers in the field? The sidebar/enterprise-admin consensus implies desktop-first, but no source directly settled responsive requirements for a governance/config admin used by non-technical managers.",
+      "What pagination and data-loading strategy fits these tables? The claims recommending 'always show total count' and keyset-over-offset paging were refuted (0-3), leaving the choice (offset vs keyset, show-total vs infinite scroll, server vs client paging in vanilla JS) unresolved for the expected data volumes (branches, users, forms).",
+      "How should the audit log / bitácora present config diffs specifically — full before/after field diffs, a human-readable summary line, or both? Sources confirm an audit trail is required and should be legible (who/what/when), but did not settle the diff-presentation format for many-field policy edits with conditional fields.",
+      "How should the conditional policy editor reveal fields that depend on frequency (e.g. 'día esperado' only for weekly, different rules for monthly)? Findings support drawer-based multi-field editing but did not provide a specific pattern for progressive disclosure of frequency-conditional fields in a config form."
+    ],
+    "refuted": [
+      {
+        "claim": "Primary sidebar navigation items should be capped at five to seven; needing more indicates an information-architecture problem.",
+        "vote": "0-3",
+        "source": "https://www.alfdesigngroup.com/post/improve-your-sidebar-design-for-web-apps"
+      },
+      {
+        "claim": "Toggles must apply changes instantly without a save button or extra confirmation; they are only appropriate for instant, reversible actions.",
+        "vote": "1-2",
+        "source": "https://www.eleken.co/blog-posts/toggle-ux"
+      },
+      {
+        "claim": "Data tables must always show total count/pages with pagination, and keyset paging outperforms offset for large datasets.",
+        "vote": "0-3",
+        "source": "https://www.setproduct.com/blog/data-table-ui-design"
+      },
+      {
+        "claim": "Inline editing should be reserved for single-field changes only; multi-field edits require a modal or side-panel to accommodate validation and error messaging.",
+        "vote": "0-3",
+        "source": "https://www.setproduct.com/blog/data-table-ui-design"
+      },
+      {
+        "claim": "Inline editing directly in the data table removes the need to navigate to separate forms or modals, speeding up config edits.",
+        "vote": "0-3",
+        "source": "https://uxplanet.org/best-practices-for-usable-and-efficient-data-table-in-applications-4a1d1fb29550"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.925studios.co/blog/stripe-dashboard-design-breakdown",
+        "quality": "blog",
+        "angle": "Navigation architecture and dashboard benchmarks",
+        "claimCount": 5
+      },
+      {
+        "url": "https://uxdesign.cc/top-navigation-vs-side-navigation-wich-one-is-better-24aa5d835643",
+        "quality": "blog",
+        "angle": "Navigation architecture and dashboard benchmarks",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.alfdesigngroup.com/post/improve-your-sidebar-design-for-web-apps",
+        "quality": "blog",
+        "angle": "Navigation architecture and dashboard benchmarks",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.toptal.com/designers/ux/settings-ux",
+        "quality": "blog",
+        "angle": "Navigation architecture and dashboard benchmarks",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.saasui.design/blog/saas-modal-dialog-ux-patterns",
+        "quality": "blog",
+        "angle": "Edit patterns: inline vs modal vs drawer and row toggles",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.eleken.co/blog-posts/toggle-ux",
+        "quality": "blog",
+        "angle": "Edit patterns: inline vs modal vs drawer and row toggles",
+        "claimCount": 5
+      },
+      {
+        "url": "https://uxcel.com/lessons/saving-changes-390",
+        "quality": "secondary",
+        "angle": "Edit patterns: inline vs modal vs drawer and row toggles",
+        "claimCount": 5
+      },
+      {
+        "url": "https://stephaniewalter.design/blog/essential-resources-design-complex-data-tables/",
+        "quality": "blog",
+        "angle": "Dense admin data tables",
+        "claimCount": 5
+      },
+      {
+        "url": "https://reui.io/blocks/data-grid/base",
+        "quality": "secondary",
+        "angle": "Dense admin data tables",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.setproduct.com/blog/data-table-ui-design",
+        "quality": "blog",
+        "angle": "Dense admin data tables",
+        "claimCount": 5
+      },
+      {
+        "url": "https://uxplanet.org/best-practices-for-usable-and-efficient-data-table-in-applications-4a1d1fb29550",
+        "quality": "blog",
+        "angle": "Dense admin data tables",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.justinmind.com/ui-design/data-table",
+        "quality": "blog",
+        "angle": "Dense admin data tables",
+        "claimCount": 5
+      },
+      {
+        "url": "https://medium.com/uxdworld/data-table-design-best-practices-ca8b10c2c42d",
+        "quality": "blog",
+        "angle": "Dense admin data tables",
+        "claimCount": 3
+      },
+      {
+        "url": "https://www.saasui.design/blog/saas-permissions-roles-ux-patterns",
+        "quality": "blog",
+        "angle": "RBAC roles/scoping and audit log UI",
+        "claimCount": 5
+      },
+      {
+        "url": "https://setting.page/user-permissions-settings-ux",
+        "quality": "secondary",
+        "angle": "RBAC roles/scoping and audit log UI",
+        "claimCount": 5
+      },
+      {
+        "url": "https://workos.com/blog/how-to-design-multi-tenant-rbac-saas",
+        "quality": "blog",
+        "angle": "RBAC roles/scoping and audit log UI",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.saasui.design/blog/saas-destructive-actions-confirmation-ux-patterns",
+        "quality": "blog",
+        "angle": "Conditional config forms and destructive actions",
+        "claimCount": 5
+      },
+      {
+        "url": "https://uxpsychology.substack.com/p/how-to-design-better-destructive",
+        "quality": "blog",
+        "angle": "Conditional config forms and destructive actions",
+        "claimCount": 5
+      },
+      {
+        "url": "https://lollypop.design/blog/2025/may/progressive-disclosure/",
+        "quality": "blog",
+        "angle": "Conditional config forms and destructive actions",
+        "claimCount": 5
+      },
+      {
+        "url": "https://github.com/openclaw/openclaw/issues/38420",
+        "quality": "primary",
+        "angle": "Conditional config forms and destructive actions",
+        "claimCount": 5
+      },
+      {
+        "url": "https://www.veeform.com/blog/form-accessibility/",
+        "quality": "blog",
+        "angle": "Conditional config forms and destructive actions",
+        "claimCount": 5
+      },
+      {
+        "url": "https://uxplanet.org/confirmation-dialogs-how-to-design-dialogues-without-irritation-7b4cf2599956",
+        "quality": "blog",
+        "angle": "Conditional config forms and destructive actions",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sourcesFetched": 22,
+      "claimsExtracted": 108,
+      "claimsVerified": 25,
+      "confirmed": 20,
+      "killed": 5,
+      "afterSynthesis": 10,
+      "urlDupes": 1,
+      "budgetDropped": 7,
+      "agentCalls": 104
+    }
+  }
+}
