@@ -1,0 +1,9 @@
+.venv*/
+backups/
+fotos_proteccion_civil/
+*.pdf
+static/dist/
+api Zenput/
+etl_plog/discovery/data/
+*.log
+__pycache__/
