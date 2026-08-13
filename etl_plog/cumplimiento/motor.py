@@ -20,6 +20,8 @@ import logging
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
+from psycopg.types.json import Jsonb
+
 from etl_plog.shared.db import conn
 from etl_plog.sync.raw_sync import FAMILIAS_SIN_LOCATION
 
@@ -86,12 +88,17 @@ def _ventanas(frecuencia: str, desde: date, hasta: date, params: dict):
     # por_visita / quincenal sin política: no genera expectativa
 
 
-def _estado(fin: date, hora_limite, dia_sig: bool, gracia: int,
-            sub_ts: datetime | None, ahora: datetime) -> str:
+def _limites(fin: date, hora_limite, dia_sig: bool, gracia: int) -> tuple[datetime, datetime]:
+    """-> (limite, limite_gracia). limite = deadline; +gracia = cuándo se cierra la ventana."""
     limite_dia = fin + timedelta(days=1) if dia_sig else fin
     hora = hora_limite or time(23, 59, 59)
     limite = datetime.combine(limite_dia, hora, tzinfo=TZ_MTY)
-    limite_gracia = limite + timedelta(days=gracia)
+    return limite, limite + timedelta(days=gracia)
+
+
+def _estado(fin: date, hora_limite, dia_sig: bool, gracia: int,
+            sub_ts: datetime | None, ahora: datetime) -> str:
+    limite, limite_gracia = _limites(fin, hora_limite, dia_sig, gracia)
     if sub_ts is not None:
         return "on_time" if sub_ts <= limite else "late"
     if ahora <= limite_gracia:
@@ -116,6 +123,14 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                FROM raw_submissions
                WHERE fecha_local BETWEEN %s AND %s AND familia IS NOT NULL
                GROUP BY 1, 2, 3, 4""", (desde, hasta)))
+        # ventanas YA congeladas: no se recalculan ni se sobrescriben (histórico inmutable)
+        frozen = {(r["familia"], r["location_id"], r["periodo_inicio"]) for r in c.execute(
+            """SELECT familia, location_id, periodo_inicio FROM cumplimiento
+               WHERE congelado AND periodo_inicio BETWEEN %s AND %s""", (desde, hasta))}
+
+    def _snap(hora_limite, gracia, frecuencia, dia_sig):
+        return {"hora_limite": str(hora_limite) if hora_limite else None,
+                "dias_gracia": gracia, "frecuencia": frecuencia, "dia_siguiente": dia_sig}
 
     # índices: (familia, loc) -> [(fecha, ft, ts)]
     por_fam_loc: dict[tuple, list] = {}
@@ -162,15 +177,20 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                 d = desde
                 while d <= hasta:
                     fin = d
+                    if ("alistamiento_diario", suc["location_id"], d) in frozen:
+                        d += timedelta(days=1); continue  # congelada: no tocar
                     hechas = alist_por_loc_dia.get((suc["location_id"], d), [])
                     if requerida:
                         hechas = [h for h in hechas if h[1] == requerida]
                     hechas.sort(key=lambda x: x[2] or datetime.max.replace(tzinfo=TZ_MTY))
                     ft_ok, serie_ok, sub_ts = (hechas[0] if hechas else (None, None, None))
                     est = _estado(fin, row["hora_limite"], dia_sig, row["dias_gracia"], sub_ts, ahora)
+                    _, lim_gracia = _limites(fin, row["hora_limite"], dia_sig, row["dias_gracia"])
+                    cerrado = ahora > lim_gracia
+                    snap = Jsonb(_snap(row["hora_limite"], row["dias_gracia"], "diario", dia_sig)) if cerrado else None
                     contadores[est] += 1
                     filas.append(("alistamiento_diario", row["zona"], suc["location_id"],
-                                  d, fin, est, None, sub_ts, serie_ok, ft_ok))
+                                  d, fin, est, None, sub_ts, serie_ok, ft_ok, cerrado, snap))
                     d += timedelta(days=1)
                 continue
 
@@ -178,6 +198,8 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
             for ini, fin, ft in _ventanas(row["frecuencia"], desde, hasta, params):
                 if fin < desde or ini > hasta:
                     continue
+                if (row["familia"], suc["location_id"], ini) in frozen:
+                    continue  # congelada: no tocar
                 candidatas = [(f, t, tpl) for f, tpl, t in hist
                               if ini <= f <= fin + timedelta(days=row["dias_gracia"])
                               and (ft is None or tpl == ft)]
@@ -185,23 +207,31 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                 ft_ok = candidatas[0][2] if candidatas else None
                 est = _estado(fin, row["hora_limite"], dia_sig,
                               row["dias_gracia"], sub_ts, ahora)
+                _, lim_gracia = _limites(fin, row["hora_limite"], dia_sig, row["dias_gracia"])
+                cerrado = ahora > lim_gracia
+                snap = Jsonb(_snap(row["hora_limite"], row["dias_gracia"], row["frecuencia"], dia_sig)) if cerrado else None
                 contadores[est] += 1
                 filas.append((row["familia"], row["zona"], suc["location_id"],
-                              ini, fin, est, None, sub_ts, None, ft_ok))
+                              ini, fin, est, None, sub_ts, None, ft_ok, cerrado, snap))
 
     with conn() as c:
         cur = c.cursor()
-        cur.execute("DELETE FROM cumplimiento WHERE periodo_inicio >= %s AND periodo_fin <= %s",
+        # borrar SOLO ventanas NO congeladas en el rango (las congeladas son inmutables)
+        cur.execute("""DELETE FROM cumplimiento
+                       WHERE periodo_inicio BETWEEN %s AND %s AND NOT congelado""",
                     (desde, hasta))
         cur.executemany(
             """INSERT INTO cumplimiento
                  (familia, zona, location_id, periodo_inicio, periodo_fin,
-                  estado, submission_id, ts_submission, serie_contestada, form_template_id)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                  estado, submission_id, ts_submission, serie_contestada, form_template_id,
+                  congelado, politica_snapshot)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                ON CONFLICT (familia, location_id, periodo_inicio) DO UPDATE
                  SET estado=EXCLUDED.estado, ts_submission=EXCLUDED.ts_submission,
                      periodo_fin=EXCLUDED.periodo_fin, serie_contestada=EXCLUDED.serie_contestada,
-                     form_template_id=EXCLUDED.form_template_id, computed_at=now()""",
+                     form_template_id=EXCLUDED.form_template_id, congelado=EXCLUDED.congelado,
+                     politica_snapshot=EXCLUDED.politica_snapshot, computed_at=now()
+                 WHERE NOT cumplimiento.congelado""",
             filas)
     return contadores
 
