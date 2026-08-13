@@ -1,0 +1,207 @@
+{
+  "summary": "Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.",
+  "agentCount": 97,
+  "logs": [
+    "Q: Capacidades completas de la API de Zenput (ahora \"Crunchtime Ops Execution\") — v…",
+    "Decomposed into 5 angles: official/historical docs, underused v3 endpoints, webhooks vs polling, rate limits / pagination / bulk, practitioner / community discovery",
+    "official/historical docs: 6 results",
+    "webhooks vs polling: 6 results",
+    "webhooks vs polling: 4 novel (2 filtered)",
+    "practitioner / community discovery: 6 results",
+    "practitioner / community discovery: 1 novel (5 filtered)",
+    "underused v3 endpoints: 6 results",
+    "underused v3 endpoints: 2 novel (4 filtered)",
+    "rate limits / pagination / bulk: 6 results",
+    "rate limits / pagination / bulk: 2 novel (4 filtered)",
+    "Fetched 15 sources → 67 claims → verifying top 25",
+    "\"Zenput API authenticates via an X-API-TOKEN HTTP h…\": 3-0 ✓",
+    "\"The Zenput v1 API base is https://www.zenput.com/a…\": 3-0 ✓",
+    "\"Zenput's Forms API documents four form endpoints: …\": 3-0 ✓",
+    "\"This Forms Endpoints documentation does not docume…\": 1-2 ✗",
+    "\"The v3 List Submissions endpoint lives at https://…\": 2-1 ✓",
+    "\"The current v3 Submissions endpoint can be queried…\": 3-0 ✓",
+    "\"In Zenput's API, 'activities' are face-to-face cho…\": 3-0 ✓",
+    "\"Zenput provides a v3 Large Batch submissions endpo…\": 3-0 ✓",
+    "\"The Zenput developer documentation (as of the June…\": 0-3 ✗",
+    "\"In September 2025, Crunchtime/Zenput released thre…\": 3-0 ✓",
+    "\"The Large Batch submissions endpoint is POST /v3/s…\": 3-0 ✓",
+    "\"The Large Batch endpoint uses token-based cursor p…\": 3-0 ✓",
+    "\"Zenput API v3 exposes full CRUD hierarchy endpoint…\": 3-0 ✓",
+    "\"Zenput/Crunchtime Ops Execution offers a native 'T…\": 3-0 ✓",
+    "\"Ops Execution (formerly Zenput) notifications are …\": 2-1 ✓",
+    "\"Triggers are configured through the Reports and Fo…\": 3-0 ✓",
+    "\"Zenput's Tasks API is served under the v3 API name…\": 0-3 ✗",
+    "\"The Zenput v3 List Submissions endpoint (GET /v3/s…\": 3-0 ✓",
+    "\"The Tasks endpoint documentation contains no menti…\": 3-0 ✓",
+    "\"Zenput v3 pagination returns full navigation URLs …\": 3-0 ✓",
+    "\"Zenput's storage/media retrieval uses a v2 API end…\": 3-0 ✓",
+    "\"The storage endpoint retrieves only one file URL a…\": 3-0 ✓",
+    "\"The legacy Zenput v1 endpoint /api/v1/forms/list_t…\": 3-0 ✓",
+    "\"The v1 list_templates response uses a distinct str…\": 3-0 ✓",
+    "\"Each v1 template object exposes rich metadata fiel…\": 3-0 ✓",
+    "Verify done: 25 claims → 22 confirmed, 3 killed"
+  ],
+  "result": {
+    "question": "Capacidades completas de la API de Zenput (ahora \"Crunchtime Ops Execution\") — versiones v1, v2 y v3 — para un integrador que ya usa v3 (submissions, locations, teams, forms, activities) y quiere descubrir endpoints ADICIONALES útiles que no está usando. Contexto verificado empíricamente 2026-08: la base v3 https://www.zenput.com/api/v3/ funciona (estructura meta/data, auth header X-API-TOKEN); la mayoría de v1 /api/v1/ da 404 PERO el endpoint /api/v1/forms/list_templates/ SÍ responde 200 (estructura distinta success/status/results, con metadata rica: category_id/category_name, creator_full_name, permission_id, is_shared_form, num_submissions, date_last_submitted, is_secure). Investigar: (1) ¿Qué endpoints ofrecían oficialmente v1 y v2 de Zenput y cuáles siguen VIVOS en 2025-2026? Documentación histórica de developer.zenput.com / developer.crunchtime.com, y cualquier endpoint v1/v2 que aún funcione (ej. forms/list_templates, forms/list, scores, reports); estructura de respuesta y auth de v1 (X-API-TOKEN). (2) Capacidades de v3 que un integrador típicamente NO usa pero existen: endpoints de SCORES/calificaciones agregadas, REPORTS, form field definitions/schema (la estructura completa de un formulario con sus campos y secciones sin bajar submissions), CATEGORIES de formularios, projects/tasks/activities detallados, users con roles y teams, audit trail, media/photos, y cualquier endpoint de EXPORT masivo o Large Batch. (3) ¿Zenput/Crunchtime tiene WEBHOOKS o notificaciones push por API (para evitar polling) — documentados oficialmente o en la práctica? (4) Rate limits documentados, paginación (offset cap, cursores next_token, Large Batch para >10k). (5) Diferencias prácticas v1 vs v3: ¿v1 trae datos o campos que v3 no expone (ej. metadata de plantillas, scores pre-agregados, categorías)? y viceversa. Entregar: tabla de endpoints por versión (v1/v2/v3) con estado (vivo/muerto), qué datos/campos únicos ofrece cada uno, cuáles serían ÚTILES para un sistema de compliance tracking (scores agregados, categorías, field schemas, webhooks), y recomendaciones concretas de qué endpoints adicionales adoptar. Fuentes: developer.zenput.com, developer.crunchtime.com, support.crunchtime.com, foros/GitHub de integraciones Zenput, Postman collections públicas.",
+    "summary": "Zenput (Crunchtime Ops Execution) API is request-response, X-API-TOKEN auth, no native webhooks (polling only). A v3 integrator should adopt Large Batch (over-10k export), v1 forms/list_templates (still live, rich template metadata v3 lacks), v3 hierarchy CRUD, Calendar Events, and media v2 storage. No API scores/reports endpoints; use UI Triggers plus polling.",
+    "findings": [
+      {
+        "claim": "ADOPT Large Batch POST /api/v3/submissions/batch/: beyond the 10,000-record limit, 2500 per call, next_token cursor via GET. Standard v3 List Submissions paginates offset/limit (max 100, default 20) with full next/previous URLs, so >10k needs Large Batch.",
+        "confidence": "high",
+        "sources": [
+          "https://developer.zenput.com/reference/retrieve-submissions-large-batch",
+          "https://developer.zenput.com/reference/get-activity-submissions-ref"
+        ],
+        "evidence": "Verbatim beyond the 10,000 record limit, 2500 at a time; reference max 100 default 20. 3-0."
+      },
+      {
+        "claim": "ADOPT still-live v1 forms/list_templates (/api/v1/forms/list_templates/, results+status+success+count) exposing template metadata absent from v3 submissions: num_submissions, date_last_submitted, permission_id, creator_full_name, category. Also v3 hierarchy CRUD (User Roles, Users, Teams, Locations; DELETE=deactivate), Calendar Events (~2025 operating hours), and media v2 GET /api/v2/users/current/storage/?path= (24h URL, one per call).",
+        "confidence": "high",
+        "sources": [
+          "https://developer.zenput.com/v1.05/docs/forms-templates",
+          "https://developer.zenput.com/docs/hierarchy-tutorial",
+          "https://developer.zenput.com/docs/storage-endpoints-docs"
+        ],
+        "evidence": "list_templates empirically 200 in 2026-08 while rest of v1 is 404; storage live per docs (not verified 200). 3-0."
+      },
+      {
+        "claim": "NO native webhooks/push (per-device email/SMS/push only, llms.txt lists none, events need polling); substitute is UI Triggers (auto tasks/alerts on submission criteria, Reports/Forms tabs). Legacy v1 List Form Submissions dead since 2022-02-16; Forms API has four endpoints, no standalone field-schema/categories (schema from Retrieve Form Template). No API scores/reports endpoints; exact /api/v3/tasks path unconfirmed (refuted).",
+        "confidence": "high",
+        "sources": [
+          "https://developer.zenput.com/llms.txt",
+          "https://support.crunchtime.com/hc/en-us/articles/15644411257875-Tasks-Trigger-Automated-Alerts",
+          "https://developer.zenput.com/docs/forms-endpoints-docs"
+        ],
+        "evidence": "llms.txt no webhooks; Triggers doc verbatim; legacy disabled 2022-02-16; four form GET endpoints. 3-0."
+      }
+    ],
+    "caveats": "Live status for v1/v2 is from docs; only v1 forms/list_templates was empirically 200 in 2026-08. Storage v2 unverified (test before relying; other documented v1 endpoints 404). No API scores/reports endpoints (UI features); derive scores from submission fields or the PORCENTAJE formula field. Calendar Events month (~Sep 2025) and exact Tasks v3 path unconfirmed. No numeric rate limits documented; only throttle is the pagination cap (max 100, ~10k). support.crunchtime.com WebFetch returns 403; corroborated via cached snippets of official URLs.",
+    "openQuestions": [
+      "Does storage v2 return 200 in the integrator's account or share the 404 of other v1 endpoints? Test with a real token.",
+      "Exact paths of Tasks, Sensors, FBC Assignments? /api/v3/tasks was refuted.",
+      "Observable rate limits (429, Retry-After) at production volume?",
+      "Are Calendar Events available in the integrator's plan and under which v3 path?"
+    ],
+    "refuted": [
+      {
+        "claim": "This Forms Endpoints documentation does not document categories, scores, form schema-only endpoints, batch/export operations, rate limits, pagination, webhooks, or the rich template-metadata fields (is_shared_form, num_submissions, date_last_submitted) found in the v1 list_templates endpoint.",
+        "vote": "1-2",
+        "source": "https://developer.zenput.com/docs/forms-endpoints-docs"
+      },
+      {
+        "claim": "The Zenput developer documentation (as of the June 2025 update) does not explicitly list endpoint paths for scores, reports, webhooks, or media management — indicating these capabilities are either absent or undocumented in the public developer docs.",
+        "vote": "0-3",
+        "source": "https://developer.zenput.com/docs/activities-endpoints-docs"
+      },
+      {
+        "claim": "Zenput's Tasks API is served under the v3 API namespace with four documented operations: List (GET /api/v3/tasks), Retrieve (GET /api/v3/tasks/{id}), Create (POST /api/v3/tasks), and Update (PATCH /api/v3/tasks/{id}).",
+        "vote": "0-3",
+        "source": "https://developer.zenput.com/docs/tasks-endpoints-docs"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://developer.zenput.com/docs/introduction",
+        "quality": "primary",
+        "angle": "official/historical docs",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/docs/forms-endpoints-docs",
+        "quality": "primary",
+        "angle": "official/historical docs",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/docs/submissions-tutorial",
+        "quality": "primary",
+        "angle": "official/historical docs",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/docs/activities-endpoints-docs",
+        "quality": "primary",
+        "angle": "official/historical docs",
+        "claimCount": 5
+      },
+      {
+        "url": "https://supergood.ai/docs/crunchtime-api",
+        "quality": "unreliable",
+        "angle": "official/historical docs",
+        "claimCount": 1
+      },
+      {
+        "url": "https://support.crunchtime.com/hc/en-us/articles/25862051470483-What-s-New-in-Operations-Execution",
+        "quality": "primary",
+        "angle": "official/historical docs",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/reference/retrieve-submissions-large-batch",
+        "quality": "primary",
+        "angle": "underused v3 endpoints",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/docs/hierarchy-tutorial",
+        "quality": "primary",
+        "angle": "underused v3 endpoints",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.crunchtime.com/hc/en-us/articles/15644357502739-FAQ-Zenput-Notifications",
+        "quality": "primary",
+        "angle": "webhooks vs polling",
+        "claimCount": 5
+      },
+      {
+        "url": "https://support.crunchtime.com/hc/en-us/articles/15644411257875-Tasks-Trigger-Automated-Alerts",
+        "quality": "primary",
+        "angle": "webhooks vs polling",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/docs/tasks-endpoints-docs",
+        "quality": "primary",
+        "angle": "webhooks vs polling",
+        "claimCount": 5
+      },
+      {
+        "url": "https://apiway.ai/apps/zenput/integrations/webhooks",
+        "quality": "unreliable",
+        "angle": "webhooks vs polling",
+        "claimCount": 1
+      },
+      {
+        "url": "https://developer.zenput.com/reference/get-activity-submissions-ref",
+        "quality": "primary",
+        "angle": "rate limits / pagination / bulk",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/docs/storage-endpoints-docs",
+        "quality": "primary",
+        "angle": "rate limits / pagination / bulk",
+        "claimCount": 5
+      },
+      {
+        "url": "https://developer.zenput.com/v1.05/docs/forms-templates",
+        "quality": "primary",
+        "angle": "practitioner / community discovery",
+        "claimCount": 5
+      }
+    ],
+    "stats": {
+      "angles": 5,
+      "sourcesFetched": 15,
+      "claimsExtracted": 67,
+      "claimsVerified": 25,
+      "confirmed": 22,
+      "killed": 3,
+      "afterSynthesis": 3,
+      "urlDupes": 14,
+      "budgetDropped": 1,
+      "agentCalls": 97
+    }
+  }
+}
