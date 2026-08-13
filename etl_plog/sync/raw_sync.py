@@ -51,10 +51,17 @@ def _ts(v: int | float | str | None) -> datetime | None:
 
 
 def sync_form(client: ZenputClient, ft: int, desde: datetime,
-              plog_locs: dict[int, str], fam: str) -> tuple[int, int]:
-    """-> (ingeridas_plog, vistas_total)"""
+              plog_locs: dict[int, str], fam: str,
+              corte: datetime | None = None) -> tuple[int, int]:
+    """-> (ingeridas_plog, vistas_total).
+
+    corte: si se da, corta la paginación al topar submissions más viejas que `corte`.
+    El API devuelve NEWEST-first → una vez que vemos ts < corte, el resto es aún más
+    viejo (ya lo tenemos) → paramos. Optimiza el sync incremental (no re-escanea 45k).
+    """
     vistas = ingeridas = 0
     max_ts: datetime | None = None
+    viejas_seguidas = 0
     batch: list[tuple] = []
     for s in client.submissions(ft, start=desde):
         vistas += 1
@@ -62,6 +69,12 @@ def sync_form(client: ZenputClient, ft: int, desde: datetime,
         ts = _ts(meta.get("date_created") or meta.get("date_submitted"))
         if ts and (max_ts is None or ts > max_ts):
             max_ts = ts
+        if corte and ts and ts < corte:
+            viejas_seguidas += 1
+            if viejas_seguidas >= 20:  # buffer anti-jitter de orden; luego todo es viejo
+                break
+            continue
+        viejas_seguidas = 0
         loc = (meta.get("location") or {}).get("id")
         creador = (meta.get("created_by") or {}).get("display_name")
         if loc is None and fam in FAMILIAS_SIN_LOCATION:
@@ -118,13 +131,15 @@ def run(desde_arg: str | None = None) -> dict[str, int]:
     tot_ing = tot_vis = 0
     try:
         for ft in catalogo.todos_los_fts():
+            corte = None
             if desde_arg:
                 desde = datetime.fromisoformat(desde_arg).replace(tzinfo=timezone.utc)
             elif estado.get(ft):
                 desde = estado[ft] - SOLAPE
+                corte = desde  # incremental: cortar paginación al topar lo ya conocido
             else:
                 desde = datetime.now(timezone.utc) - timedelta(days=90)
-            ing, vis = sync_form(client, ft, desde, plog_locs, fam_de[ft])
+            ing, vis = sync_form(client, ft, desde, plog_locs, fam_de[ft], corte)
             tot_ing += ing
             tot_vis += vis
             log.info("ft %s (%s): %s PLOG / %s vistas desde %s",
