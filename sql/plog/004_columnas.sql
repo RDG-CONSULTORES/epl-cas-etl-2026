@@ -1,0 +1,11 @@
+SET search_path TO plog, public;
+ALTER TABLE sucursales ADD COLUMN IF NOT EXISTS serie_alistamiento TEXT;
+ALTER TABLE sucursales ADD COLUMN IF NOT EXISTS serie_requerida TEXT;
+ALTER TABLE config_formularios ADD COLUMN IF NOT EXISTS origen TEXT;
+ALTER TABLE config_formularios ADD COLUMN IF NOT EXISTS caso_uso TEXT;
+ALTER TABLE config_formularios ADD COLUMN IF NOT EXISTS quien_llena TEXT;
+ALTER TABLE cumplimiento ADD COLUMN IF NOT EXISTS serie_contestada TEXT;
+ALTER TABLE cumplimiento ADD COLUMN IF NOT EXISTS form_template_id BIGINT;
+ALTER TABLE cumplimiento ADD COLUMN IF NOT EXISTS congelado BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE cumplimiento ADD COLUMN IF NOT EXISTS politica_snapshot JSONB;
+ALTER TABLE calificaciones ADD COLUMN IF NOT EXISTS score_raw NUMERIC(6,2);
