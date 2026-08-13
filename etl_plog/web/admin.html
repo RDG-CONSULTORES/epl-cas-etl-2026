@@ -8,7 +8,7 @@
 <style>
   :root{
     --bg:#0a0a0f; --bg-2:#14141b; --card:#1e1e27; --card-2:#26262f; --line:#2c2c38;
-    --ink:#f4f4f7; --ink-2:#a4a4b4; --ink-3:#6d6d7e;
+    --ink:#f4f4f7; --ink-2:#a4a4b4; --ink-3:#8a8a9c;
     --accent:#ff6b35; --accent-2:#ff8c5a;
     --ok:#34d399; --ok-dim:#0f3d31; --late:#fbbf24; --miss:#f0526a; --miss-dim:#3d1620;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -92,6 +92,9 @@
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   #toast.ok{border-color:var(--ok)} #toast.err{border-color:var(--miss)}
   .loading{color:var(--ink-3);padding:30px;text-align:center}
+  .empty{color:var(--ink-3);padding:36px 20px;text-align:center;font-size:13.5px}
+  .empty b{display:block;color:var(--ink-2);font-size:15px;margin-bottom:5px}
+  @media(max-width:900px){#shell{grid-template-columns:1fr}aside{position:static;height:auto}main{overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -131,6 +134,11 @@ const put=(p,body)=>api(p,{method:'PUT',headers:{'Content-Type':'application/jso
 const post=(p,body)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 const ZN={nuevo_leon:'Nuevo León',laguna:'Laguna',queretaro:'Querétaro'};
 const FREQ=['diario','diario_por_dia','semanal','quincenal','semana_del_mes','mensual','bimestral','trimestral','semestral','anual','por_visita'];
+// M4: diccionario de presentación (jerga técnica → español natural)
+const FREQ_TXT={diario:'Diario',diario_por_dia:'Diario (según día de la semana)',semanal:'Semanal',quincenal:'Quincenal',semana_del_mes:'Por semana del mes',mensual:'Mensual',bimestral:'Bimestral',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',por_visita:'Por visita'};
+const MED_TXT={cumplimiento:'Cumplimiento',calificacion:'Calificación',ambos:'Cumplimiento y calificación'};
+const cap=s=>(s||'').charAt(0).toUpperCase()+(s||'').slice(1);
+const ftxt=f=>FREQ_TXT[f]||f;
 let ME=null, DATA={};
 
 function toast(msg,cls='ok'){const t=$('#toast');t.textContent=msg;t.className='on '+cls;setTimeout(()=>t.className=cls,2200);}
@@ -179,8 +187,8 @@ function filtForms(){
   const ob={exclusivo:['PLOG','b-plog'],'exclusivo*':['PLOG','b-plog'],compartido:['CAS','b-cas'],comisariato:['Comis.','b-com']};
   $('#fbody').innerHTML=rows.map(f=>{const o=ob[f.origen]||['—','b-view'];return `
     <tr><td><b>${f.nombre}</b></td><td>${ZN[f.zona]||f.zona}</td>
-      <td><span class="badge ${o[1]}">${o[0]}</span></td><td class="muted">${f.medicion}</td>
-      <td class="muted">${f.frecuencia}</td><td class="num muted">${f.hora_limite||'—'}</td>
+      <td><span class="badge ${o[1]}">${o[0]}</span></td><td class="muted">${MED_TXT[f.medicion]||f.medicion}</td>
+      <td class="muted">${ftxt(f.frecuencia)}</td><td class="num muted">${f.hora_limite||'—'}</td>
       <td><label class="sw"><input type="checkbox" ${f.activo?'checked':''} onchange="toggleForm('${f.familia}','${f.zona}',this.checked)"><span></span></label></td>
       <td><button class="rowbtn" onclick="editForm('${f.familia}','${f.zona}')">Editar</button></td></tr>`}).join('')
     ||'<tr><td colspan="8" class="loading">Sin resultados.</td></tr>';
@@ -195,7 +203,7 @@ function editForm(familia,zona){
   const f=DATA.forms.find(x=>x.familia===familia&&x.zona===zona);
   openDrawer(`<h3>${f.nombre}</h3><div class="dsub">${ZN[zona]||zona} · ${f.caso_uso||''}</div>
     <div class="field"><label>Tipo de medición</label><select id="e_med">${['cumplimiento','calificacion','ambos'].map(m=>`<option ${f.medicion===m?'selected':''}>${m}</option>`).join('')}</select></div>
-    <div class="field"><label>Cadencia esperada</label><select id="e_freq">${FREQ.map(x=>`<option ${f.frecuencia===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Cadencia esperada</label><select id="e_freq">PLACEHOLDER.join('')}</select></div>
     <div class="field"><label>Hora límite (HH:MM, vacío = fin del día)</label><input id="e_hora" value="${f.hora_limite||''}" placeholder="15:00"></div>
     <div class="field"><label>Días de gracia</label><input id="e_gracia" type="number" min="0" value="${f.dias_gracia||0}"><div class="hint">Tolerancia después del límite antes de marcar "faltó".</div></div>
     <div class="drawer-actions"><button class="btn sec" onclick="closeDrawer()">Cancelar</button><button class="btn" onclick="saveForm('${familia}','${zona}')">Guardar política</button></div>`);
@@ -283,13 +291,29 @@ async function vSuc(){
 async function saveSuc(id,body){try{await put(`/api/admin/sucursales/${id}`,body);toast('Sucursal actualizada');}catch(e){toast('Error','err');}}
 
 // ── REPORTES ──
+const CADENCIAS=['semanal','quincenal','mensual','bimestral','trimestral','semestral','anual'];
 async function vRep(){
   const d=await api('/api/admin/reportes');
-  $('#main').innerHTML=`<div class="htop"><h1>Reportes</h1><button class="btn sec" disabled>+ Nueva programación</button></div>
-    <div class="sub">Reportes automáticos por cadencia y canal. (Constructor de programaciones: próxima fase.)</div>
-    ${d.reportes.length?`<table><thead><tr><th>Nombre</th><th>Cadencia</th><th>Canal</th><th>Destinatarios</th><th>Activo</th></tr></thead><tbody>${
-      d.reportes.map(r=>`<tr><td><b>${r.nombre}</b></td><td class="muted">${r.cadencia}</td><td class="muted">${r.canal}</td><td class="muted">${(r.destinatarios||[]).length}</td><td>${r.activo?'Sí':'No'}</td></tr>`).join('')}</tbody></table>`
-      :'<div class="loading">Aún no hay reportes programados. El motor de reportes se conecta en la fase de entrega (correo/WhatsApp).</div>'}`;
+  $('#main').innerHTML=`<h1>Reportes</h1><div class="sub">Vista previa y envío de reportes de cumplimiento por cadencia. El envío por correo requiere configurar Resend.</div>
+    <div class="toolbar"><select id="rcad">${CADENCIAS.map(c=>`<option value="${c}">${cap(c)}</option>`).join('')}</select>
+      <button class="btn sec" onclick="previewRep()">Ver vista previa</button>
+      <input id="rdest" placeholder="correo@ejemplo.mx para enviar prueba" style="min-width:240px">
+      <button class="btn" onclick="enviaRep()">Enviar prueba</button></div>
+    <div id="rprev" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0a0a0f;min-height:120px">
+      <div class="empty">Elige una cadencia y toca "Ver vista previa".</div></div>
+    ${(d.envios&&d.envios.length)?`<h2 style="font-size:13px;color:var(--ink-3);margin:22px 0 8px;text-transform:uppercase;letter-spacing:.05em">Últimos envíos</h2>
+      <table><thead><tr><th>Cuándo</th><th>Cadencia</th><th>Destinatarios</th><th>Enviado</th><th>Detalle</th></tr></thead><tbody>${
+      d.envios.map(e=>`<tr><td class="muted num">${new Date(e.ts).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}</td><td class="muted">${cap(e.cadencia||'')}</td><td class="muted">${(e.destinatarios||[]).join(', ')}</td><td>${e.enviado?'<span style="color:var(--ok)">Sí</span>':'<span style="color:var(--miss)">No</span>'}</td><td class="muted">${e.detalle||''}</td></tr>`).join('')}</tbody></table>`:''}`;
+}
+function previewRep(){
+  const c=$('#rcad').value;
+  $('#rprev').innerHTML=`<iframe src="/api/admin/reportes/preview?cadencia=${c}" style="width:100%;height:640px;border:0" title="preview"></iframe>`;
+}
+async function enviaRep(){
+  const dest=$('#rdest').value.trim(); if(!dest){toast('Escribe un correo','err');return;}
+  try{const r=await post('/api/admin/reportes/enviar',{cadencia:$('#rcad').value,destinatarios:[dest]});
+    toast(r.enviado?'Correo enviado ✓':('No enviado: '+(r.detalle||'configura Resend')),r.enviado?'ok':'err');vRep();}
+  catch(e){toast(e.detail||'Error','err');}
 }
 
 // ── BITÁCORA ──

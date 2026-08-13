@@ -188,8 +188,36 @@ def get_audit(admin: dict = Depends(admin_req), limite: int = 100):
 
 
 # ── REPORTES ─────────────────────────────────────────────────────────────
+from datetime import date
+
+from fastapi.responses import HTMLResponse
+
+
 @router.get("/reportes")
 def list_reportes(admin: dict = Depends(admin_req)):
     with conn() as c:
         rows = c.execute("SELECT * FROM report_schedules ORDER BY creado_at DESC").fetchall()
-    return {"reportes": rows}
+        envs = c.execute("SELECT canal, cadencia, destinatarios, enviado, detalle, ts FROM envios ORDER BY ts DESC LIMIT 20").fetchall()
+    return {"reportes": rows, "envios": envs}
+
+
+@router.get("/reportes/preview", response_class=HTMLResponse)
+def preview_reporte(admin: dict = Depends(admin_req), cadencia: str = "semanal"):
+    from etl_plog.reportes import generador, render
+    d = generador.datos(cadencia, date.today(), admin["scopes"])
+    return render.html(d).replace("{{APP_URL}}", "/")
+
+
+@router.post("/reportes/enviar")
+def enviar_reporte(payload: dict, admin: dict = Depends(admin_req)):
+    from etl_plog.reportes import generador, render, envio
+    cadencia = payload.get("cadencia", "semanal")
+    dest = payload.get("destinatarios") or []
+    if not dest:
+        raise HTTPException(400, "sin destinatarios")
+    d = generador.datos(cadencia, date.today(), admin["scopes"])
+    html = render.html(d)
+    asunto = f"Cumplimiento PLOG · {d['periodo']['label']}"
+    res = envio.envia_correo(dest, asunto, html)
+    envio.registra_envio(cadencia, dest, asunto, res)
+    return {"enviado": res.get("enviado"), "detalle": res.get("error") or res.get("id")}
