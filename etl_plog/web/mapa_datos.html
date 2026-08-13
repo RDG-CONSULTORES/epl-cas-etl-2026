@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa de Datos PLOG</title></head>
+<body style="margin:0;background:#0a0a0f;color:#f4f4f7;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif">
+<div style="max-width:1000px;margin:0 auto;padding:30px 22px">
+<div style="display:flex;align-items:center;gap:11px;margin-bottom:6px"><div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ff6b35,#ff8c5a);color:#1a0d06;font-weight:800;text-align:center;line-height:34px">PL</div><h1 style="font-size:23px;margin:0">Mapa de Datos · Cumplimiento PLOG</h1></div>
+<p style="color:#8a8a9c;font-size:13.5px;margin:0 0 26px">De dónde salen los datos y qué se hace con ellos. Formularios: cumplimiento (¿lo hicieron?) vs calificación con drill-down por área (¿qué tan bien?).</p>
+
+<h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#8a8a9c">Flujo de datos</h2>
+<div style="display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:12px 0 30px">
+<div style="flex:1;min-width:150px;background:#1e1e27;border:1px solid #2c2c38;border-radius:12px;padding:15px;text-align:center;position:relative">
+  <div style="font-size:26px;margin-bottom:6px">🏪</div><b style="font-size:13px">Zenput</b><div style="font-size:11px;color:#8a8a9c;margin-top:4px;line-height:1.4">18 sucursales PLOG · submissions por formulario</div></div>
+  <div style="align-self:center;color:#ff6b35;font-size:20px;padding:0 4px">→</div><div style="flex:1;min-width:150px;background:#1e1e27;border:1px solid #2c2c38;border-radius:12px;padding:15px;text-align:center;position:relative">
+  <div style="font-size:26px;margin-bottom:6px">⬇️</div><b style="font-size:13px">Extracción</b><div style="font-size:11px;color:#8a8a9c;margin-top:4px;line-height:1.4">filtro a las 18 · raw inmutable JSONB · cada 3h</div></div>
+  <div style="align-self:center;color:#ff6b35;font-size:20px;padding:0 4px">→</div><div style="flex:1;min-width:150px;background:#1e1e27;border:1px solid #2c2c38;border-radius:12px;padding:15px;text-align:center;position:relative">
+  <div style="font-size:26px;margin-bottom:6px">🗄️</div><b style="font-size:13px">Base de datos</b><div style="font-size:11px;color:#8a8a9c;margin-top:4px;line-height:1.4">raw → motor (cumplimiento) + extractor (scores)</div></div>
+  <div style="align-self:center;color:#ff6b35;font-size:20px;padding:0 4px">→</div><div style="flex:1;min-width:150px;background:#1e1e27;border:1px solid #2c2c38;border-radius:12px;padding:15px;text-align:center;position:relative">
+  <div style="font-size:26px;margin-bottom:6px">🔒</div><b style="font-size:13px">API</b><div style="font-size:11px;color:#8a8a9c;margin-top:4px;line-height:1.4">auth + scope por zona/sucursal · histórico congelado</div></div>
+  <div style="align-self:center;color:#ff6b35;font-size:20px;padding:0 4px">→</div><div style="flex:1;min-width:150px;background:#1e1e27;border:1px solid #2c2c38;border-radius:12px;padding:15px;text-align:center;position:relative">
+  <div style="font-size:26px;margin-bottom:6px">📱</div><b style="font-size:13px">Tablero</b><div style="font-size:11px;color:#8a8a9c;margin-top:4px;line-height:1.4">PWA + admin · drill-down zona→sucursal→form→área</div></div>
+  
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:26px">
+<div><h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#34d399">📋 Cumplimiento (11) — ¿lo hicieron a tiempo?</h2>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px"><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">A1–A7 Alistamiento diario (uno por día Lun–Dom</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Alistamiento Regional Visita Negocio</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Semanal<span style="color:#ff8c5a;font-weight:700"> · 13 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Alistamiento Regional Visita Seguimiento</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Por visita</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Checklist de Cierre</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Depósito de Valores (el de su región)</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">L1–L7 Alistamiento diario (uno por día Lun–Dom</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">PRO-CSC-5 Revisión a Vehículos PLOG</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">RH-1 Alistamiento de visita Regional</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual<span style="color:#ff8c5a;font-weight:700"> · 2 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">RL1 Entrega Primer Turno</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">RL2 Entrega Segundo Turno</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario<span style="color:#ff8c5a;font-weight:700"> · 1 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Recorrido Diario Comisariato</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario<span style="color:#ff8c5a;font-weight:700"> · 7 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(255,107,53,.14);color:#ff6b35">Comis.</span></div></div></div>
+<div><h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#ff8c5a">⭐ Calificación + drill-down (12) — ¿qué tan bien?</h2>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px"><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">VCAL25 / VCALQRO Verificación Calidad Integral</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Trimestral<span style="color:#ff8c5a;font-weight:700"> · 24 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Verificación / PRO-COM-2 Comisariato</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual<span style="color:#ff8c5a;font-weight:700"> · 17 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(255,107,53,.14);color:#ff6b35">Comis.</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Autogestión de Calidad S1–S4</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Semanal<span style="color:#ff8c5a;font-weight:700"> · 11 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">PRO-SUC-3 / 3.1 Evaluación Procesos Operativos</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual<span style="color:#ff8c5a;font-weight:700"> · 11 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Alistamiento SERVIR</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario<span style="color:#ff8c5a;font-weight:700"> · 7 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Alistamiento Hornos</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Diario<span style="color:#ff8c5a;font-weight:700"> · 4 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">PRO-SUC-1 / 1.1 Evaluación de Procesos</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual<span style="color:#ff8c5a;font-weight:700"> · 2 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">PRO-SUC-4 Autoevaluación de Procesos</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual<span style="color:#ff8c5a;font-weight:700"> · 2 áreas ▸</span></div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Mantenimiento Preventivo Mensual</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Mensual</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Mantenimiento Preventivo Semestral</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Semestral</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">Mantenimiento Preventivo Trimestral</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Trimestral</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div><div style="background:#1e1e27;border:1px solid #2c2c38;border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b style="font-size:13.5px">PRO-SC-6 Revisión Condiciones de Seguridad</b><div style="font-size:11px;color:#8a8a9c;margin-top:2px">Bimestral</div></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#0f3d31;color:#34d399">PLOG</span></div></div></div>
+</div>
+<p style="color:#6d6d7e;font-size:11px;margin-top:30px;text-align:center">Badge = origen (PLOG propio · CAS plantilla compartida · Comisariato). "N áreas ▸" = drill-down por sección. Generado de la config real.</p>
+</div></body></html>
