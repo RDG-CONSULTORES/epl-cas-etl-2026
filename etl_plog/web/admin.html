@@ -202,11 +202,22 @@ async function toggleForm(familia,zona,activo){
 function editForm(familia,zona){
   const f=DATA.forms.find(x=>x.familia===familia&&x.zona===zona);
   openDrawer(`<h3>${f.nombre}</h3><div class="dsub">${ZN[zona]||zona} · ${f.caso_uso||''}</div>
-    <div class="field"><label>Tipo de medición</label><select id="e_med">${['cumplimiento','calificacion','ambos'].map(m=>`<option ${f.medicion===m?'selected':''}>${m}</option>`).join('')}</select></div>
-    <div class="field"><label>Cadencia esperada</label><select id="e_freq">PLACEHOLDER.join('')}</select></div>
-    <div class="field"><label>Hora límite (HH:MM, vacío = fin del día)</label><input id="e_hora" value="${f.hora_limite||''}" placeholder="15:00"></div>
-    <div class="field"><label>Días de gracia</label><input id="e_gracia" type="number" min="0" value="${f.dias_gracia||0}"><div class="hint">Tolerancia después del límite antes de marcar "faltó".</div></div>
+    <div id="reglaTxt" style="background:var(--card);border:1px solid var(--accent);border-radius:10px;padding:13px 15px;font-size:13.5px;line-height:1.55;color:var(--ink);margin-bottom:18px"></div>
+    <div class="field"><label>¿Qué se mide?</label><select id="e_med" onchange="pintaRegla()">${[['cumplimiento','Cumplimiento — ¿lo hicieron a tiempo?'],['calificacion','Calificación — ¿qué tan bien? (por áreas)'],['ambos','Ambas — si lo hicieron y qué tan bien']].map(m=>`<option value="${m[0]}" ${f.medicion===m[0]?'selected':''}>${m[1]}</option>`).join('')}</select></div>
+    <div class="field"><label>¿Cada cuándo se espera?</label><select id="e_freq" onchange="pintaRegla()">${FREQ.map(x=>`<option value="${x}" ${f.frecuencia===x?'selected':''}>${ftxt(x)}</option>`).join('')}</select></div>
+    <div class="field"><label>¿Hasta qué hora cuenta como a tiempo? (HH:MM, vacío = fin del día)</label><input id="e_hora" value="${f.hora_limite||''}" placeholder="15:00" oninput="pintaRegla()"></div>
+    <div class="field"><label>Días de tolerancia después del límite</label><input id="e_gracia" type="number" min="0" value="${f.dias_gracia||0}" oninput="pintaRegla()"><div class="hint">Cuántos días de gracia antes de marcar "faltó". 0 = sin tolerancia.</div></div>
     <div class="drawer-actions"><button class="btn sec" onclick="closeDrawer()">Cancelar</button><button class="btn" onclick="saveForm('${familia}','${zona}')">Guardar política</button></div>`);
+  pintaRegla();
+}
+// La regla en español simple, actualizada en vivo mientras el admin la edita
+function pintaRegla(){
+  const med=$('#e_med').value, freq=$('#e_freq').value, hora=$('#e_hora').value.trim(), g=parseInt($('#e_gracia').value)||0;
+  const cad={diario:'todos los días',diario_por_dia:'todos los días (el formulario del día de la semana)',semanal:'una vez por semana',quincenal:'una vez por quincena',semana_del_mes:'una vez por semana del mes',mensual:'una vez al mes',bimestral:'una vez cada dos meses',trimestral:'una vez por trimestre',semestral:'una vez por semestre',anual:'una vez al año',por_visita:'cada visita'}[freq]||freq;
+  const hr = hora ? `y debe entregarse <b>antes de las ${hora}</b>` : `hasta el <b>fin del día</b>`;
+  const tol = g>0 ? ` Se permite hasta <b>${g} día${g>1?'s':''}</b> tarde antes de contar como falta.` : ` <b>Sin tolerancia</b>: después de la hora ya cuenta como tarde.`;
+  const mide = med==='cumplimiento'?'Se revisa <b>si lo hicieron a tiempo</b>.':med==='calificacion'?'Se revisa la <b>calificación por áreas</b>.':'Se revisa <b>si lo hicieron a tiempo</b> y su <b>calificación por áreas</b>.';
+  $('#reglaTxt').innerHTML = `📋 Este formulario se espera <b>${cad}</b> ${hr}.${tol}<br>${mide}`;
 }
 async function saveForm(familia,zona){
   try{await put(`/api/admin/formularios/${familia}/${zona}`,{
