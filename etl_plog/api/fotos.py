@@ -15,16 +15,21 @@ STORAGE = "https://www.zenput.com/api/v2/users/current/storage/"
 MAX_FOTOS = 12
 
 
-def s3_keys_de(payload: dict) -> list[tuple[str, str]]:
-    """-> [(titulo_campo, s3_key)] de los campos imagen de una submission."""
+def s3_keys_de(payload: dict) -> list[tuple[str, str, str]]:
+    """-> [(titulo, s3_key, tipo)] de campos imagen/video/firma de una submission.
+    image/video = lista de dicts con s3_key; signature = lista de strings (el s3_key)."""
     out = []
     for a in payload.get("answers", []):
-        if a.get("field_type") == "image":
-            v = a.get("value")
-            if isinstance(v, list):
-                for foto in v:
-                    if isinstance(foto, dict) and foto.get("s3_key"):
-                        out.append((a.get("title", "Foto"), foto["s3_key"]))
+        ft = a.get("field_type")
+        v = a.get("value")
+        if ft in ("image", "video") and isinstance(v, list):
+            for m in v:
+                if isinstance(m, dict) and m.get("s3_key"):
+                    out.append((a.get("title", "Evidencia"), m["s3_key"], ft))
+        elif ft == "signature" and isinstance(v, list):
+            for key in v:
+                if isinstance(key, str) and key:
+                    out.append((a.get("title", "Firma"), key, "signature"))
     return out[:MAX_FOTOS]
 
 
@@ -40,14 +45,14 @@ def url_firmada(client: httpx.Client, s3_key: str) -> str | None:
 
 
 def fotos_de_payload(payload: dict) -> list[dict]:
-    """-> [{titulo, url}] con las URLs firmadas listas para mostrar."""
+    """-> [{titulo, url, tipo}] con URLs firmadas (foto/video/firma)."""
     keys = s3_keys_de(payload)
     if not keys:
         return []
     out = []
     with httpx.Client() as c:
-        for titulo, key in keys:
+        for titulo, key, tipo in keys:
             url = url_firmada(c, key)
             if url:
-                out.append({"titulo": titulo, "url": url})
+                out.append({"titulo": titulo, "url": url, "tipo": tipo})
     return out

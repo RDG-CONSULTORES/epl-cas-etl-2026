@@ -332,11 +332,18 @@ async function cargaFotos(familia, id){
   try{
     const d = await api(`/api/formulario/${familia}/sucursal/${id}/fotos`);
     if(!d.fotos || !d.fotos.length){ el.innerHTML = ''; return; }
-    el.innerHTML = `<h2 class="sec">Evidencia fotográfica · ${d.fotos.length}</h2>
+    const media = f => f.tipo==='video'
+      ? `<video src="${f.url}" controls preload="metadata" style="width:100%;height:100%;object-fit:cover;background:#000" onerror="this.parentElement.style.display='none'"></video>`
+      : `<a href="${f.url}" target="_blank" style="display:block;width:100%;height:100%"><img src="${f.url}" loading="lazy" alt="${f.titulo}" style="width:100%;height:100%;object-fit:${f.tipo==='signature'?'contain':'cover'};background:${f.tipo==='signature'?'#fff':'var(--card-2)'}" onerror="this.closest('.mediacell').style.display='none'"></a>`;
+    const nv = d.fotos.filter(f=>f.tipo==='video').length;
+    el.innerHTML = `<h2 class="sec">Evidencia · ${d.fotos.length}${nv?` (${nv} video${nv>1?'s':''})`:''}</h2>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${d.fotos.map(f=>`
-        <a href="${f.url}" target="_blank" style="display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:1;background:var(--card-2)">
-          <img src="${f.url}" loading="lazy" alt="${f.titulo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"></a>`).join('')}</div>
-      <div class="muted" style="font-size:11px;margin-top:8px;color:var(--ink-3)">De la última submission · toca para ampliar</div>`;
+        <div class="mediacell" style="border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:1;background:var(--card-2);position:relative">
+          ${media(f)}
+          ${f.tipo==='video'?'<span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px">VIDEO</span>':''}
+          ${f.tipo==='signature'?'<span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px">FIRMA</span>':''}
+        </div>`).join('')}</div>
+      <div class="muted" style="font-size:11px;margin-top:8px;color:var(--ink-3)">De la última submission · fotos, videos y firma</div>`;
   }catch(e){ el.innerHTML=''; }
 }
 
