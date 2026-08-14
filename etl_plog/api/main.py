@@ -202,6 +202,24 @@ def get_form_detalle(familia: str, location_id: int, u: dict = Depends(sesion),
             "calificacion": calif}
 
 
+@app.get("/api/formulario/{familia}/sucursal/{location_id}/fotos")
+def get_fotos(familia: str, location_id: int, u: dict = Depends(sesion)):
+    from etl_plog.api import fotos
+    w, params = scoping.clausula_scope(u["scopes"])  # valida acceso a la sucursal
+    with conn() as c:
+        ok = c.execute(f"SELECT 1 FROM sucursales WHERE location_id=%s AND {w}",
+                       [location_id] + params).fetchone()
+        if not ok:
+            raise HTTPException(403, "Sin acceso a esta sucursal")
+        r = c.execute("""SELECT payload FROM raw_submissions
+                         WHERE familia=%s AND location_id=%s
+                         ORDER BY fecha_local DESC, ts_completed DESC LIMIT 1""",
+                      (familia, location_id)).fetchone()
+    if not r:
+        return {"fotos": []}
+    return {"fotos": fotos.fotos_de_payload(r["payload"])}
+
+
 @app.get("/api/health")
 def health():
     with conn() as c:

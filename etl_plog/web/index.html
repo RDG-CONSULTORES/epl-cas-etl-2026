@@ -321,7 +321,23 @@ async function _abreForm(familia,id,nombreSuc){
     <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px">
       <div class="cal">${cells||'<div class="loading" style="grid-column:1/-1">Sin ventanas en el periodo.</div>'}</div>
       <div class="legend" style="margin-top:14px"><span class="lg"><i class="i-ok"></i>a tiempo</span><span class="lg"><i class="i-late"></i>tarde</span><span class="lg"><i class="i-miss"></i>faltó</span></div>
-    </div>`;
+    </div>
+    <div id="v-fotos"></div>`;
+  // Evidencia fotográfica (lazy): fotos reales de la última submission
+  cargaFotos(familia, id);
+}
+async function cargaFotos(familia, id){
+  const el = $('#v-fotos'); if(!el) return;
+  el.innerHTML = '<h2 class="sec">Evidencia fotográfica</h2><div class="loading">Cargando fotos…</div>';
+  try{
+    const d = await api(`/api/formulario/${familia}/sucursal/${id}/fotos`);
+    if(!d.fotos || !d.fotos.length){ el.innerHTML = ''; return; }
+    el.innerHTML = `<h2 class="sec">Evidencia fotográfica · ${d.fotos.length}</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${d.fotos.map(f=>`
+        <a href="${f.url}" target="_blank" style="display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:1;background:var(--card-2)">
+          <img src="${f.url}" loading="lazy" alt="${f.titulo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"></a>`).join('')}</div>
+      <div class="muted" style="font-size:11px;margin-top:8px;color:var(--ink-3)">De la última submission · toca para ampliar</div>`;
+  }catch(e){ el.innerHTML=''; }
 }
 
 const NOMBRES={alistamiento_diario:'Alistamiento Diario',rl1_entrega_t1:'RL1 Entrega 1er Turno',rl2_entrega_t2:'RL2 Entrega 2º Turno',checklist_cierre:'Checklist de Cierre',deposito_valores:'Depósito de Valores',alistamiento_servir:'Alistamiento SERVIR',alistamiento_hornos:'Alistamiento Hornos',autogestion_calidad:'Autogestión de Calidad',pro_suc_1:'PRO-SUC-1 Evaluación',pro_suc_3:'PRO-SUC-3 Procesos',pro_suc_4_autoeval:'PRO-SUC-4 Autoevaluación',do_supervision_operativa:'DO Supervisión Operativa',vcal_calidad_integral:'VCAL Verificación Calidad',visita_negocio:'Visita de Negocio',rh1_visita:'RH-1 Visita',recorrido_comisariato:'Recorrido Comisariato',comisariato_evaluacion:'Evaluación Comisariato',mtto_mensual:'Mtto Mensual',mtto_trimestral:'Mtto Trimestral',mtto_semestral:'Mtto Semestral'};
