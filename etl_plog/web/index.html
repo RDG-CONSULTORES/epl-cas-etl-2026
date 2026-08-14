@@ -148,7 +148,12 @@
   <header>
     <div class="h-top">
       <div class="brand"><span class="mark">PL</span><span class="t">Cumplimiento PLOG</span></div>
-      <div class="fresh" id="fresh" title="Cerrar sesión"><span class="dot"></span> <span id="corte">—</span></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <div class="fresh"><span class="dot"></span> <span id="corte">—</span></div>
+        <button id="btnSalir" title="Cerrar sesión" style="display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--line);color:var(--ink-2);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <span id="salirUsr">Salir</span></button>
+      </div>
     </div>
     <div class="zones" id="zones"></div>
   </header>
@@ -203,7 +208,7 @@ $('#btnLogin').onclick=doLogin;
 $('#p').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
 async function logout(){ await fetch('/api/logout',{method:'POST',credentials:'same-origin'}); location.reload(); }
-$('#fresh').onclick=()=>{ if(confirm('¿Cerrar sesión?')) logout(); };
+$('#btnSalir').onclick=()=>{ if(confirm('¿Cerrar sesión?')) logout(); };
 
 // ---- Boot ----
 async function boot(){
@@ -211,6 +216,7 @@ async function boot(){
   catch(e){ $('#app').classList.remove('on'); $('#login').classList.add('on'); return; }
   $('#login').classList.remove('on'); $('#app').classList.add('on');
   $('#btnLogin').disabled=false;
+  const s=$('#salirUsr'); if(s) s.textContent=(ME.usuario||'Salir');
   // chips de zona (solo las que ve)
   const zonas = ME.zonas.includes('todas') ? ['nuevo_leon','laguna','queretaro'] : ME.zonas;
   const chips = (zonas.length>1 ? [['',`Todas · ${zonas.length} zonas`]] : []).concat(zonas.map(z=>[z,ZN[z]||z]));
