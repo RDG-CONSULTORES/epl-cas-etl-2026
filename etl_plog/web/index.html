@@ -156,6 +156,11 @@
       </div>
     </div>
     <div class="zones" id="zones"></div>
+    <div class="zones" id="periodos" style="margin-top:8px">
+      <div class="zchip" data-p="hoy">Hoy</div>
+      <div class="zchip on" data-p="semana">Esta semana</div>
+      <div class="zchip" data-p="mes">Este mes</div>
+    </div>
   </header>
   <main>
     <section class="view on" id="v-hoy"><div class="loading">Cargando…</div></section>
@@ -188,7 +193,10 @@ const pbg  = p => p==null?'var(--card-2)':p>=90?'var(--ok-dim)':p>=70?'var(--lat
 const pfg  = p => p==null?'var(--ink-3)':p>=90?'var(--ok)':p>=70?'var(--late)':'var(--miss)';
 const ZN = {nuevo_leon:'Nuevo León', laguna:'Laguna', queretaro:'Querétaro'};
 function isoAgo(days){const d=new Date();d.setDate(d.getDate()-days);return d.toISOString().slice(0,10);}
-function rango(){return `desde=${isoAgo(7)}&hasta=${isoAgo(0)}`;}
+let PERIODO='semana';                       // hoy | semana | mes
+const DIAS_PERIODO={hoy:0,semana:6,mes:29};
+const LABEL_PERIODO={hoy:'HOY',semana:'SEMANA',mes:'MES'};
+function rango(){return `desde=${isoAgo(DIAS_PERIODO[PERIODO])}&hasta=${isoAgo(0)}`;}
 
 let ME=null, ZONA=null; // ZONA null = todas las que ve
 
@@ -225,6 +233,10 @@ async function boot(){
     $('#zones').querySelectorAll('.zchip').forEach(x=>x.classList.remove('on'));
     ch.classList.add('on'); ZONA = ch.dataset.z||null; render();
   });
+  $('#periodos').querySelectorAll('.zchip').forEach(ch=>ch.onclick=()=>{
+    $('#periodos').querySelectorAll('.zchip').forEach(x=>x.classList.remove('on'));
+    ch.classList.add('on'); PERIODO = ch.dataset.p; render();
+  });
   ZONA = zonas.length>1 ? null : zonas[0];
   api('/api/freshness').then(f=>{ if(f.corte){ const d=new Date(f.corte); $('#corte').textContent='Corte '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});}});
   render();
@@ -245,14 +257,14 @@ async function _renderHoy(){
         <circle cx="52" cy="52" r="45" fill="none" stroke="#26262f" stroke-width="10"/>
         <circle cx="52" cy="52" r="45" fill="none" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="${off.toFixed(1)}"/>
         <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b35"/><stop offset="1" stop-color="#ff8c5a"/></linearGradient></defs>
-      </svg><div class="val"><b class="num">${pct==null?'—':Math.round(pct)+'%'}</b><span>SEMANA</span></div></div>
-      <div class="hero-meta"><div class="lead"><b>${r.ot}</b> a tiempo · <b>${r.ms}</b> faltaron de lo esperado esta semana.</div>
+      </svg><div class="val"><b class="num">${pct==null?'—':Math.round(pct)+'%'}</b><span>${LABEL_PERIODO[PERIODO]}</span></div></div>
+      <div class="hero-meta"><div class="lead"><b>${r.ot}</b> a tiempo · <b>${r.ms}</b> faltaron de lo esperado.</div>
         <div class="legend"><span class="lg"><i class="i-ok"></i>${r.ot} a tiempo</span><span class="lg"><i class="i-late"></i>${r.lt} tarde</span><span class="lg"><i class="i-miss"></i>${r.ms} faltó</span><span class="lg"><i class="i-pend"></i>${r.pd} pend.</span></div></div>
     </div>
     ${!ZONA && zonas.length>1 ? `<h2 class="sec">Cumplimiento por zona</h2><div class="kpis">${zonas.map(z=>`
       <div class="kpi"><div class="z">${ZN[z.zona]||z.zona}</div><div class="p num">${z.pct==null?'—':Math.round(z.pct)+'%'}</div>
         <div class="bar"><i style="width:${z.pct||0}%;background:${cvar(z.pct)}"></i></div></div>`).join('')}</div>` : ''}
-    <h2 class="sec">Sucursales · semana</h2><div id="hoy-stores"><div class="loading">Cargando…</div></div>`;
+    <h2 class="sec">Sucursales · ${PERIODO==='hoy'?'hoy':PERIODO==='mes'?'este mes':'esta semana'}</h2><div id="hoy-stores"><div class="loading">Cargando…</div></div>`;
   const sr = await api(`/api/sucursales?${rango()}`);
   $('#hoy-stores').innerHTML = zonaFiltra(sr.sucursales).map(s=>`
     <div class="store" data-suc="${s.location_id}" data-nom="${enc(s.nombre)}" data-zona="${s.zona}">
@@ -273,7 +285,7 @@ async function renderSemana(){ await guard('#v-semana', _renderSemana); }
 async function _renderSemana(){
   const sr = await api(`/api/sucursales?${rango()}`);
   const sucs = zonaFiltra(sr.sucursales);
-  $('#v-semana').innerHTML = `<h2 class="sec">Cumplimiento por sucursal · 7 días</h2>
+  $('#v-semana').innerHTML = `<h2 class="sec">Cumplimiento por sucursal · ${PERIODO==='hoy'?'hoy':PERIODO==='mes'?'mes':'semana'}</h2>
     <div class="matriz-wrap"><table class="mx"><tbody>${sucs.map(s=>`
       <tr><td class="rowh">${s.nombre}</td><td><div class="cell ${s.pct==null?'na':''}" style="background:${cvar(s.pct)}" title="${s.pct==null?'sin dato':Math.round(s.pct)+'%'}">${s.pct==null?'·':Math.round(s.pct)}</div></td>
       <td style="width:100%;padding-left:6px"><div style="height:8px;border-radius:4px;background:var(--card-2);overflow:hidden"><i style="display:block;height:100%;width:${s.pct||0}%;background:${cvar(s.pct)}"></i></div></td></tr>`).join('')}</tbody></table></div>
