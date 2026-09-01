@@ -13,6 +13,7 @@ from datetime import date, timedelta
 import asyncio
 import logging
 import os
+import time
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -31,6 +32,48 @@ _WEB = Path(__file__).resolve().parents[1] / "web"
 # Scheduler interno de refresco (1 réplica). Cada REFRESH_HORAS corre sync incremental
 # + recompute reciente + calificaciones. Desactivable con REFRESH_HORAS=0.
 REFRESH_HORAS = float(os.environ.get("REFRESH_HORAS", "3"))
+# Alertas de operación (dead-man's-switch): a quién avisar si el sync falla o se congela.
+ALERTA_A = [x.strip() for x in os.environ.get("PLOG_ALERTA_A", "").split(",") if x.strip()]
+ALERTA_FRESCURA_HORAS = float(os.environ.get("PLOG_ALERTA_FRESCURA_HORAS", "8"))
+_ultima_alerta = 0.0
+
+
+def _alerta_ops(asunto: str, cuerpo_html: str) -> None:
+    """Notifica a operación por correo; deduplica a máx. 1 alerta cada 12h."""
+    global _ultima_alerta
+    if not ALERTA_A:
+        log.warning("alerta no enviada (PLOG_ALERTA_A sin configurar): %s", asunto)
+        return
+    ahora = time.time()
+    if ahora - _ultima_alerta < 12 * 3600:
+        return
+    try:
+        from etl_plog.reportes.envio import envia_correo
+        res = envia_correo(ALERTA_A, asunto, cuerpo_html)
+        if res.get("enviado"):
+            _ultima_alerta = ahora
+        log.info("alerta ops -> %s: %s", ALERTA_A, res)
+    except Exception as e:  # noqa: BLE001
+        log.error("no se pudo enviar la alerta ops: %s", e)
+
+
+def _horas_desde_ultimo_sync():
+    """Horas desde el último sync exitoso (max sync_state.last_synced_at). None si no hay dato."""
+    try:
+        from datetime import datetime, timezone
+        from etl_plog.shared.db import conn
+        with conn() as c:
+            cur = c.cursor()
+            cur.execute("SELECT max(last_synced_at) FROM sync_state")
+            row = cur.fetchone()
+        if not row or not row[0]:
+            return None
+        last = row[0]
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - last).total_seconds() / 3600
+    except Exception:  # noqa: BLE001
+        return None
 
 
 @app.on_event("startup")
@@ -48,8 +91,21 @@ async def _arranca_scheduler():
             try:
                 res = await asyncio.get_event_loop().run_in_executor(None, _refresh)
                 log.info("refresh automático OK: %s", res)
+                edad = _horas_desde_ultimo_sync()
+                if edad is not None and edad > ALERTA_FRESCURA_HORAS:
+                    _alerta_ops(
+                        f"[PLOG] Datos sin actualizar hace {edad:.0f} horas",
+                        f"<p>El último sync exitoso de Zenput fue hace {edad:.1f} horas, "
+                        f"por encima del umbral de {ALERTA_FRESCURA_HORAS:.0f} h. "
+                        f"Conviene revisar el token de Zenput y el servicio.</p>",
+                    )
             except Exception as e:  # noqa: BLE001
                 log.error("refresh automático falló: %s", e)
+                _alerta_ops(
+                    "[PLOG] Falló el refresh automático de Zenput",
+                    f"<p>El proceso de actualización lanzó un error:</p><pre>{e}</pre>"
+                    f"<p>El tablero puede quedar con datos congelados hasta resolverlo.</p>",
+                )
 
     asyncio.create_task(loop())
     log.info("scheduler de refresco cada %sh activo", REFRESH_HORAS)
