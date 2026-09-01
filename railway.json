@@ -1,5 +1,12 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
-  "build": { "builder": "DOCKERFILE", "dockerfilePath": "etl_plog/Dockerfile" },
-  "deploy": { "restartPolicyType": "ON_FAILURE" }
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "etl_plog/Dockerfile"
+  },
+  "deploy": {
+    "restartPolicyType": "ON_FAILURE",
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 300
+  }
 }

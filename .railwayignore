@@ -7,3 +7,5 @@ api Zenput/
 etl_plog/discovery/data/
 *.log
 __pycache__/
+.env
+.env.*

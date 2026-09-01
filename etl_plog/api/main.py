@@ -81,7 +81,7 @@ def post_login(payload: dict, request: Request, response: Response):
     if not token:
         raise HTTPException(401, "Usuario o contraseña incorrectos")
     response.set_cookie(COOKIE, token, httponly=True, samesite="lax",
-                        secure=False, max_age=auth.SESION_DIAS * 86400)
+                        secure=True, max_age=auth.SESION_DIAS * 86400)
     return {"ok": True}
 
 
