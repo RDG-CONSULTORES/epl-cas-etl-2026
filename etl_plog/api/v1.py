@@ -39,15 +39,22 @@ class Estado(str, Enum):
     pending = "pending"
 
 
-def _valida_familia(familia: str | None) -> None:
-    """422 si la familia no existe en el catálogo (evita filtro silencioso a vacío)."""
+def _valida_familia(familia: str | None, tabla: str) -> None:
+    """422 si la familia no aparece en la TABLA que sirve el endpoint.
+
+    Se valida contra el dato real (no contra config_formularios) porque cumplimiento
+    puede traer familias sintéticas — ej 'alistamiento_diario' agrupa los diarios A/L —
+    que no están en el catálogo de config. Así un typo da 422 pero un valor que el
+    endpoint SÍ devuelve se acepta. `tabla` es un literal del código, no entrada del
+    usuario, por eso es seguro interpolarlo. La búsqueda usa el índice que arranca en familia.
+    """
     if familia is None:
         return
     with conn() as c:
         existe = c.execute(
-            "SELECT 1 FROM config_formularios WHERE familia=%s LIMIT 1", (familia,)).fetchone()
+            f"SELECT 1 FROM {tabla} WHERE familia=%s LIMIT 1", (familia,)).fetchone()
     if not existe:
-        raise HTTPException(422, f"familia desconocida: '{familia}' (ver /api/v1/catalogo/formularios)")
+        raise HTTPException(422, f"familia desconocida: '{familia}'")
 
 
 def _paging(limit: int, offset: int, filas: list) -> dict:
@@ -141,7 +148,7 @@ def cumplimiento(
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
-    _valida_familia(familia)
+    _valida_familia(familia, "cumplimiento")
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["periodo_inicio >= %s", "periodo_inicio <= %s"]
@@ -185,7 +192,7 @@ def calificaciones(
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
-    _valida_familia(familia)
+    _valida_familia(familia, "calificaciones")
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["fecha_local >= %s", "fecha_local <= %s"]
@@ -227,7 +234,7 @@ def submissions(
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
-    _valida_familia(familia)
+    _valida_familia(familia, "raw_submissions")
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["fecha_local >= %s", "fecha_local <= %s"]
