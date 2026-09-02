@@ -20,12 +20,13 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from etl_plog.api import admin, auth, scoping
+from etl_plog.api import admin, auth, scoping, v1
 from etl_plog.shared.db import conn
 
 log = logging.getLogger("plog")
 app = FastAPI(title="Cumplimiento PLOG", docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.include_router(admin.router)
+app.include_router(v1.router)  # API pública v1 (externa, solo lectura, por API key)
 COOKIE = "plog_sesion"
 _WEB = Path(__file__).resolve().parents[1] / "web"
 
