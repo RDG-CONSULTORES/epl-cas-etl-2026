@@ -69,9 +69,16 @@ def _valida_familia(familia: str | None) -> None:
         raise HTTPException(422, f"familia desconocida: '{familia}'")
 
 
-def _paging(limit: int, offset: int, filas: list) -> dict:
-    return {"limit": limit, "offset": offset, "count": len(filas),
-            "has_more": len(filas) == limit}
+def _paging(limit: int, offset: int, filas: list, desde=None, hasta=None) -> dict:
+    p = {"limit": limit, "offset": offset, "count": len(filas),
+         "has_more": len(filas) == limit}
+    # Eco de la ventana EFECTIVA (incluye el default de 30d) para que has_more=false
+    # no se malinterprete como "todo el histórico".
+    if desde is not None:
+        p["desde"] = str(desde)
+    if hasta is not None:
+        p["hasta"] = str(hasta)
+    return p
 
 
 def _zona_filtro(key: dict, params: list) -> str:
@@ -188,7 +195,7 @@ def cumplimiento(
     with conn() as c:
         rows = c.execute(sql, params).fetchall()
     apikeys.registra_acceso(request, key, 200, len(rows))
-    return {"data": rows, "paging": _paging(limit, offset, rows)}
+    return {"data": rows, "paging": _paging(limit, offset, rows, desde, hasta)}
 
 
 # ── Calificaciones ─────────────────────────────────────────────────────────
@@ -229,7 +236,7 @@ def calificaciones(
     with conn() as c:
         rows = c.execute(sql, params).fetchall()
     apikeys.registra_acceso(request, key, 200, len(rows))
-    return {"data": rows, "paging": _paging(limit, offset, rows)}
+    return {"data": rows, "paging": _paging(limit, offset, rows, desde, hasta)}
 
 
 # ── Submissions (metadatos; respuestas opcionales) ─────────────────────────
@@ -241,16 +248,23 @@ def submissions(
     zona: Zona | None = Query(None),
     familia: str | None = Query(None),
     location_id: int | None = Query(None),
+    submission_id: str | None = Query(None, description="Trae una submission puntual por su id (ignora la ventana de fechas)"),
     incluir_respuestas: bool = Query(False, description="Incluye el payload completo (más pesado)"),
     limit: int = Query(LIMIT_DEF, ge=1, le=LIMIT_MAX),
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
     _valida_familia(familia)
-    hasta = hasta or date.today()
-    desde = desde or (hasta - timedelta(days=30))
-    where = ["fecha_local >= %s", "fecha_local <= %s"]
-    params: list = [desde, hasta]
+    where: list = []
+    params: list = []
+    if submission_id:
+        # búsqueda puntual por id: no aplica la ventana de fechas (puede ser histórica)
+        where.append("submission_id = %s"); params.append(submission_id)
+        desde = hasta = None
+    else:
+        hasta = hasta or date.today()
+        desde = desde or (hasta - timedelta(days=30))
+        where += ["fecha_local >= %s", "fecha_local <= %s"]; params += [desde, hasta]
     if zona:
         where.append("zona = %s"); params.append(zona.value)
     if familia:
@@ -272,4 +286,4 @@ def submissions(
     with conn() as c:
         rows = c.execute(sql, params).fetchall()
     apikeys.registra_acceso(request, key, 200, len(rows))
-    return {"data": rows, "paging": _paging(limit, offset, rows)}
+    return {"data": rows, "paging": _paging(limit, offset, rows, desde, hasta)}
