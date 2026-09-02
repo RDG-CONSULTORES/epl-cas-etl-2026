@@ -117,12 +117,16 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
         sucs = list(c.execute(
             """SELECT location_id, zona, es_comisariato, serie_requerida
                FROM sucursales WHERE activo"""))
+        # DISTINCT ON = la submission más temprana por (familia, ft, loc, fecha) con SU id,
+        # para poder acreditar cuál submission cumplió la ventana (submission_id trazable).
         subs = list(c.execute(
-            """SELECT familia, form_template_id, location_id, fecha_local,
-                      min(ts_completed) AS ts
+            """SELECT DISTINCT ON (familia, form_template_id, location_id, fecha_local)
+                      familia, form_template_id, location_id, fecha_local,
+                      ts_completed AS ts, submission_id
                FROM raw_submissions
                WHERE fecha_local BETWEEN %s AND %s AND familia IS NOT NULL
-               GROUP BY 1, 2, 3, 4""", (desde, hasta)))
+               ORDER BY familia, form_template_id, location_id, fecha_local, ts_completed ASC""",
+            (desde, hasta)))
         # ventanas YA congeladas: no se recalculan ni se sobrescriben (histórico inmutable)
         frozen = {(r["familia"], r["location_id"], r["periodo_inicio"]) for r in c.execute(
             """SELECT familia, location_id, periodo_inicio FROM cumplimiento
@@ -138,12 +142,12 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
     alist_por_loc_dia: dict[tuple, list] = {}
     for s in subs:
         por_fam_loc.setdefault((s["familia"], s["location_id"]), []).append(
-            (s["fecha_local"], s["form_template_id"], s["ts"]))
+            (s["fecha_local"], s["form_template_id"], s["ts"], s["submission_id"]))
         if s["familia"] in ALISTAMIENTO_FAMILIAS:
             dia_serie = FT_DIA_SERIE.get(s["form_template_id"])
             if dia_serie:
                 alist_por_loc_dia.setdefault((s["location_id"], s["fecha_local"]), []).append(
-                    (s["form_template_id"], dia_serie[1], s["ts"]))
+                    (s["form_template_id"], dia_serie[1], s["ts"], s["submission_id"]))
 
     filas, contadores = [], {"on_time": 0, "late": 0, "missed": 0, "pending": 0}
     for row in cfg:
@@ -183,14 +187,14 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                     if requerida:
                         hechas = [h for h in hechas if h[1] == requerida]
                     hechas.sort(key=lambda x: x[2] or datetime.max.replace(tzinfo=TZ_MTY))
-                    ft_ok, serie_ok, sub_ts = (hechas[0] if hechas else (None, None, None))
+                    ft_ok, serie_ok, sub_ts, sub_id = (hechas[0] if hechas else (None, None, None, None))
                     est = _estado(fin, row["hora_limite"], dia_sig, row["dias_gracia"], sub_ts, ahora)
                     _, lim_gracia = _limites(fin, row["hora_limite"], dia_sig, row["dias_gracia"])
                     cerrado = ahora > lim_gracia
                     snap = Jsonb(_snap(row["hora_limite"], row["dias_gracia"], "diario", dia_sig)) if cerrado else None
                     contadores[est] += 1
                     filas.append(("alistamiento_diario", row["zona"], suc["location_id"],
-                                  d, fin, est, None, sub_ts, serie_ok, ft_ok, cerrado, snap))
+                                  d, fin, est, sub_id, sub_ts, serie_ok, ft_ok, cerrado, snap))
                     d += timedelta(days=1)
                 continue
 
@@ -203,10 +207,13 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                 # membresía por fecha_local dentro del PERIODO [ini,fin] (NO extendido por
                 # gracia) → cada submission cuenta para UNA sola ventana (evita doble conteo
                 # entre periodos adyacentes). La gracia solo afecta el deadline en _estado.
-                candidatas = [(f, t, tpl) for f, tpl, t in hist
+                candidatas = [(f, t, tpl, sid) for f, tpl, t, sid in hist
                               if ini <= f <= fin and (ft is None or tpl == ft)]
-                sub_ts = min((t for _, t, _ in candidatas), default=None)
-                ft_ok = candidatas[0][2] if candidatas else None
+                # la submission acreditada = la más temprana; sub_id/ft_ok salen de ESA misma.
+                if candidatas:
+                    _, sub_ts, ft_ok, sub_id = min(candidatas, key=lambda x: x[1])
+                else:
+                    sub_ts, ft_ok, sub_id = None, None, None
                 est = _estado(fin, row["hora_limite"], dia_sig,
                               row["dias_gracia"], sub_ts, ahora)
                 _, lim_gracia = _limites(fin, row["hora_limite"], dia_sig, row["dias_gracia"])
@@ -214,7 +221,7 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                 snap = Jsonb(_snap(row["hora_limite"], row["dias_gracia"], row["frecuencia"], dia_sig)) if cerrado else None
                 contadores[est] += 1
                 filas.append((row["familia"], row["zona"], suc["location_id"],
-                              ini, fin, est, None, sub_ts, None, ft_ok, cerrado, snap))
+                              ini, fin, est, sub_id, sub_ts, None, ft_ok, cerrado, snap))
 
     with conn() as c:
         cur = c.cursor()
@@ -229,7 +236,8 @@ def run(desde: date, hasta: date | None = None) -> dict[str, int]:
                   congelado, politica_snapshot)
                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                ON CONFLICT (familia, location_id, periodo_inicio) DO UPDATE
-                 SET estado=EXCLUDED.estado, ts_submission=EXCLUDED.ts_submission,
+                 SET estado=EXCLUDED.estado, submission_id=EXCLUDED.submission_id,
+                     ts_submission=EXCLUDED.ts_submission,
                      periodo_fin=EXCLUDED.periodo_fin, serie_contestada=EXCLUDED.serie_contestada,
                      form_template_id=EXCLUDED.form_template_id, congelado=EXCLUDED.congelado,
                      politica_snapshot=EXCLUDED.politica_snapshot, computed_at=now()
