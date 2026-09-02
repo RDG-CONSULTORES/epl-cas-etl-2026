@@ -34,21 +34,23 @@ jobs:
           gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --cipher-algo AES256 -c plog.sql.gz
           mv plog.sql.gz.gpg "plog-$(date +%Y%m%d).sql.gz.gpg"
 
-      - name: Guardar respaldo diario (artifact, 90 días)
+      - name: Respaldo permanente (Release — NO expira)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Un Release por mes que acumula los respaldos diarios cifrados. Los
+          # Releases de GitHub NO expiran (a diferencia de los artifacts, tope 90d).
+          TAG="backup-$(date +%Y-%m)"
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" \
+              -t "Respaldos PLOG $(date +%Y-%m)" \
+              -n "Respaldos diarios cifrados (AES256) del esquema plog. No expiran. Descifrar con la passphrase resguardada."
+          gh release upload "$TAG" plog-*.sql.gz.gpg -R "$GITHUB_REPOSITORY" --clobber
+          echo "Respaldo permanente subido al Release $TAG"
+
+      - name: Copia rápida (artifact, 90 días — acceso inmediato)
         uses: actions/upload-artifact@v4
         with:
           name: plog-backup-${{ github.run_id }}
           path: plog-*.sql.gz.gpg
           retention-days: 90
-
-      - name: Respaldo mensual de largo plazo (día 1 del mes -> Release)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "$(date +%d)" = "01" ]; then
-            TAG="backup-$(date +%Y-%m)"
-            gh release create "$TAG" plog-*.sql.gz.gpg \
-              -t "Respaldo mensual $(date +%Y-%m)" \
-              -n "Respaldo cifrado (AES256) del esquema plog. Descifrar con la passphrase resguardada." \
-            || gh release upload "$TAG" plog-*.sql.gz.gpg --clobber
-          fi
