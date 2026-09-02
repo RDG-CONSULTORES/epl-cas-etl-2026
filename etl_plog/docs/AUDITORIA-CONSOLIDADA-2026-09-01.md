@@ -25,7 +25,7 @@ El ETL PLOG está **vivo, sano y con cimientos sólidos**. Los **números diario
 ### Operación / resiliencia
 | # | Hallazgo | Sev | Fix |
 |---|---|---|---|
-| O1 | ~~Sin backup automatizado~~ **RESUELTO** (2026-09-02): respaldo off-site cifrado diario vía GitHub Actions → endpoint interno `/api/admin/backup` (pg_dump 18 en el contenedor, token en cabecera; la BD nunca se expone). AES256, artifact 90d + Release mensual. Probado end-to-end desde `main` (48 MB). Falta opcional: capa A (backups administrados de Railway, toggle de dashboard) + prueba de restore. | ✅ | hecho |
+| O1 | ~~Sin backup automatizado~~ **RESUELTO** (2026-09-02): respaldo off-site cifrado diario vía GitHub Actions → endpoint interno `/api/admin/backup` (pg_dump 18 en el contenedor, token en cabecera; la BD nunca se expone). AES256, **Release permanente que NO expira** + copia rápida 90d. Probado end-to-end desde `main`. **Prueba de restore ✅ (2026-09-02):** descifrado + restaurado a un Postgres 18 desechable, conteos exactos (raw 47,394 · cumpl 51,593 · calif 6,808). Falta opcional: capa A (backups administrados de Railway, toggle de dashboard). | ✅ | hecho + restore verificado |
 | O2 | **Falla silenciosa del sync** (token expira / Zenput cambia) → tablero se congela 3h+ sin avisar (escenario PolloBot) | 🔴 | alerta cuando `max(last_synced_at)` > N horas + notificar excepción del refresh |
 | O3 | Sync = timer in-process (sin hora fija, single-worker, sin redundancia); depende del web vivo | 🟡 | mover a cron-service Railway o dead-man's-switch |
 | O4 | Reportes por correo en **preview permanente** (sin `RESEND_API_KEY`, sin cron) — hoy NO llega ningún correo | 🟡 | decidir Resend vs SMTP @plog + agendar cron |
