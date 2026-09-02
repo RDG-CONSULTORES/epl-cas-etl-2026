@@ -41,11 +41,11 @@ jobs:
           # Un Release por mes que acumula los respaldos diarios cifrados. Los
           # Releases de GitHub NO expiran (a diferencia de los artifacts, tope 90d).
           TAG="backup-$(date +%Y-%m)"
-          gh release view "$TAG" >/dev/null 2>&1 || \
-            gh release create "$TAG" \
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" \
               -t "Respaldos PLOG $(date +%Y-%m)" \
               -n "Respaldos diarios cifrados (AES256) del esquema plog. No expiran. Descifrar con la passphrase resguardada."
-          gh release upload "$TAG" plog-*.sql.gz.gpg --clobber
+          gh release upload "$TAG" plog-*.sql.gz.gpg -R "$GITHUB_REPOSITORY" --clobber
           echo "Respaldo permanente subido al Release $TAG"
 
       - name: Copia rápida (artifact, 90 días — acceso inmediato)
