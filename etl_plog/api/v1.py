@@ -11,6 +11,7 @@ Fechas en zona horaria de Monterrey (America/Monterrey), formato ISO (YYYY-MM-DD
 """
 from __future__ import annotations
 
+import time
 from datetime import date, timedelta
 from enum import Enum
 
@@ -39,21 +40,32 @@ class Estado(str, Enum):
     pending = "pending"
 
 
-def _valida_familia(familia: str | None, tabla: str) -> None:
-    """422 si la familia no aparece en la TABLA que sirve el endpoint.
+# Familia es válida si el SISTEMA la conoce en cualquier tabla (raw/cumplimiento/config).
+# Así un typo da 422, pero una familia real que un endpoint no puntúa/cubre devuelve vacío
+# (no 422). Incluye familias sintéticas de cumplimiento (ej 'alistamiento_diario'). Cacheado.
+_FAM_TTL = 300.0
+_fam_cache: dict = {"set": frozenset(), "ts": 0.0}
 
-    Se valida contra el dato real (no contra config_formularios) porque cumplimiento
-    puede traer familias sintéticas — ej 'alistamiento_diario' agrupa los diarios A/L —
-    que no están en el catálogo de config. Así un typo da 422 pero un valor que el
-    endpoint SÍ devuelve se acepta. `tabla` es un literal del código, no entrada del
-    usuario, por eso es seguro interpolarlo. La búsqueda usa el índice que arranca en familia.
-    """
-    if familia is None:
+
+def _familias_conocidas(forzar: bool = False) -> frozenset:
+    ahora = time.monotonic()
+    if forzar or not _fam_cache["set"] or ahora - _fam_cache["ts"] > _FAM_TTL:
+        with conn() as c:
+            rows = c.execute(
+                "SELECT familia FROM raw_submissions WHERE familia IS NOT NULL "
+                "UNION SELECT familia FROM cumplimiento "
+                "UNION SELECT familia FROM config_formularios").fetchall()
+        _fam_cache["set"] = frozenset(r["familia"] for r in rows if r["familia"])
+        _fam_cache["ts"] = ahora
+    return _fam_cache["set"]
+
+
+def _valida_familia(familia: str | None) -> None:
+    """422 solo si la familia no la conoce ninguna tabla del sistema (típicamente un typo)."""
+    if familia is None or familia in _familias_conocidas():
         return
-    with conn() as c:
-        existe = c.execute(
-            f"SELECT 1 FROM {tabla} WHERE familia=%s LIMIT 1", (familia,)).fetchone()
-    if not existe:
+    # podría ser una familia recién ingerida → refrescar una vez antes de rechazar
+    if familia not in _familias_conocidas(forzar=True):
         raise HTTPException(422, f"familia desconocida: '{familia}'")
 
 
@@ -148,7 +160,7 @@ def cumplimiento(
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
-    _valida_familia(familia, "cumplimiento")
+    _valida_familia(familia)
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["periodo_inicio >= %s", "periodo_inicio <= %s"]
@@ -192,7 +204,7 @@ def calificaciones(
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
-    _valida_familia(familia, "calificaciones")
+    _valida_familia(familia)
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["fecha_local >= %s", "fecha_local <= %s"]
@@ -234,7 +246,7 @@ def submissions(
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
-    _valida_familia(familia, "raw_submissions")
+    _valida_familia(familia)
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["fecha_local >= %s", "fecha_local <= %s"]
