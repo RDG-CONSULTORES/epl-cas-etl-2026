@@ -1,0 +1,50 @@
+name: PLOG DB Backup (off-site, cifrado)
+
+on:
+  schedule:
+    - cron: '0 8 * * *'        # 08:00 UTC ≈ 02:00 Monterrey, diario
+  workflow_dispatch: {}
+
+permissions:
+  contents: write               # para publicar el respaldo mensual como Release
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Dump del esquema plog (desde el contenedor Postgres)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway ssh --service Postgres 'pg_dump --schema=plog --no-owner --no-privileges "$DATABASE_URL"' > plog.sql
+          test -s plog.sql && grep -q "CREATE TABLE" plog.sql
+          gzip plog.sql
+
+      - name: Cifrar (AES256)
+        env:
+          GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --cipher-algo AES256 -c plog.sql.gz
+          mv plog.sql.gz.gpg "plog-$(date +%Y%m%d).sql.gz.gpg"
+
+      - name: Guardar respaldo diario (artifact, 90 días)
+        uses: actions/upload-artifact@v4
+        with:
+          name: plog-backup-${{ github.run_id }}
+          path: plog-*.sql.gz.gpg
+          retention-days: 90
+
+      - name: Respaldo mensual de largo plazo (día 1 del mes -> Release)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(date +%d)" = "01" ]; then
+            TAG="backup-$(date +%Y-%m)"
+            gh release create "$TAG" plog-*.sql.gz.gpg \
+              -t "Respaldo mensual $(date +%Y-%m)" \
+              -n "Respaldo cifrado (AES256) del esquema plog. Descifrar con la passphrase resguardada." \
+            || gh release upload "$TAG" plog-*.sql.gz.gpg --clobber
+          fi
