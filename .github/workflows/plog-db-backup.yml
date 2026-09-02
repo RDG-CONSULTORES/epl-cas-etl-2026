@@ -8,20 +8,24 @@ on:
 permissions:
   contents: write               # para publicar el respaldo mensual como Release
 
+env:
+  PLOG_BACKUP_URL: https://plog-web-production.up.railway.app/api/admin/backup
+
 jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - name: Instalar Railway CLI
-        run: npm i -g @railway/cli
-
-      - name: Dump del esquema plog (desde el contenedor Postgres)
+      - name: Descargar respaldo (pg_dump vía endpoint interno de plog-web)
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          BACKUP_TOKEN: ${{ secrets.PLOG_BACKUP_TOKEN }}
         run: |
-          railway ssh --service Postgres 'pg_dump --schema=plog --no-owner --no-privileges "$DATABASE_URL"' > plog.sql
-          test -s plog.sql && grep -q "CREATE TABLE" plog.sql
-          gzip plog.sql
+          curl -fsS --max-time 300 -H "X-Backup-Token: $BACKUP_TOKEN" \
+               "$PLOG_BACKUP_URL" -o plog.sql.gz
+          # Verificar que es un gzip válido y trae tablas (no un error truncado)
+          test -s plog.sql.gz
+          gzip -t plog.sql.gz
+          zcat plog.sql.gz | grep -q "CREATE TABLE"
+          echo "Respaldo OK: $(du -h plog.sql.gz | cut -f1)"
 
       - name: Cifrar (AES256)
         env:
