@@ -12,8 +12,9 @@ Fechas en zona horaria de Monterrey (America/Monterrey), formato ISO (YYYY-MM-DD
 from __future__ import annotations
 
 from datetime import date, timedelta
+from enum import Enum
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from etl_plog.api import apikeys
 from etl_plog.shared.db import conn
@@ -22,6 +23,31 @@ router = APIRouter(prefix="/api/v1", tags=["v1 (externo, solo lectura)"])
 
 LIMIT_DEF = 100
 LIMIT_MAX = 1000
+
+
+# Enums: un valor fuera del set devuelve 422 (evita el "200 vacío" que engaña al consumidor).
+class Zona(str, Enum):
+    nuevo_leon = "nuevo_leon"
+    laguna = "laguna"
+    queretaro = "queretaro"
+
+
+class Estado(str, Enum):
+    on_time = "on_time"
+    late = "late"
+    missed = "missed"
+    pending = "pending"
+
+
+def _valida_familia(familia: str | None) -> None:
+    """422 si la familia no existe en el catálogo (evita filtro silencioso a vacío)."""
+    if familia is None:
+        return
+    with conn() as c:
+        existe = c.execute(
+            "SELECT 1 FROM config_formularios WHERE familia=%s LIMIT 1", (familia,)).fetchone()
+    if not existe:
+        raise HTTPException(422, f"familia desconocida: '{familia}' (ver /api/v1/catalogo/formularios)")
 
 
 def _paging(limit: int, offset: int, filas: list) -> dict:
@@ -107,34 +133,37 @@ def cumplimiento(
     request: Request,
     desde: date | None = Query(None, description="Inicio (por defecto: hace 30 días)"),
     hasta: date | None = Query(None, description="Fin (por defecto: hoy)"),
-    zona: str | None = Query(None),
+    zona: Zona | None = Query(None),
     familia: str | None = Query(None),
     location_id: int | None = Query(None),
-    estado: str | None = Query(None, description="on_time | late | missed | pending"),
+    estado: Estado | None = Query(None, description="on_time | late | missed | pending"),
     limit: int = Query(LIMIT_DEF, ge=1, le=LIMIT_MAX),
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
+    _valida_familia(familia)
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["periodo_inicio >= %s", "periodo_inicio <= %s"]
     params: list = [desde, hasta]
     if zona:
-        where.append("zona = %s"); params.append(zona)
+        where.append("zona = %s"); params.append(zona.value)
     if familia:
         where.append("familia = %s"); params.append(familia)
     if location_id:
         where.append("location_id = %s"); params.append(location_id)
     if estado:
-        where.append("estado = %s"); params.append(estado)
+        where.append("estado = %s"); params.append(estado.value)
     if key.get("zonas"):
         where.append("zona = ANY(%s)"); params.append(key["zonas"])
+    # Orden con desempate ÚNICO (PK = familia,location_id,periodo_inicio) → paginación sin
+    # duplicados ni omisiones. periodo_inicio DESC solo NO era total-order (empataba).
     sql = f"""
         SELECT familia, zona, location_id, periodo_inicio, periodo_fin,
                estado, submission_id, ts_submission
         FROM cumplimiento
         WHERE {' AND '.join(where)}
-        ORDER BY periodo_inicio DESC, zona, location_id
+        ORDER BY periodo_inicio DESC, zona, location_id, familia
         LIMIT %s OFFSET %s"""
     params += [limit, offset]
     with conn() as c:
@@ -149,31 +178,33 @@ def calificaciones(
     request: Request,
     desde: date | None = Query(None),
     hasta: date | None = Query(None),
-    zona: str | None = Query(None),
+    zona: Zona | None = Query(None),
     familia: str | None = Query(None),
     location_id: int | None = Query(None),
     limit: int = Query(LIMIT_DEF, ge=1, le=LIMIT_MAX),
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
+    _valida_familia(familia)
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["fecha_local >= %s", "fecha_local <= %s"]
     params: list = [desde, hasta]
     if zona:
-        where.append("zona = %s"); params.append(zona)
+        where.append("zona = %s"); params.append(zona.value)
     if familia:
         where.append("familia = %s"); params.append(familia)
     if location_id:
         where.append("location_id = %s"); params.append(location_id)
     if key.get("zonas"):
         where.append("zona = ANY(%s)"); params.append(key["zonas"])
+    # Desempate único por submission_id (PK) → paginación estable.
     sql = f"""
         SELECT submission_id, familia, zona, location_id, fecha_local,
                score_total, areas
         FROM calificaciones
         WHERE {' AND '.join(where)}
-        ORDER BY fecha_local DESC, zona, location_id
+        ORDER BY fecha_local DESC, zona, location_id, submission_id
         LIMIT %s OFFSET %s"""
     params += [limit, offset]
     with conn() as c:
@@ -188,20 +219,21 @@ def submissions(
     request: Request,
     desde: date | None = Query(None),
     hasta: date | None = Query(None),
-    zona: str | None = Query(None),
+    zona: Zona | None = Query(None),
     familia: str | None = Query(None),
     location_id: int | None = Query(None),
     incluir_respuestas: bool = Query(False, description="Incluye el payload completo (más pesado)"),
-    limit: int = Query(LIMIT_DEF, ge=1, le=500),
+    limit: int = Query(LIMIT_DEF, ge=1, le=LIMIT_MAX),
     offset: int = Query(0, ge=0),
     key: dict = Depends(apikeys.require_api_key),
 ):
+    _valida_familia(familia)
     hasta = hasta or date.today()
     desde = desde or (hasta - timedelta(days=30))
     where = ["fecha_local >= %s", "fecha_local <= %s"]
     params: list = [desde, hasta]
     if zona:
-        where.append("zona = %s"); params.append(zona)
+        where.append("zona = %s"); params.append(zona.value)
     if familia:
         where.append("familia = %s"); params.append(familia)
     if location_id:
@@ -209,12 +241,13 @@ def submissions(
     if key.get("zonas"):
         where.append("zona = ANY(%s)"); params.append(key["zonas"])
     col_payload = ", payload" if incluir_respuestas else ""
+    # Desempate único por submission_id (PK) → paginación estable aunque ts_completed empate.
     sql = f"""
         SELECT submission_id, form_template_id, familia, location_id, zona,
                fecha_local, ts_completed, created_by{col_payload}
         FROM raw_submissions
         WHERE {' AND '.join(where)}
-        ORDER BY ts_completed DESC NULLS LAST
+        ORDER BY ts_completed DESC NULLS LAST, submission_id
         LIMIT %s OFFSET %s"""
     params += [limit, offset]
     with conn() as c:

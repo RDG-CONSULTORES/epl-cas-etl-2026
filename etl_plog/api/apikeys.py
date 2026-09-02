@@ -58,12 +58,19 @@ def revoca_api_key(key_id: int) -> bool:
 
 
 def _rate_limit(key_id: int) -> None:
+    import math
     ahora = time.monotonic()
     q = _hits.setdefault(key_id, deque())
     while q and ahora - q[0] > RATE_VENTANA:
         q.popleft()
     if len(q) >= RATE_MAX:
-        raise HTTPException(429, f"Límite de {RATE_MAX} solicitudes por minuto excedido")
+        # segundos hasta que la petición más vieja salga de la ventana → el cliente puede reintentar
+        retry = max(1, math.ceil(RATE_VENTANA - (ahora - q[0])))
+        raise HTTPException(
+            429, f"Límite de {RATE_MAX} solicitudes por minuto excedido",
+            headers={"Retry-After": str(retry),
+                     "X-RateLimit-Limit": str(RATE_MAX),
+                     "X-RateLimit-Remaining": "0"})
     q.append(ahora)
 
 

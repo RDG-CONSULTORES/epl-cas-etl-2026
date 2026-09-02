@@ -24,7 +24,25 @@ from etl_plog.api import admin, auth, backup, scoping, v1
 from etl_plog.shared.db import conn
 
 log = logging.getLogger("plog")
-app = FastAPI(title="Cumplimiento PLOG", docs_url="/api/docs", openapi_url="/api/openapi.json")
+# Docs/OpenAPI cerrados en prod (no exponer el mapa de rutas admin). Reactivar con PLOG_ENABLE_DOCS=1.
+_DOCS = os.environ.get("PLOG_ENABLE_DOCS") == "1"
+app = FastAPI(title="Cumplimiento PLOG",
+              docs_url="/api/docs" if _DOCS else None,
+              redoc_url=None,
+              openapi_url="/api/openapi.json" if _DOCS else None)
+
+
+@app.middleware("http")
+async def _cabeceras_seguridad(request: Request, call_next):
+    """Endurecimiento estándar en todas las respuestas (API + SPA /admin)."""
+    resp = await call_next(request)
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "DENY")
+    resp.headers.setdefault("Referrer-Policy", "no-referrer")
+    resp.headers.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+    return resp
+
+
 app.include_router(admin.router)
 app.include_router(v1.router)      # API pública v1 (externa, solo lectura, por API key)
 app.include_router(backup.router)  # respaldo off-site (pg_dump, por token, para cron de GitHub)
