@@ -18,7 +18,7 @@ El ETL PLOG está **vivo, sano y con cimientos sólidos**. Los **números diario
 |---|---|---|---|---|
 | D1 | **Gemelos de auditorías DO** (877138/877139/901109) no mapeados ni sincronizados → **subcuenta cobertura de auditorías** | 🔴 | ABIERTO | agregar FTs en `build_catalogo.py:71-72`, regenerar catálogo, re-ingesta; dedup por ventana ya cubierto |
 | D2 | ~~Histórico solo ~6 semanas~~ **RESUELTO**: verificado 2026-09-01, el raw ya tiene desde **2025-06-23** (47,394 subs, ~3.7k/mes parejo) y las derivadas cubren **cumplimiento 2025-01→2026-09 (51,593)** y **calificaciones 2025-06→2026-09 (6,808)**. La API v1 sirve todo ese histórico (probado jul/dic-2025, mar-2026). | ✅ | CERRADO | backfill previo ya corrido; NO re-escanear Zenput |
-| D3 | **`submission_id` no se guarda** (motor inserta `None`) → detalle no liga a la submission/PDF/foto | 🟡 | ABIERTO | propagar submission_id acreditado en `motor.py` (SELECT+INSERT) |
+| D3 | ~~`submission_id` no se guarda~~ **CERRADO (2026-09-02, Tanda B)**: motor acredita el `submission_id` (DISTINCT ON + propagación) y backfill de 32,877 filas on_time/late (join único verificado, 0 incoherentes; missed/pending quedan NULL). API: `/submissions?submission_id=X` para traer la submission por id. Trazabilidad probada end-to-end + swarm auditor (0 problemas). | ✅ | hecho |
 | D4 | Effectivity parcial (política nueva recalcula días previos no congelados) | 🟡 | deuda | `valid_from/valid_to` en config o congelar diario |
 | D5 | Depósito N-por-día contado como 1/día · Sin calendario de feriados/cierres | 🟡 | decisión negocio | requiere regla de Roberto/directores |
 
