@@ -17,7 +17,7 @@ El ETL PLOG está **vivo, sano y con cimientos sólidos**. Los **números diario
 | # | Hallazgo | Sev | Estado | Fix |
 |---|---|---|---|---|
 | D1 | **Gemelos de auditorías DO** (877138/877139/901109) no mapeados ni sincronizados → **subcuenta cobertura de auditorías** | 🔴 | ABIERTO | agregar FTs en `build_catalogo.py:71-72`, regenerar catálogo, re-ingesta; dedup por ventana ya cubierto |
-| D2 | **Histórico solo ~6 semanas** — Homero pide **desde ene-2026** (y YoY necesita 2025) | 🟡 | ABIERTO | correr backfill `raw_sync --desde 2025-01-01` + `motor.run(2026-01-01)` + `calificaciones` (script `backfill.py` de una sola vez) |
+| D2 | ~~Histórico solo ~6 semanas~~ **RESUELTO**: verificado 2026-09-01, el raw ya tiene desde **2025-06-23** (47,394 subs, ~3.7k/mes parejo) y las derivadas cubren **cumplimiento 2025-01→2026-09 (51,593)** y **calificaciones 2025-06→2026-09 (6,808)**. La API v1 sirve todo ese histórico (probado jul/dic-2025, mar-2026). | ✅ | CERRADO | backfill previo ya corrido; NO re-escanear Zenput |
 | D3 | **`submission_id` no se guarda** (motor inserta `None`) → detalle no liga a la submission/PDF/foto | 🟡 | ABIERTO | propagar submission_id acreditado en `motor.py` (SELECT+INSERT) |
 | D4 | Effectivity parcial (política nueva recalcula días previos no congelados) | 🟡 | deuda | `valid_from/valid_to` en config o congelar diario |
 | D5 | Depósito N-por-día contado como 1/día · Sin calendario de feriados/cierres | 🟡 | decisión negocio | requiere regla de Roberto/directores |
@@ -45,4 +45,4 @@ El ETL PLOG está **vivo, sano y con cimientos sólidos**. Los **números diario
 **Tanda 4 — decisiones de negocio:** D5 feriados/depósito · O4 proveedor de correo · D4 effectivity.
 
 ## PARA LA INTEGRACIÓN CON HOMERO (¿podemos contestar todo?)
-- **Sí**, salvo dos matices honestos: (a) **cobertura de auditorías DO** está subcontada hasta cerrar D1 — NO presentar ese número aún; (b) el **histórico** se entrega completo solo tras D2. El resto (cumplimiento diario, IDs, fechas, zona horaria, volumen, capacidad técnica) ya está respondido en el paquete de entrega.
+- **Sí**, con un solo matiz honesto: (a) **cobertura de auditorías DO** está subcontada hasta cerrar D1 — NO presentar ese número aún. El **histórico ya se entrega completo** (D2 cerrado: 2025-06→2026-09, servido por la API v1). El resto (cumplimiento diario, IDs, fechas, zona horaria, volumen, capacidad técnica) ya está respondido, ahora vía **API read-only v1** (`/api/v1`, X-API-Key) — ver `Entregable-Homero-Integracion-Zenput/API_PLOG_v1_Guia_Integracion.pdf`.
