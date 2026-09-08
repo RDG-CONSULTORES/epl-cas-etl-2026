@@ -1743,12 +1743,14 @@ function rangoPeriodos(periodos, fallback) {
 function loadAlertas() {
     var critContainer = document.getElementById('alertasCriticos');
     var warnContainer = document.getElementById('alertasWarning');
+    var gruposContainer = document.getElementById('alertasGrupos');
     var pendContainer = document.getElementById('alertasPendientes');
     var summaryContainer = document.getElementById('alertasSummary');
     var scopeEl = document.getElementById('alertasScope');
 
     if (critContainer) critContainer.innerHTML = loadingHtml();
     if (warnContainer) warnContainer.innerHTML = loadingHtml();
+    if (gruposContainer) gruposContainer.innerHTML = loadingHtml();
     if (pendContainer) pendContainer.innerHTML = loadingHtml();
     if (scopeEl) scopeEl.textContent = 'Calificación ' + tipoLabelTxt() + ' · ' + periodoLabelTxt();
 
@@ -1756,71 +1758,86 @@ function loadAlertas() {
     if (currentPeriodoId) {
         url += '?periodo_id=' + currentPeriodoId;
     }
-    var esAnio = (currentPeriodoId === 'all');
 
     fetchJson(url)
         .then(function(data) {
             var d = data.data || {};
             var alertas = d.alertas || [];
+            var periodoLbl = periodoLabelTxt();
+            // Sucursales por nivel (misma regla que la Distribución del header)
             var criticos = alertas.filter(function(a) { return a.tipo === 'critical'; });
+            var regulares = d.sucursales_regulares || [];
+            var pendientes = d.pendientes || [];
+            // Grupos por nivel (promedio del grupo): sección propia, NO se suman a las tarjetas
             var gruposCriticos = d.grupos_criticos || [];
             var gruposRiesgo = d.grupos_riesgo || alertas.filter(function(a) { return a.tipo === 'warning'; });
-            var pendientes = d.pendientes || [];
-            var totalCriticos = (d.total_criticos || 0) + gruposCriticos.length;
-            var totalRiesgo = (d.total_warnings !== undefined) ? d.total_warnings : gruposRiesgo.length;
+            var totalCriticos = (d.total_criticos !== undefined) ? d.total_criticos : criticos.length;
+            var totalRegulares = (d.total_regulares !== undefined) ? d.total_regulares : regulares.length;
             var totalPend = (d.total_pendientes !== undefined) ? d.total_pendientes : pendientes.length;
 
-            if (summaryContainer) {
-                summaryContainer.innerHTML =
-                    '<div class="alert-summary-card critical" aria-label="' + totalCriticos + ' críticas">' +
-                    '<span class="alert-count">' + totalCriticos + '</span>' +
-                    '<span class="alert-label">Críticas</span>' +
-                    '</div>' +
-                    '<div class="alert-summary-card warning" aria-label="' + totalRiesgo + ' en riesgo">' +
-                    '<span class="alert-count">' + totalRiesgo + '</span>' +
-                    '<span class="alert-label">En riesgo</span>' +
-                    '</div>' +
-                    '<div class="alert-summary-card pending" aria-label="' + totalPend + ' pendientes">' +
-                    '<span class="alert-count">' + totalPend + '</span>' +
-                    '<span class="alert-label">Pendientes</span>' +
+            function tarjeta(cls, n, label, sub) {
+                return '<div class="alert-summary-card ' + cls + '" aria-label="' + n + ' sucursales ' + label.toLowerCase() + '">' +
+                    '<span class="alert-count' + (n === 0 ? ' zero' : '') + '">' + n + '</span>' +
+                    '<span class="alert-label">' + label + '</span>' +
+                    '<span class="alert-sub">' + sub + '</span>' +
                     '</div>';
             }
+            if (summaryContainer) {
+                summaryContainer.innerHTML =
+                    tarjeta('critical', totalCriticos, 'Críticas', 'sucursales &lt;70') +
+                    tarjeta('regular', totalRegulares, 'Regulares', 'sucursales 70–79') +
+                    tarjeta('pending', totalPend, 'Pendientes', 'sin supervisión');
+            }
 
+            // Fila de grupo: nombre + pill de nivel + cobertura; la cifra en color una sola vez
             function grupoAlerta(g, cls) {
                 var prom = g.promedio;
-                var aria = 'Grupo ' + (g.grupo_nombre || g.nombre || '') + ', ' + fmt1(prom) + ', ' + nivelTxt(getColorClass(prom));
+                var nombre = g.grupo_nombre || g.nombre || '';
+                var nivel = nivelTxt(getColorClass(prom));
+                var aria = 'Grupo ' + nombre + ', ' + fmt1(prom) + ', ' + nivel + ', ' + coberturaTxt(g.evaluadas, g.activas);
                 return '<div class="alerta-item ' + cls + ' grupo" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openGrupoModal(' + g.grupo_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGrupoModal(' + g.grupo_id + ')}">' +
                     '<div class="alerta-info">' +
-                    '<span class="alerta-name">' + (cls === 'critical' ? 'Grupo crítico: ' : 'Grupo en riesgo: ') + (g.grupo_nombre || g.nombre || '') + '</span>' +
-                    '<span class="alerta-meta">' + coberturaTxt(g.evaluadas, g.activas) + ' · promedio del grupo</span>' +
+                    '<span class="alerta-name" title="' + escAttr(nombre) + '"><span class="alerta-pill ' + cls + '">' + nivel + '</span>' + nombre + '</span>' +
+                    '<span class="alerta-meta">Promedio del grupo · ' + coberturaTxt(g.evaluadas, g.activas) + '</span>' +
                     '</div>' +
                     '<span class="alerta-score">' + fmt1(prom) + '</span>' +
                     '</div>';
             }
 
-            function sucursalAlerta(item) {
-                var nombre = item.sucursal_nombre || (item.titulo || '').replace(/^.*?:\s*/, '');
-                var grupo = item.grupo_nombre || '';
-                var aria = nombre + ', ' + fmt1(item.promedio) + ', crítico' + (grupo ? ', ' + grupo : '');
-                return '<div class="alerta-item critical" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + item.sucursal_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + item.sucursal_id + ')}">' +
+            // Fila de sucursal: nombre (sin prefijo; el encabezado ya dice el nivel), grupo, cifra una vez
+            function sucursalAlerta(item, cls) {
+                var nombre = item.sucursal_nombre || item.nombre || (item.titulo || '').replace(/^.*?:\s*/, '');
+                var grupo = item.grupo_nombre || item.grupo || '';
+                var aria = nombre + ', ' + fmt1(item.promedio) + ', ' + nivelTxt(cls) + (grupo ? ', ' + grupo : '');
+                return '<div class="alerta-item ' + cls + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + item.sucursal_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + item.sucursal_id + ')}">' +
                     '<div class="alerta-info">' +
-                    '<span class="alerta-name">Rendimiento crítico: ' + nombre + '</span>' +
-                    '<span class="alerta-meta">' + (grupo ? grupo + ' · ' : '') + fmt1(item.promedio) + '</span>' +
+                    '<span class="alerta-name" title="' + escAttr(nombre) + '">' + nombre + '</span>' +
+                    '<span class="alerta-meta">' + (grupo || '—') + '</span>' +
                     '</div>' +
                     '<span class="alerta-score">' + fmt1(item.promedio) + '</span>' +
                     '</div>';
             }
 
             if (critContainer) {
-                var critHtml = gruposCriticos.map(function(g) { return grupoAlerta(g, 'critical'); }).join('') +
-                    criticos.map(sucursalAlerta).join('');
-                critContainer.innerHTML = critHtml || '<div class="empty-state success-msg">Sin sucursales ni grupos críticos (&lt;70)</div>';
+                critContainer.innerHTML = criticos.length
+                    ? criticos.map(function(a) { return sucursalAlerta(a, 'critical'); }).join('')
+                    : '<div class="empty-state success-msg">✓ Ninguna sucursal por debajo de 70 en ' + periodoLbl + '</div>';
             }
 
             if (warnContainer) {
-                warnContainer.innerHTML = gruposRiesgo.length
-                    ? gruposRiesgo.map(function(g) { return grupoAlerta(g, 'warning'); }).join('')
-                    : '<div class="empty-state success-msg">Sin grupos en riesgo (70–79)</div>';
+                warnContainer.innerHTML = regulares.length
+                    ? regulares.map(function(a) { return sucursalAlerta(a, 'regular'); }).join('')
+                    : '<div class="empty-state success-msg">✓ Ninguna sucursal en 70–79 en ' + periodoLbl + '</div>';
+            }
+
+            if (gruposContainer) {
+                var gruposTitle = document.getElementById('gruposTitle');
+                var nGrupos = gruposCriticos.length + gruposRiesgo.length;
+                if (gruposTitle) gruposTitle.textContent = 'Grupos que requieren atención' + (nGrupos ? ' (' + nGrupos + ')' : '');
+                gruposContainer.innerHTML = nGrupos
+                    ? gruposCriticos.map(function(g) { return grupoAlerta(g, 'critical'); }).join('') +
+                      gruposRiesgo.map(function(g) { return grupoAlerta(g, 'regular'); }).join('')
+                    : '<div class="empty-state success-msg">✓ Ningún grupo con promedio menor a 80 en ' + periodoLbl + '</div>';
             }
 
             if (pendContainer) {
@@ -1860,6 +1877,7 @@ function loadAlertas() {
             if (summaryContainer) summaryContainer.innerHTML = '';
             if (critContainer) renderError(critContainer, loadAlertas);
             if (warnContainer) warnContainer.innerHTML = '';
+            if (gruposContainer) gruposContainer.innerHTML = '';
             if (pendContainer) pendContainer.innerHTML = '';
         });
 }

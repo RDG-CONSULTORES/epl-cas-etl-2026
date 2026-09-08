@@ -1735,6 +1735,23 @@ def api_alertas(tipo):
             }
             (grupos_criticos if prom < 70 else grupos_riesgo).append(item)
 
+        # Sucursales REGULARES (70–79) en el alcance: mismo CTE `ult` que las críticas, para que
+        # Alertas cuadre con la Distribución del header (aditivo; no toca `alertas`).
+        query_regulares = f"""
+            WITH {_score_cte(tabla, con_periodo, anio)}
+            SELECT s.id, s.nombre, g.id AS grupo_id, g.nombre AS grupo, u.calificacion_general AS promedio
+            FROM ult u
+            JOIN sucursales s ON u.sucursal_id = s.id AND s.activo = true
+            LEFT JOIN grupos_operativos g ON s.grupo_operativo_id = g.id
+            WHERE u.calificacion_general >= 70 AND u.calificacion_general < 80
+            ORDER BY promedio
+        """
+        sucursales_regulares = [
+            {'sucursal_id': r[0], 'nombre': r[1], 'grupo_id': r[2], 'grupo': r[3],
+             'promedio': round(float(r[4]), 2)}
+            for r in db.session.execute(text(query_regulares), params)
+        ]
+
         # Pendientes de supervisar: activas sin visita en el trimestre (o en el año en modo 'all')
         if con_periodo:
             filtro_visita = "x.periodo_id = :periodo_id"
@@ -1759,6 +1776,8 @@ def api_alertas(tipo):
                 'total_warnings': len([a for a in alertas if a['tipo'] == 'warning']),
                 'grupos_criticos': grupos_criticos,
                 'grupos_riesgo': grupos_riesgo,
+                'sucursales_regulares': sucursales_regulares,
+                'total_regulares': len(sucursales_regulares),
                 'pendientes': pendientes,
                 'total_pendientes': len(pendientes)
             }
