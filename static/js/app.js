@@ -77,6 +77,7 @@ function updateHash() {
     parts.push('r=' + currentView);
     var newHash = '#' + parts.join('&');
     if (window.location.hash === newHash) return;
+    lastAppHash = newHash; // hash escrito por la app: hashchange lo ignora
     try {
         // replaceState: no llena el historial (el gesto "atrás" sigue reservado a los modales)
         history.replaceState(history.state, '', newHash);
@@ -85,10 +86,23 @@ function updateHash() {
     }
 }
 
+// Deep link en una pestaña ya abierta (B4): si el hash cambia desde fuera de la app
+// (usuario/enlace), se cierran los modales y se aplica el estado nuevo.
+var lastAppHash = null;
+window.addEventListener('hashchange', function() {
+    if (window.location.hash === lastAppHash) return; // lo escribió la app
+    if (openModalsCount) closeModalsAbove(0);
+    applyHashState();
+    loadPeriodoContexto();
+});
+
 // Activa una pestaña (UI). Si load=true carga su contenido.
+// Al cambiar de pestaña se vuelve arriba: cada vista empieza por su título y contadores (M2).
 function setActiveTab(tabId, load) {
     if (TABS_VALIDAS.indexOf(tabId) < 0) tabId = 'dashboard';
+    var cambia = (tabId !== currentTab);
     currentTab = tabId;
+    if (cambia) { try { window.scrollTo(0, 0); } catch (e) { /* ignorar */ } }
     document.querySelectorAll('.bottom-tab').forEach(function(b) {
         var on = b.dataset.tab === tabId;
         b.classList.toggle('active', on);
@@ -220,11 +234,19 @@ window.addEventListener('popstate', function(e) {
 });
 
 // ========== iOS MODAL FIX ==========
+// Foco (M13): al abrir el primer modal se guarda el elemento activo y el fondo queda
+// inerte; al cerrar el último se restaura el foco donde estaba.
+var focusAntesDeModal = null;
 function lockBodyScroll() {
     if (openModalsCount === 0) {
         scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
         document.body.classList.add('modal-open');
         document.body.style.top = -scrollPosition + 'px';
+        focusAntesDeModal = document.activeElement;
+        var app = document.querySelector('.app-container');
+        if (app) app.setAttribute('inert', '');
+        var nav = document.querySelector('.bottom-nav');
+        if (nav) nav.setAttribute('inert', '');
     }
     openModalsCount++;
 }
@@ -236,8 +258,32 @@ function unlockBodyScroll() {
         document.body.classList.remove('modal-open');
         document.body.style.top = '';
         window.scrollTo(0, scrollPosition);
+        var app = document.querySelector('.app-container');
+        if (app) app.removeAttribute('inert');
+        var nav = document.querySelector('.bottom-nav');
+        if (nav) nav.removeAttribute('inert');
+        if (focusAntesDeModal && focusAntesDeModal.focus && document.contains(focusAntesDeModal)) {
+            try { focusAntesDeModal.focus({ preventScroll: true }); } catch (e) { /* ignorar */ }
+        }
+        focusAntesDeModal = null;
     }
 }
+
+// Mueve el foco al contenedor del modal (tabindex=-1) para lectores de pantalla/teclado
+function focusModal(overlay) {
+    var c = overlay ? overlay.querySelector('.modal-container') : null;
+    if (!c) return;
+    c.setAttribute('tabindex', '-1');
+    try { c.focus({ preventScroll: true }); } catch (e) { /* ignorar */ }
+}
+
+// Escape cierra lo que esté encima: popup ⓘ → modal/sheet superior
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    var popup = document.querySelector('.info-popup-overlay');
+    if (popup) { popup.remove(); return; }
+    if (openModalsCount > 0) { e.preventDefault(); closeTopModal(); }
+});
 
 function forceRepaint(element) {
     // Forzar repaint en iOS
@@ -252,14 +298,20 @@ function forceRepaint(element) {
 function showInfoPopup(title, html) {
     var ov = document.createElement('div');
     ov.className = 'info-popup-overlay';
-    ov.innerHTML = '<div class="info-popup">' +
+    ov.innerHTML = '<div class="info-popup" role="dialog" aria-modal="true" aria-label="' + escAttr(String(title).replace(/<[^>]+>/g, '')) + '">' +
         '<div class="info-popup-head"><span>' + title + '</span>' +
-        '<button class="info-popup-close" aria-label="Cerrar">&times;</button></div>' +
+        '<button type="button" class="info-popup-close" aria-label="Cerrar">&times;</button></div>' +
         '<div class="info-popup-body">' + html + '</div></div>';
     document.body.appendChild(ov);
-    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    var abridor = document.activeElement;
+    function close() {
+        if (ov.parentNode) ov.parentNode.removeChild(ov);
+        if (abridor && abridor.focus && document.contains(abridor)) { try { abridor.focus({ preventScroll: true }); } catch (e) { /* ignorar */ } }
+    }
     ov.addEventListener('click', function(e) { if (e.target === ov) close(); });
-    ov.querySelector('.info-popup-close').addEventListener('click', close);
+    var closeBtn = ov.querySelector('.info-popup-close');
+    closeBtn.addEventListener('click', close);
+    try { closeBtn.focus({ preventScroll: true }); } catch (e) { /* ignorar */ }
 }
 
 // Explica cómo se calcula el "Año N" (promedio de los trimestres del año) según el contexto
@@ -660,20 +712,29 @@ function fmt1(v) {
 
 var MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-// "2026-08-11" → "11 ago 2026"
+// Acepta "2026-08-11" (ISO) o "11/08/2026" (dd/mm/aaaa) → [aaaa, mm, dd] o null
+function partesFecha(s) {
+    if (!s) return null;
+    var t = String(s).split(' ')[0];
+    var p;
+    if (t.indexOf('/') >= 0) { p = t.split('/'); if (p.length < 3) return null; return [p[2], p[1], p[0]]; }
+    p = t.split('-');
+    if (p.length < 3) return null;
+    return [p[0], p[1], p[2]];
+}
+
+// "2026-08-11" → "11 ago 2026" (formato "d mmm aaaa" en todo el producto)
 function fmtFecha(iso) {
-    if (!iso) return '';
-    var p = String(iso).split(' ')[0].split('-');
-    if (p.length < 3) return iso;
+    var p = partesFecha(iso);
+    if (!p) return iso || '';
     return parseInt(p[2], 10) + ' ' + MESES_CORTOS[parseInt(p[1], 10) - 1] + ' ' + p[0];
 }
 
 // "2026-08-11" → "11 ago 26" (barras de tendencia: siempre con año, en corto)
 function fmtFechaCorta(iso) {
-    if (!iso) return '';
-    var p = String(iso).split(' ')[0].split('-');
-    if (p.length < 3) return iso;
-    return parseInt(p[2], 10) + ' ' + MESES_CORTOS[parseInt(p[1], 10) - 1] + ' ' + p[0].slice(2);
+    var p = partesFecha(iso);
+    if (!p) return iso || '';
+    return parseInt(p[2], 10) + ' ' + MESES_CORTOS[parseInt(p[1], 10) - 1] + ' ' + String(p[0]).slice(2);
 }
 
 // Posición por competencia (1, 1, 3): mismo valor mostrado = misma posición
@@ -773,12 +834,25 @@ function loadKPIs() {
                     var val = q.futuro ? '—' : fmt1(q.promedio);
                     var vcls = q.futuro ? '' : getColorClass(q.promedio);
                     var sub = q.futuro ? 'Próximo' : (q.en_curso ? q.evaluadas + '/' + q.activas : (q.promedio === null ? 'sin datos' : qLbl === '' ? '' : q.evaluadas + '/' + q.activas));
-                    return '<div class="' + cls + '" role="button" tabindex="0" ' + (q.futuro ? 'aria-disabled="true"' : 'onclick="selectPeriodo(' + q.id + ')"') +
-                        ' aria-label="' + qLbl + ' ' + d.anio + '"><b class="' + vcls + '">' + val + '</b><span>' + qLbl + ' · ' + sub + '</span></div>';
+                    var selQ = (!esAnio && currentPeriodoId == q.id);
+                    return '<div class="' + cls + '" role="button" tabindex="0" ' + (q.futuro ? 'aria-disabled="true"' : 'onclick="selectPeriodo(' + q.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();selectPeriodo(' + q.id + ')}"') +
+                        ' aria-pressed="' + (selQ ? 'true' : 'false') + '" aria-label="' + qLbl + ' ' + d.anio + (q.en_curso ? ', en curso' : '') + (q.futuro ? ', próximo' : '') + '"><b class="' + vcls + '">' + val + '</b><span>' + qLbl + ' · ' + sub + '</span></div>';
                 }).join('');
             }
 
             // 4) Año N (en curso hasta cerrar Q4) y Año N-1 (cerrado, referencia)
+            // En modo año la tarjeta "Año N" es la seleccionada (el chip Q3 no lleva acento); tocarla selecciona el año
+            var anioCard = el('kpiAnio') ? el('kpiAnio').closest('.kpi-card') : null;
+            if (anioCard) {
+                anioCard.classList.toggle('sel', esAnio);
+                anioCard.classList.add('clickable');
+                anioCard.setAttribute('role', 'button');
+                anioCard.setAttribute('tabindex', '0');
+                anioCard.setAttribute('aria-pressed', esAnio ? 'true' : 'false');
+                anioCard.setAttribute('aria-label', 'Año ' + d.anio + ', ' + fmt1(d.promedio_acumulado) + ', ' + nivelTxt(getColorClass(d.promedio_acumulado)));
+                anioCard.onclick = function() { if (!esAnio) selectPeriodo('all'); };
+                anioCard.onkeydown = function(ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); if (!esAnio) selectPeriodo('all'); } };
+            }
             if (el('kpiAnioLabel')) el('kpiAnioLabel').textContent = 'Año ' + d.anio;
             if (el('kpiAnio')) {
                 el('kpiAnio').textContent = fmt1(d.promedio_acumulado);
@@ -1111,6 +1185,7 @@ function openGrupoModal(grupoId) {
 
     // Forzar repaint para iOS
     forceRepaint(container);
+    focusModal(overlay);
 
     // Pasar el trimestre seleccionado para que el drill-down COINCIDA con el
     // ranking y el mapa (antes mostraba el histórico de todos los años).
@@ -1244,6 +1319,7 @@ function openSucursalModal(sucursalId) {
     setTimeout(function() {
         forceRepaint(overlay);
     }, 10);
+    focusModal(overlay);
 
     // El número/áreas reflejan el trimestre seleccionado (coincide con ranking/mapa).
     // La tendencia SÍ va sin periodo: muestra la historia trimestre a trimestre.
@@ -1859,7 +1935,7 @@ function loadAlertas() {
                         var items = porGrupo[k].map(function(p) {
                             return '<div class="alerta-item pending" role="button" tabindex="0" aria-label="' + escAttr(p.nombre + ', pendiente de supervisar, ' + k) + '" onclick="openSucursalModal(' + p.sucursal_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + p.sucursal_id + ')}">' +
                                 '<div class="alerta-info">' +
-                                '<span class="alerta-name">' + p.nombre + '</span>' +
+                                '<span class="alerta-name" title="' + escAttr(p.nombre) + '">' + p.nombre + '</span>' +
                                 '<span class="alerta-meta">Sin supervisión en ' + periodoLabelTxt() + '</span>' +
                                 '</div>' +
                                 '<span class="alerta-score gray">—</span>' +
