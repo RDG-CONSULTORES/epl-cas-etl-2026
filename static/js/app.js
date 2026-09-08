@@ -48,6 +48,34 @@ function forceRepaint(element) {
     }
 }
 
+// ========== POPUP INFORMATIVO (reutilizable) ==========
+function showInfoPopup(title, html) {
+    var ov = document.createElement('div');
+    ov.className = 'info-popup-overlay';
+    ov.innerHTML = '<div class="info-popup">' +
+        '<div class="info-popup-head"><span>' + title + '</span>' +
+        '<button class="info-popup-close" aria-label="Cerrar">&times;</button></div>' +
+        '<div class="info-popup-body">' + html + '</div></div>';
+    document.body.appendChild(ov);
+    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    ov.addEventListener('click', function(e) { if (e.target === ov) close(); });
+    ov.querySelector('.info-popup-close').addEventListener('click', close);
+}
+
+// Explica cómo se calcula el "Acumulado del Año" según el contexto
+function showAcumuladoInfo(scope, anio) {
+    var como;
+    if (scope === 'sucursal') {
+        como = 'Es el <strong>promedio</strong> de las calificaciones de esta sucursal en los trimestres del año ' + anio + ' (una visita por trimestre).';
+    } else if (scope === 'grupo') {
+        como = 'Es el <strong>promedio</strong> de las calificaciones de las sucursales del grupo durante los trimestres del año ' + anio + '. Cada sucursal pesa igual.';
+    } else {
+        como = 'Es el <strong>promedio</strong> de las calificaciones de los trimestres del año ' + anio + '. Cada sucursal pesa igual.';
+    }
+    showInfoPopup('¿Cómo se calcula el Acumulado del Año?',
+        como + '<br><br>Solo cuenta lo de <strong>' + anio + '</strong> — no incluye años anteriores. Se reinicia cada 1 de enero.');
+}
+
 // ========== THEME TOGGLE ==========
 function initTheme() {
     // Cargar tema guardado o usar dark por defecto
@@ -162,12 +190,12 @@ function openPeriodSheet() {
     // Generar opciones - empezar con "Todos"
     var html = '';
 
-    // Opción "Todos los periodos"
+    // Opción "Acumulado del Año" = promedio de los trimestres del año en curso
     var isAllSelected = currentPeriodoId === 'all';
     html += '<div class="period-option ' + (isAllSelected ? 'selected' : '') + '" data-id="all">' +
         '<div class="period-option-info">' +
-            '<span class="period-option-name">Todos</span>' +
-            '<span class="period-option-dates">Historico acumulado</span>' +
+            '<span class="period-option-name">Acumulado del Año</span>' +
+            '<span class="period-option-dates">Promedio de los trimestres de este año</span>' +
         '</div>' +
         '<div class="period-option-check">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
@@ -232,21 +260,21 @@ function selectPeriodo(periodoId) {
     var periodName = document.getElementById('periodName');
 
     if (periodoId === 'all') {
-        // Seleccionar "Todos"
+        // Seleccionar "Acumulado del Año"
         currentPeriodoId = 'all';
         currentPeriodo = null;
 
         if (periodName) {
-            periodName.textContent = 'Todos';
+            periodName.textContent = 'Acumulado del Año';
         }
 
         // Cerrar sheet y recargar
         closePeriodSheet();
         loadDashboard();
-        // No actualizamos progreso porque es acumulado
+        // En modo año mostramos avance del año (revisadas / activas)
         var progressText = document.getElementById('progressText');
         if (progressText) {
-            progressText.textContent = 'Acumulado';
+            progressText.textContent = 'Año';
         }
         return;
     }
@@ -406,17 +434,43 @@ function loadKPIs() {
                     promEl.className = 'kpi-value ' + (d.color || 'gray');
                 }
 
-                // Label y acumulado
+                // Label y acumulado (etiquetas claras, sin tecnicismos)
+                // M4 Tendencia: flecha ▲/▼/▬ + Δ vs trimestre anterior (en la tarjeta principal)
+                var trendEl = document.getElementById('kpiTrend');
+                if (trendEl) {
+                    var t = (currentPeriodoId !== 'all') ? d.tendencia : null;
+                    if (t && t.direccion) {
+                        var arrow = t.direccion === 'up' ? '▲' : (t.direccion === 'down' ? '▼' : '▬');
+                        var deltaTxt = (t.delta > 0 ? '+' : '') + t.delta;
+                        trendEl.className = 'kpi-trend ' + t.direccion;
+                        trendEl.innerHTML = arrow + ' ' + deltaTxt + ' vs ' + t.vs +
+                            (t.preliminar ? ' <span class="prelim-tag">preliminar</span>' : '');
+                        trendEl.style.display = '';
+                    } else {
+                        trendEl.style.display = 'none';
+                        trendEl.innerHTML = '';
+                    }
+                }
+
+                var nombreAcum = d.nombre_acumulado || 'Acumulado del Año';
                 if (currentPeriodoId === 'all') {
-                    // Modo "Todos" - solo mostrar acumulado
-                    if (promLabelEl) promLabelEl.textContent = 'Promedio Acumulado';
+                    // Modo "Acumulado del Año" - promedio de los trimestres del año en curso
+                    if (promLabelEl) promLabelEl.textContent = nombreAcum;
                     if (acumEl) acumEl.style.display = 'none';
                 } else {
-                    // Modo periodo específico - mostrar ambos
-                    if (promLabelEl) promLabelEl.textContent = 'Promedio Periodo';
+                    // Modo trimestre específico
+                    var periodoTxt = (currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre';
+                    var revisadas = d.sucursales_supervisadas || 0;
+                    var totalSuc = d.total_sucursales || 86;
+                    var enCurso = revisadas < totalSuc;
+                    // Badge "En curso (x/y)" cuando el trimestre aún no llega a 86/86
+                    if (promLabelEl) {
+                        promLabelEl.textContent = 'Calificación ' + periodoTxt +
+                            (enCurso ? ' · En curso (' + revisadas + '/' + totalSuc + ')' : '');
+                    }
                     if (acumEl) {
                         acumEl.style.display = 'block';
-                        acumEl.textContent = 'Acum: ' + (d.promedio_acumulado ? d.promedio_acumulado + '%' : '-');
+                        acumEl.textContent = nombreAcum + ': ' + (d.promedio_acumulado ? d.promedio_acumulado + '%' : '-');
                     }
                 }
 
@@ -633,7 +687,12 @@ function openGrupoModal(grupoId) {
     // Forzar repaint para iOS
     forceRepaint(container);
 
-    fetch('/api/grupo/' + grupoId + '/' + currentTipo)
+    // Pasar el trimestre seleccionado para que el drill-down COINCIDA con el
+    // ranking y el mapa (antes mostraba el histórico de todos los años).
+    var grupoUrl = '/api/grupo/' + grupoId + '/' + currentTipo;
+    if (currentPeriodoId) grupoUrl += '?periodo_id=' + currentPeriodoId;
+
+    fetch(grupoUrl)
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success && data.data) {
@@ -643,16 +702,53 @@ function openGrupoModal(grupoId) {
                 var colorClass = g.color || getColorClass(g.promedio);
 
                 var sucursalesHtml = (g.sucursales || []).map(function(s, i) {
-                    var sColorClass = s.color || getColorClass(s.promedio);
+                    var pendiente = !s.supervisiones;
+                    var sColorClass = pendiente ? 'gray' : (s.color || getColorClass(s.promedio));
+                    var scoreTxt = pendiente ? '—' : s.promedio;
+                    var metaTxt = pendiente ? 'Sin revision este trimestre' : ((s.supervisiones || 0) + ' revision' + ((s.supervisiones || 0) === 1 ? '' : 'es'));
                     return '<div class="modal-list-item" onclick="openSucursalModal(' + s.id + ')">' +
                         '<span class="ranking-pos pos-' + (i + 1) + '">' + (i + 1) + '</span>' +
                         '<div class="ranking-info">' +
                         '<span class="ranking-name">' + s.nombre + '</span>' +
-                        '<span class="ranking-meta">' + (s.supervisiones || 0) + ' supervisiones</span>' +
+                        '<span class="ranking-meta">' + metaTxt + '</span>' +
                         '</div>' +
-                        '<span class="ranking-score ' + sColorClass + '">' + s.promedio + '</span>' +
+                        '<span class="ranking-score ' + sColorClass + '">' + scoreTxt + '</span>' +
                         '</div>';
                 }).join('');
+
+                // Tendencia por trimestre: chips que se "prenden" + flecha ↑/↓/▬
+                var tendenciaHtml = '';
+                if (g.tendencia && g.tendencia.length) {
+                    var chips = g.tendencia.map(function(t) {
+                        var qLabel = (t.codigo || '').split('-')[0];
+                        var score = t.tiene_dato ? t.promedio : '—';
+                        var arrow = '';
+                        if (t.direccion === 'up') arrow = '<span class="trend-arrow up">▲</span>';
+                        else if (t.direccion === 'down') arrow = '<span class="trend-arrow down">▼</span>';
+                        else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat">▬</span>';
+                        var deltaTxt = (t.delta !== null && t.delta !== undefined)
+                            ? ((t.delta > 0 ? '+' : '') + t.delta) : '';
+                        var cls = t.tiene_dato ? t.color : 'off';
+                        return '<div class="trend-chip ' + cls + '" title="' + (t.nombre || '') +
+                                (deltaTxt ? ' · ' + deltaTxt + ' vs trim. anterior' : '') + '">' +
+                            '<span class="trend-q">' + qLabel + '</span>' +
+                            '<span class="trend-score">' + score + '</span>' +
+                            arrow +
+                            '</div>';
+                    }).join('');
+                    var anioTxt = g.anio || '';
+                    var promAnioHtml = '';
+                    if (g.promedio_anio !== null && g.promedio_anio !== undefined) {
+                        promAnioHtml = '<span class="trend-anio ' + (g.color_anio || 'gray') + '">' +
+                            'Acumulado del Año ' + anioTxt + ': <strong>' + g.promedio_anio + '%</strong>' +
+                            '<button class="info-i" onclick="showAcumuladoInfo(\'grupo\', ' + (anioTxt || 0) + ')" aria-label="Cómo se calcula">i</button></span>';
+                    }
+                    tendenciaHtml = '<div class="trend-head">' +
+                        '<h4 class="modal-section-title">Tendencia por trimestre</h4>' +
+                        promAnioHtml +
+                        '</div>' +
+                        '<div class="trend-chips">' + chips + '</div>';
+                }
 
                 body.innerHTML = '<div class="modal-kpi">' +
                     '<span class="modal-kpi-value ' + colorClass + '">' + g.promedio + '</span>' +
@@ -662,6 +758,7 @@ function openGrupoModal(grupoId) {
                     '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">Supervisiones</span></div>' +
                     '<div class="modal-stat"><span class="stat-value">' + (g.total_sucursales || 0) + '</span><span class="stat-label">Sucursales</span></div>' +
                     '</div>' +
+                    tendenciaHtml +
                     '<h4 class="modal-section-title">Sucursales del Grupo</h4>' +
                     '<div class="modal-list">' + sucursalesHtml + '</div>';
 
@@ -713,9 +810,14 @@ function openSucursalModal(sucursalId) {
         forceRepaint(overlay);
     }, 10);
 
+    // El número/áreas reflejan el trimestre seleccionado (coincide con ranking/mapa).
+    // La tendencia SÍ va sin periodo: muestra la historia trimestre a trimestre.
+    var sucUrl = '/api/sucursal/' + sucursalId + '/' + currentTipo;
+    if (currentPeriodoId) sucUrl += '?periodo_id=' + currentPeriodoId;
+
     // Cargar datos de sucursal y tendencia en paralelo
     Promise.all([
-        fetch('/api/sucursal/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); }),
+        fetch(sucUrl).then(function(r) { return r.json(); }),
         fetch('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); })
     ]).then(function(results) {
         var sucData = results[0];
@@ -755,6 +857,35 @@ function openSucursalModal(sucursalId) {
                     '</div>';
             }
 
+            // Tendencia por trimestre (chips que se prenden + flecha), igual que el grupo
+            var trendQHtml = '';
+            if (s.tendencia && s.tendencia.length) {
+                var sChips = s.tendencia.map(function(t) {
+                    var qLabel = (t.codigo || '').split('-')[0];
+                    var score = t.tiene_dato ? t.promedio : '—';
+                    var arrow = '';
+                    if (t.direccion === 'up') arrow = '<span class="trend-arrow up">▲</span>';
+                    else if (t.direccion === 'down') arrow = '<span class="trend-arrow down">▼</span>';
+                    else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat">▬</span>';
+                    var deltaTxt = (t.delta !== null && t.delta !== undefined) ? ((t.delta > 0 ? '+' : '') + t.delta) : '';
+                    var cls = t.tiene_dato ? t.color : 'off';
+                    return '<div class="trend-chip ' + cls + '" title="' + (t.nombre || '') +
+                            (deltaTxt ? ' · ' + deltaTxt + ' vs trim. anterior' : '') + '">' +
+                        '<span class="trend-q">' + qLabel + '</span>' +
+                        '<span class="trend-score">' + score + '</span>' + arrow +
+                        '</div>';
+                }).join('');
+                var sPromAnioHtml = '';
+                if (s.promedio_anio !== null && s.promedio_anio !== undefined) {
+                    sPromAnioHtml = '<span class="trend-anio ' + (s.color_anio || 'gray') + '">' +
+                        'Acumulado del Año ' + (s.anio || '') + ': <strong>' + s.promedio_anio + '%</strong>' +
+                        '<button class="info-i" onclick="showAcumuladoInfo(\'sucursal\', ' + (s.anio || 0) + ')" aria-label="Cómo se calcula">i</button></span>';
+                }
+                trendQHtml = '<div class="trend-head">' +
+                    '<h4 class="modal-section-title">Tendencia por trimestre</h4>' + sPromAnioHtml +
+                    '</div><div class="trend-chips">' + sChips + '</div>';
+            }
+
             // Construir HTML de áreas/KPIs (en contenedor actualizable)
             var areasHtml = '';
             var areasTypeLabel = currentTipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
@@ -784,16 +915,24 @@ function openSucursalModal(sucursalId) {
                     '</div>';
             }
 
-            body.innerHTML = '<div class="modal-kpi">' +
-                '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '%</span>' +
-                '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
-                (s.fecha_supervision ? '<span class="modal-kpi-date">Ultima: ' + s.fecha_supervision.split(' ')[0] + '</span>' : '') +
-                '</div>' +
+            // Si NO hubo revisión en el trimestre seleccionado, no mostrar "0%" (rojo)
+            var sinRevision = !s.fecha_supervision;
+            var kpiHtml = sinRevision
+                ? '<div class="modal-kpi"><span class="modal-kpi-value gray">—</span>' +
+                  '<span class="modal-kpi-label">Sin revision en este trimestre</span></div>'
+                : '<div class="modal-kpi">' +
+                  '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '%</span>' +
+                  '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
+                  '<span class="modal-kpi-date">' + s.fecha_supervision.split(' ')[0] + '</span>' +
+                  '</div>';
+
+            body.innerHTML = kpiHtml +
                 infoHtml +
                 '<div class="modal-stats">' +
                 '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '-') + '</span><span class="stat-label">Supervisor</span></div>' +
                 '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '-') + '</span><span class="stat-label">Grupo</span></div>' +
                 '</div>' +
+                trendQHtml +
                 tendenciaHtml +
                 areasHtml;
 
@@ -1014,6 +1153,7 @@ function loadHistorico() {
             if (data.success && data.data) {
                 var periodos = data.data.periodos || [];
                 var grupos = data.data.grupos || [];
+                var eplCas = data.data.epl_cas || null;
 
                 if (grupos.length === 0) {
                     container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
@@ -1024,18 +1164,31 @@ function loadHistorico() {
                     return '<div class="heatmap-period">' + ((p.nombre || '').substring(0, 12)) + '</div>';
                 }).join('');
 
-                var bodyHtml = grupos.slice(0, 15).map(function(g) {
-                    var cellsHtml = periodos.map(function(p) {
-                        var periodoData = g.periodos[p.nombre] || {};
-                        var val = periodoData.promedio;
-                        var colorClass = periodoData.color || getColorClass(val);
+                // Helper: celdas de una entidad por cada periodo
+                function rowCells(periodosData) {
+                    return periodos.map(function(p) {
+                        var pd = (periodosData && periodosData[p.nombre]) || {};
+                        var val = pd.promedio;
+                        var colorClass = pd.color || getColorClass(val);
                         var display = (val !== null && val !== undefined) ? val : '-';
                         return '<div class="heatmap-cell ' + colorClass + '">' + display + '</div>';
                     }).join('');
+                }
 
+                // 1) Fila "Promedio EPL CAS" SIEMPRE primero, resaltada
+                var eplHtml = '';
+                if (eplCas) {
+                    eplHtml = '<div class="heatmap-row heatmap-total">' +
+                        '<div class="heatmap-entity">Promedio EPL CAS</div>' +
+                        rowCells(eplCas.periodos) +
+                        '</div>';
+                }
+
+                // 2) Todos los grupos (sin límite), ya vienen ordenados mayor->menor
+                var bodyHtml = grupos.map(function(g) {
                     return '<div class="heatmap-row">' +
                         '<div class="heatmap-entity">' + g.nombre + '</div>' +
-                        cellsHtml +
+                        rowCells(g.periodos) +
                         '</div>';
                 }).join('');
 
@@ -1044,7 +1197,7 @@ function loadHistorico() {
                     '<div class="heatmap-corner">Grupo</div>' +
                     headerHtml +
                     '</div>' +
-                    '<div class="heatmap-body">' + bodyHtml + '</div>' +
+                    '<div class="heatmap-body">' + eplHtml + bodyHtml + '</div>' +
                     '</div>';
             } else {
                 container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
