@@ -165,13 +165,20 @@ function hideOverlay(ov) {
     if (ov) ov.classList.remove('active');
 }
 
-// Cierra los modales cuya profundidad sea mayor a `depth` (0 = ninguno abierto)
+// Cierra los modales cuya profundidad sea mayor a `depth` (0 = ninguno abierto).
+// El selector de periodo (sheet) cuenta como modal de profundidad 1 (A6).
 function closeModalsAbove(depth) {
     var suc = document.getElementById('sucursalModalOverlay');
     var grp = document.getElementById('modalOverlay');
+    var sheet = document.getElementById('periodSheetOverlay');
     var guard = 0;
     while (openModalsCount > depth && guard++ < 5) {
-        if (suc && suc.classList.contains('active')) {
+        if (sheet && sheet.classList.contains('active')) {
+            hideOverlay(sheet);
+            var sel = document.getElementById('periodSelector');
+            if (sel) sel.classList.remove('open');
+            unlockBodyScroll();
+        } else if (suc && suc.classList.contains('active')) {
             hideOverlay(suc);
             unlockBodyScroll();
         } else if (grp && grp.classList.contains('active')) {
@@ -198,10 +205,18 @@ function closeTopModal() {
     }
 }
 
+// Acción diferida hasta que el historial cierre la sheet (selección de periodo)
+var afterSheetClose = null;
+
 window.addEventListener('popstate', function(e) {
     var st = e.state;
     var depth = (st && st.modal) ? (st.depth || 0) : 0;
     closeModalsAbove(depth);
+    if (afterSheetClose) {
+        var fn = afterSheetClose;
+        afterSheetClose = null;
+        fn();
+    }
 });
 
 // ========== iOS MODAL FIX ==========
@@ -302,6 +317,13 @@ function getTheme() {
     return document.documentElement.getAttribute('data-theme') || 'dark';
 }
 
+// Altura real del header sticky → --header-h (el encabezado y la fila PROMEDIO del
+// histórico se fijan justo debajo; el alto cambia con el safe-area del iPhone)
+function updateHeaderHeight() {
+    var h = document.querySelector('.header');
+    if (h) document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initializing...');
@@ -310,6 +332,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initTabs();
     initPeriodSelector();
     initHistoricoControls();
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    window.addEventListener('orientationchange', function() { setTimeout(updateHeaderHeight, 100); });
     // Un estado de modal viejo (recarga con modal abierto) no debe capturar "atrás"
     try {
         if (history.state && history.state.modal) history.replaceState(null, '', window.location.href);
@@ -336,6 +361,9 @@ function initPeriodSelector() {
             }
         });
     }
+
+    var cancelBtn = document.getElementById('periodSheetClose');
+    if (cancelBtn) cancelBtn.addEventListener('click', function() { closePeriodSheet(); });
 }
 
 function loadPeriodoContexto() {
@@ -475,61 +503,54 @@ function openPeriodSheet() {
     if (selector) selector.classList.add('open');
     overlay.classList.add('active');
     lockBodyScroll();
+    // El gesto "atrás" cierra la sheet en vez de salir del dashboard (A6)
+    pushModalState('sheet', 'periodo');
+    var cancelBtn = document.getElementById('periodSheetClose');
+    if (cancelBtn) { try { cancelBtn.focus({ preventScroll: true }); } catch (e) { /* ignorar */ } }
 }
 
-function closePeriodSheet() {
+// Cierra la sheet por el historial (si su estado es el actual) y ejecuta `cb`
+// DESPUÉS de que el historial regresó, para que updateHash escriba en la entrada correcta.
+function closePeriodSheet(cb) {
     var overlay = document.getElementById('periodSheetOverlay');
-    var selector = document.getElementById('periodSelector');
-
-    if (selector) selector.classList.remove('open');
-    if (overlay) overlay.classList.remove('active');
-    unlockBodyScroll();
+    if (!overlay || !overlay.classList.contains('active')) {
+        if (cb) cb();
+        return;
+    }
+    var st = history.state;
+    if (st && st.modal === 'sheet' && st.depth === openModalsCount) {
+        afterSheetClose = cb || null;
+        history.back(); // popstate → closeModalsAbove → afterSheetClose()
+    } else {
+        closeModalsAbove(openModalsCount - 1);
+        if (cb) cb();
+    }
 }
 
 function selectPeriodo(periodoId) {
-    var periodName = document.getElementById('periodName');
-
-    if (periodoId === 'all') {
-        // Seleccionar "Año N" (promedio de los trimestres del año)
-        currentPeriodoId = 'all';
-        currentPeriodo = null;
-
-        if (periodName) {
-            periodName.textContent = anioLabelTxt();
-        }
-
-        // Cerrar sheet y recargar todo lo visible
-        closePeriodSheet();
-        updateHash();
-        refreshAll();
-        // En modo año mostramos avance del año (revisadas / activas)
-        var progressText = document.getElementById('progressText');
-        if (progressText) {
-            progressText.textContent = 'Año';
-        }
-        return;
+    var periodo = null;
+    if (periodoId !== 'all') {
+        periodo = periodosDisponibles.find(function(p) { return p.id == periodoId; });
+        if (!periodo) return;
     }
 
-    // Encontrar el periodo en la lista
-    var periodo = periodosDisponibles.find(function(p) { return p.id == periodoId; });
-
-    if (periodo) {
-        currentPeriodoId = periodo.id;
-        currentPeriodo = periodo;
-
-        // Actualizar UI
-        if (periodName) {
-            periodName.textContent = periodoNombre(periodo);
+    closePeriodSheet(function() {
+        var periodName = document.getElementById('periodName');
+        if (periodoId === 'all') {
+            // "Año N" = promedio de los trimestres del año
+            currentPeriodoId = 'all';
+            currentPeriodo = null;
+            if (periodName) periodName.textContent = anioLabelTxt();
+        } else {
+            currentPeriodoId = periodo.id;
+            currentPeriodo = periodo;
+            if (periodName) periodName.textContent = periodoNombre(periodo);
         }
-
-        // Cerrar sheet
-        closePeriodSheet();
-
         // Recargar todo lo visible con el nuevo periodo (dashboard + mapa/histórico/alertas si están abiertos)
         updateHash();
         refreshAll();
         loadPeriodoProgreso();
-    }
+    });
 }
 
 function loadPeriodoProgreso() {
@@ -637,12 +658,48 @@ function fmt1(v) {
     return (Math.round(parseFloat(v) * 10) / 10).toFixed(1);
 }
 
+var MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+// "2026-08-11" → "11 ago 2026"
 function fmtFecha(iso) {
     if (!iso) return '';
-    var meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    var p = iso.split('-');
+    var p = String(iso).split(' ')[0].split('-');
     if (p.length < 3) return iso;
-    return parseInt(p[2], 10) + ' ' + meses[parseInt(p[1], 10) - 1] + ' ' + p[0];
+    return parseInt(p[2], 10) + ' ' + MESES_CORTOS[parseInt(p[1], 10) - 1] + ' ' + p[0];
+}
+
+// "2026-08-11" → "11 ago 26" (barras de tendencia: siempre con año, en corto)
+function fmtFechaCorta(iso) {
+    if (!iso) return '';
+    var p = String(iso).split(' ')[0].split('-');
+    if (p.length < 3) return iso;
+    return parseInt(p[2], 10) + ' ' + MESES_CORTOS[parseInt(p[1], 10) - 1] + ' ' + p[0].slice(2);
+}
+
+// Posición por competencia (1, 1, 3): mismo valor mostrado = misma posición
+function rankingPosiciones(valores) {
+    var out = [], pos = 1;
+    for (var i = 0; i < valores.length; i++) {
+        if (i > 0 && fmt1(valores[i]) !== fmt1(valores[i - 1])) pos = i + 1;
+        out.push(pos);
+    }
+    return out;
+}
+
+// Medalla oro/plata/bronce SOLO en el ranking principal y solo si ≤3 filas comparten el puesto (A1)
+var rankingPosCounts = null;
+function medalClass(pos) {
+    if (!pos || pos > 3) return '';
+    if (rankingPosCounts && rankingPosCounts[pos] > 3) return '';
+    return 'pos-' + pos;
+}
+function contarPosiciones(items) {
+    var c = {};
+    (items || []).forEach(function(it) {
+        var p = it && it.posicion;
+        if (p) c[p] = (c[p] || 0) + 1;
+    });
+    return c;
 }
 
 function loadKPIs() {
@@ -844,6 +901,8 @@ function loadRanking() {
             }
 
             var html = '';
+            // Medallas: solo en este ranking y solo si el puesto no está masivamente empatado
+            rankingPosCounts = contarPosiciones(items);
 
             if (currentView === 'grupos') {
                 // Vista de grupos con soporte para agrupaciones
@@ -860,7 +919,7 @@ function loadRanking() {
                 html = items.map(function(item) {
                     var pos = item.posicion;
                     var isPendiente = pos === null;
-                    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+                    var posClass = medalClass(pos);
                     var colorClass = item.color || 'gray';
                     var promedio = item.promedio !== null ? fmt1(item.promedio) : 'Pendiente';
                     var meta = (item.grupo_nombre || '—');
@@ -870,9 +929,9 @@ function loadRanking() {
                     var aria = item.nombre + ', ' + (item.promedio !== null ? fmt1(item.promedio) + ', ' + nivelTxt(colorClass) : 'pendiente de supervisar');
 
                     return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + item.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + item.id + ')}">' +
-                        '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+                        '<span class="ranking-pos ' + posClass + '">' + (pos || '–') + '</span>' +
                         '<div class="ranking-info">' +
-                        '<span class="ranking-name">' + item.nombre + '</span>' +
+                        '<span class="ranking-name" title="' + escAttr(item.nombre) + '">' + item.nombre + '</span>' +
                         '<span class="ranking-meta">' + meta + '</span>' +
                         '</div>' +
                         '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
@@ -911,10 +970,12 @@ function partialTag(evaluadas, activas) {
     return '<small class="partial-tag">Parcial · ' + (evaluadas || 0) + '/' + (activas || 0) + '</small>';
 }
 
-// Renderiza una fila de grupo (ranking principal o dentro de PLOG)
+// Renderiza una fila de grupo (ranking principal o dentro de PLOG).
+// Medalla solo en el ranking principal; dentro de PLOG el disco es neutro (A1/B9).
 function renderGrupoRow(g, pos, extraClass) {
     var isPendiente = (g.promedio === null || g.promedio === undefined);
-    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+    var esSubfila = extraClass === 'agrupacion-child';
+    var posClass = (esSubfila || isPendiente) ? '' : medalClass(pos);
     var colorClass = isPendiente ? 'gray' : (g.color || getColorClass(g.promedio));
     var evaluadas = (g.evaluadas !== undefined) ? g.evaluadas : g.total_supervisiones;
     var activas = (g.activas !== undefined) ? g.activas : g.total_sucursales;
@@ -924,9 +985,9 @@ function renderGrupoRow(g, pos, extraClass) {
     var aria = g.nombre + ', ' + (isPendiente ? 'sin supervisión' : fmt1(g.promedio) + ', ' + nivelTxt(colorClass) + (parcial ? ', parcial' : '')) + ', ' + coberturaTxt(evaluadas, activas);
 
     return '<div class="ranking-item ' + (extraClass || '') + (isPendiente ? ' pendiente' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openGrupoModal(' + g.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGrupoModal(' + g.id + ')}">' +
-        '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+        '<span class="ranking-pos ' + posClass + '">' + ((isPendiente || !pos) ? '–' : pos) + '</span>' +
         '<div class="ranking-info">' +
-        '<span class="ranking-name">' + g.nombre + '</span>' +
+        '<span class="ranking-name" title="' + escAttr(g.nombre) + '">' + g.nombre + '</span>' +
         '<span class="ranking-meta">' + meta + '</span>' +
         '</div>' +
         '<span class="ranking-score ' + colorClass + (parcial ? ' partial' : '') + '">' + promedio +
@@ -956,7 +1017,7 @@ function renderAgrupacion(agrupacion) {
     var parcial = !isPendiente && evaluadas < activas;
     var promedio = isPendiente ? 'Pendiente' : fmt1(agrupacion.promedio);
     var pos = agrupacion.posicion;
-    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+    var posClass = isPendiente ? '' : medalClass(pos);
 
     // Renderizar grupos dentro de la agrupación (misma fila que el ranking principal)
     var gruposHtml = '';
@@ -970,12 +1031,12 @@ function renderAgrupacion(agrupacion) {
 
     return '<div class="agrupacion-item ' + (isExpanded ? 'expanded' : '') + '" data-agrupacion="' + agrupacion.id + '">' +
         '<div class="agrupacion-header" role="button" tabindex="0" aria-expanded="' + (isExpanded ? 'true' : 'false') + '" aria-label="' + escAttr(aria) + '" onclick="toggleAgrupacion(\'' + agrupacion.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleAgrupacion(\'' + agrupacion.id + '\')}">' +
-            '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+            '<span class="ranking-pos ' + posClass + '">' + ((isPendiente || !pos) ? '–' : pos) + '</span>' +
             '<svg class="agrupacion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
                 '<polyline points="9 6 15 12 9 18"/>' +
             '</svg>' +
             '<div class="ranking-info">' +
-                '<span class="ranking-name">' + agrupacion.nombre + '</span>' +
+                '<span class="ranking-name" title="' + escAttr(agrupacion.nombre) + '">' + agrupacion.nombre + '</span>' +
                 '<span class="ranking-meta">' + agrupacion.total_grupos + ' grupos · ' + coberturaTxt(evaluadas, activas) + '</span>' +
             '</div>' +
             '<span class="ranking-score ' + colorClass + (parcial ? ' partial' : '') + '">' + promedio +
@@ -1064,24 +1125,37 @@ function openGrupoModal(grupoId) {
             var colorClass = g.color || getColorClass(g.promedio);
             var esAnio = (currentPeriodoId === 'all');
 
-            var sucursalesHtml = (g.sucursales || []).map(function(s, i) {
-                var pendiente = !s.supervisiones;
+            // Sucursales del grupo (A1): posición SOLO entre las que tienen supervisión
+            // (competencia 1,1,3), disco neutro sin medalla; pendientes al final con "–".
+            function esPendienteSuc(s) { return !s.supervisiones || s.promedio === null || s.promedio === undefined; }
+            var sucConDato = (g.sucursales || []).filter(function(s) { return !esPendienteSuc(s); })
+                .sort(function(a, b) { return b.promedio - a.promedio; });
+            var sucPendientes = (g.sucursales || []).filter(esPendienteSuc);
+            var posiciones = rankingPosiciones(sucConDato.map(function(s) { return s.promedio; }));
+
+            function filaSucursal(s, pos) {
+                var pendiente = esPendienteSuc(s);
                 var sColorClass = pendiente ? 'gray' : (s.color || getColorClass(s.promedio));
                 var scoreTxt = pendiente ? '—' : fmt1(s.promedio);
                 var n = s.supervisiones || 0;
                 var metaTxt = pendiente
                     ? ('Sin supervisión en ' + periodoLabelTxt())
                     : (n + ' supervisi' + (n === 1 ? 'ón' : 'ones'));
-                var aria = s.nombre + ', ' + (pendiente ? 'sin supervisión' : fmt1(s.promedio) + ', ' + nivelTxt(sColorClass));
-                return '<div class="modal-list-item" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + s.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + s.id + ')}">' +
-                    '<span class="ranking-pos pos-' + (i + 1) + '">' + (i + 1) + '</span>' +
+                var aria = s.nombre + ', ' + (pendiente ? 'pendiente de supervisar' : 'posición ' + pos + ', ' + fmt1(s.promedio) + ', ' + nivelTxt(sColorClass));
+                return '<div class="modal-list-item' + (pendiente ? ' pendiente' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + s.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + s.id + ')}">' +
+                    '<span class="ranking-pos">' + (pendiente ? '–' : pos) + '</span>' +
                     '<div class="ranking-info">' +
-                    '<span class="ranking-name">' + s.nombre + '</span>' +
+                    '<span class="ranking-name" title="' + escAttr(s.nombre) + '">' + s.nombre + '</span>' +
                     '<span class="ranking-meta">' + metaTxt + '</span>' +
                     '</div>' +
                     '<span class="ranking-score ' + sColorClass + '">' + scoreTxt + '</span>' +
                     '</div>';
-            }).join('');
+            }
+            var sucursalesHtml = sucConDato.map(function(s, i) { return filaSucursal(s, posiciones[i]); }).join('') +
+                sucPendientes.map(function(s) { return filaSucursal(s, null); }).join('');
+            var listaTitulo = (sucConDato.length === 0 && sucPendientes.length)
+                ? 'Pendientes de supervisar (' + sucPendientes.length + ')'
+                : 'Sucursales del grupo' + (sucPendientes.length ? ' · ' + sucPendientes.length + ' pendiente' + (sucPendientes.length === 1 ? '' : 's') : '');
 
             // Tendencia por trimestre: chips que se "prenden" + flecha ↑/↓/▬
             var tendenciaHtml = '';
@@ -1118,7 +1192,7 @@ function openGrupoModal(grupoId) {
                 '<div class="modal-stat"><span class="stat-value">' + activas + '</span><span class="stat-label">' + (activas === 1 ? 'Sucursal' : 'Sucursales') + '</span></div>' +
                 '</div>' +
                 tendenciaHtml +
-                '<h4 class="modal-section-title">Sucursales del grupo</h4>' +
+                '<h4 class="modal-section-title">' + listaTitulo + '</h4>' +
                 '<div class="modal-list">' + sucursalesHtml + '</div>';
 
             // Resetear scroll DESPUÉS de cargar contenido
@@ -1190,20 +1264,23 @@ function openSucursalModal(sucursalId) {
         var esAnio = (currentPeriodoId === 'all');
         var periodoLbl = periodoLabelTxt();
 
-        // Construir HTML de tendencia (últimas 4 supervisiones)
+        // Construir HTML de tendencia (últimas 4 supervisiones), fechas SIEMPRE con año (A8)
         var tendenciaHtml = '';
-        if (tendData.data && tendData.data.length > 0) {
+        var hayBarras = !!(tendData.data && tendData.data.length > 0);
+        var ultimaBarra = hayBarras ? tendData.data[tendData.data.length - 1] : null;
+        if (hayBarras) {
             var maxVal = 100;
             var barsHtml = tendData.data.map(function(t, index) {
                 var height = Math.max((t.calificacion / maxVal) * 100, 5);
                 var tColor = t.color || getColorClass(t.calificacion);
                 var isLast = index === tendData.data.length - 1;
-                var aria = fmtFecha(t.fecha) + ': ' + fmt1(t.calificacion) + ', ' + nivelTxt(tColor);
-                return '<div class="trend-bar ' + (isLast ? 'selected' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" data-sup-id="' + t.id + '" data-fecha="' + t.fecha + '" onclick="loadSupervisionAreas(' + t.id + ', this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loadSupervisionAreas(' + t.id + ', this)}">' +
+                var fechaIso = t.fecha_completa || '';
+                var aria = (fmtFecha(fechaIso) || t.fecha) + ': ' + fmt1(t.calificacion) + ', ' + nivelTxt(tColor);
+                return '<div class="trend-bar ' + (isLast ? 'selected' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" data-sup-id="' + t.id + '" data-fecha="' + escAttr(fechaIso) + '" onclick="loadSupervisionAreas(' + t.id + ', this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loadSupervisionAreas(' + t.id + ', this)}">' +
                     '<div class="trend-fill ' + tColor + '" style="height: ' + height + '%">' +
                     '<span class="trend-value">' + fmt1(t.calificacion) + '</span>' +
                     '</div>' +
-                    '<span class="trend-label">' + t.fecha + '</span>' +
+                    '<span class="trend-label">' + (fmtFechaCorta(fechaIso) || t.fecha) + '</span>' +
                     '</div>';
             }).join('');
 
@@ -1233,12 +1310,20 @@ function openSucursalModal(sucursalId) {
         var areasTypeLabel = currentTipo === 'operativas' ? 'Áreas evaluadas' : 'KPIs de seguridad';
         var areasCount = s.areas ? s.areas.length : 0;
         var infoBtn = '<button type="button" class="info-i" onclick="showAreasInfo()" aria-label="Cómo se relacionan las áreas con la calificación general">i</button>';
-        if (s.areas && s.areas.length > 0) {
+        var tieneAreas = !!(s.areas && s.areas.length > 0);
+        if (tieneAreas) {
             areasHtml = '<div id="areasContainer" data-tipo="' + currentTipo + '">' +
                 '<h4 class="modal-section-title areas-title"><span id="areasTitle">' + areasTypeLabel + ' (' + areasCount + ') · última supervisión</span>' + infoBtn + '</h4>' +
                 '<div class="areas-grid" id="areasGrid">' + renderAreasCards(s.areas) + '</div></div>';
+        } else if (hayBarras) {
+            // A7: sin supervisión en el periodo → se cargan las áreas de la última disponible
+            areasHtml = '<div id="areasContainer" data-tipo="' + currentTipo + '">' +
+                '<h4 class="modal-section-title areas-title"><span id="areasTitle">' + areasTypeLabel + '</span>' + infoBtn + '</h4>' +
+                '<p class="areas-note">Sin supervisión en ' + periodoLbl + ' · Última supervisión disponible: ' +
+                    (fmtFecha(ultimaBarra.fecha_completa) || ultimaBarra.fecha) + '</p>' +
+                '<div class="areas-grid" id="areasGrid">' + loadingHtml() + '</div></div>';
         } else {
-            areasHtml = '<div id="areasContainer"><div class="empty-state">Sin datos de áreas</div></div>';
+            areasHtml = '<div id="areasContainer"><div class="empty-state">Sin supervisiones registradas para esta sucursal</div></div>';
         }
 
         // Info adicional
@@ -1265,7 +1350,7 @@ function openSucursalModal(sucursalId) {
               '<span class="modal-kpi-label">Calificación ' + tipoLabelTxt() + ' · ' + periodoLbl + '</span>' +
               (ultimaTxt ? '<span class="modal-kpi-date">' + ultimaTxt + '</span>' : '') +
               (ultimaDifiere ? '<span class="modal-kpi-date">Calificación de la última supervisión: <strong class="' + getColorClass(s.calificacion_ultima) + '">' + fmt1(s.calificacion_ultima) + '</strong>' +
-                  (esAnio ? ' · el número principal promedia los trimestres del año' : ' · el número principal promedia las visitas del trimestre') + '</span>' : '') +
+                  (esAnio ? ' · el número principal promedia los trimestres del año' : ' · el número principal promedia las supervisiones del trimestre') + '</span>' : '') +
               '</div>';
 
         body.innerHTML = kpiHtml +
@@ -1277,6 +1362,12 @@ function openSucursalModal(sucursalId) {
             trendQHtml +
             tendenciaHtml +
             areasHtml;
+
+        // A7: autocargar las áreas de la última supervisión disponible
+        if (!tieneAreas && hayBarras) {
+            var ultimaEl = body.querySelector('.trend-bar[data-sup-id="' + ultimaBarra.id + '"]');
+            loadSupervisionAreas(ultimaBarra.id, ultimaEl);
+        }
 
         // IMPORTANTE: Resetear scroll DESPUÉS de cargar contenido
         setTimeout(function() {
@@ -1554,7 +1645,7 @@ function renderHeatmap(periodos, grupos, eplCas, corner) {
     // 2) TODOS los grupos (sin límite), ya vienen ordenados mayor→menor
     var bodyHtml = grupos.map(function(g) {
         return '<div class="heatmap-row" role="row">' +
-            '<div class="heatmap-entity" role="rowheader">' + g.nombre + '</div>' +
+            '<div class="heatmap-entity" role="rowheader" title="' + escAttr(g.nombre) + '">' + g.nombre + '</div>' +
             rowCells(g.periodos) +
             '</div>';
     }).join('');
