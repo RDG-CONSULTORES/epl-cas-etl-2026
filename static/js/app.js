@@ -212,11 +212,13 @@ function openPeriodSheet() {
         var isSelected = currentPeriodoId && currentPeriodoId == p.id;
         var fechas = formatPeriodDates(p.fecha_inicio, p.fecha_fin);
         var isActivo = p.activo || (periodoActivoId && p.id == periodoActivoId);
+        var isFuturo = !!p.futuro && !isActivo;
 
-        html += '<div class="period-option ' + (isSelected ? 'selected' : '') + '" data-id="' + p.id + '">' +
+        html += '<div class="period-option ' + (isSelected ? 'selected' : '') + (isFuturo ? ' disabled' : '') + '" data-id="' + p.id + '"' + (isFuturo ? ' aria-disabled="true"' : '') + '>' +
             '<div class="period-option-info">' +
                 '<span class="period-option-name">' + (p.codigo || p.nombre) +
-                    (isActivo ? ' <span class="period-activo-badge">Activo</span>' : '') +
+                    (isActivo ? ' <span class="period-activo-badge">En curso</span>' : '') +
+                    (isFuturo ? ' <span class="period-futuro-badge">Próximo</span>' : '') +
                 '</span>' +
                 '<span class="period-option-dates">' + fechas + '</span>' +
             '</div>' +
@@ -233,6 +235,7 @@ function openPeriodSheet() {
     // Event listeners para las opciones
     body.querySelectorAll('.period-option').forEach(function(opt) {
         opt.addEventListener('click', function() {
+            if (opt.classList.contains('disabled')) return; // trimestre futuro: aún no inicia
             var periodoId = opt.dataset.id;
             if (periodoId === 'all') {
                 selectPeriodo('all');
@@ -429,9 +432,10 @@ function loadKPIs() {
                 var sucEl = document.getElementById('kpiSucursales');
 
                 // Promedio principal
+                var tieneProm = (d.promedio !== null && d.promedio !== undefined);
                 if (promEl) {
-                    promEl.textContent = d.promedio ? d.promedio + '%' : '-';
-                    promEl.className = 'kpi-value ' + (d.color || 'gray');
+                    promEl.textContent = tieneProm ? d.promedio + '%' : '—';
+                    promEl.className = 'kpi-value ' + (tieneProm ? (d.color || 'gray') : 'gray');
                 }
 
                 // Label y acumulado (etiquetas claras, sin tecnicismos)
@@ -455,14 +459,16 @@ function loadKPIs() {
                 var nombreAcum = d.nombre_acumulado || 'Acumulado del Año';
                 if (currentPeriodoId === 'all') {
                     // Modo "Acumulado del Año" - promedio de los trimestres del año en curso
-                    if (promLabelEl) promLabelEl.textContent = nombreAcum;
+                    if (promLabelEl) promLabelEl.textContent = nombreAcum + ' · ' + (d.sucursales_supervisadas || 0) + ' de ' + (d.total_sucursales || 0) + ' sucursales';
                     if (acumEl) acumEl.style.display = 'none';
+                    var ptAll = document.getElementById('progressText');
+                    if (ptAll) ptAll.textContent = (d.sucursales_supervisadas || 0) + '/' + (d.total_sucursales || 0);
                 } else {
                     // Modo trimestre específico
                     var periodoTxt = (currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre';
                     var revisadas = d.sucursales_supervisadas || 0;
-                    var totalSuc = d.total_sucursales || 86;
-                    var enCurso = revisadas < totalSuc;
+                    var totalSuc = d.total_sucursales || 0;
+                    var enCurso = !!d.en_curso;
                     // Badge "En curso (x/y)" cuando el trimestre aún no llega a 86/86
                     if (promLabelEl) {
                         promLabelEl.textContent = 'Calificación ' + periodoTxt +
@@ -475,10 +481,13 @@ function loadKPIs() {
                 }
 
                 if (totalEl) totalEl.textContent = d.total_supervisiones || 0;
-                if (gruposEl) gruposEl.textContent = d.total_grupos || 0;
-                if (sucEl) sucEl.textContent = d.sucursales_supervisadas || 0;
+                if (gruposEl) gruposEl.textContent = (d.total_grupos || 0) + (d.total_grupos_catalogo ? ' de ' + d.total_grupos_catalogo : '');
+                if (sucEl) sucEl.textContent = (d.sucursales_supervisadas || 0) + (d.total_sucursales ? ' de ' + d.total_sucursales : '');
 
                 renderDistribution(d.distribucion || {});
+            } else {
+                var promErr = document.getElementById('kpiPromedio');
+                if (promErr) { promErr.textContent = '—'; promErr.className = 'kpi-value gray'; }
             }
         })
         .catch(function(e) {
@@ -750,9 +759,16 @@ function openGrupoModal(grupoId) {
                         '<div class="trend-chips">' + chips + '</div>';
                 }
 
+                var sinDatosGrupo = (g.promedio === null || g.promedio === undefined);
+                var periodoLbl = (currentPeriodoId === 'all')
+                    ? ('Acumulado del Año ' + (g.anio || ''))
+                    : ((currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre');
+                var evalTxt = (g.sucursales_evaluadas !== undefined) ? (g.sucursales_evaluadas + ' de ' + (g.total_sucursales || 0) + ' sucursales') : '';
                 body.innerHTML = '<div class="modal-kpi">' +
-                    '<span class="modal-kpi-value ' + colorClass + '">' + g.promedio + '</span>' +
-                    '<span class="modal-kpi-label">Promedio ' + (currentTipo === 'operativas' ? 'Operativo' : 'Seguridad') + '</span>' +
+                    '<span class="modal-kpi-value ' + (sinDatosGrupo ? 'gray' : colorClass) + '">' + (sinDatosGrupo ? '—' : g.promedio + '%') + '</span>' +
+                    '<span class="modal-kpi-label">' + (sinDatosGrupo
+                        ? 'Sin supervisión · ' + periodoLbl
+                        : 'Calificación ' + (currentTipo === 'operativas' ? 'Operativa' : 'de Seguridad') + ' · ' + periodoLbl + (evalTxt ? ' · ' + evalTxt : '')) + '</span>' +
                     '</div>' +
                     '<div class="modal-stats">' +
                     '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">Supervisiones</span></div>' +
@@ -1054,9 +1070,9 @@ function initMap() {
     }).setView([25.6866, -100.3161], 10);
 
     // Tiles claros - CartoDB Voyager (profesional y legible)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
+    // OpenStreetMap estándar: sin llave, sin marca de agua (CARTO exigía API key)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19
     }).addTo(map);
 
@@ -1270,9 +1286,12 @@ function loadAlertas() {
                                 '</div>';
                         }).join('');
                     } else {
-                        warnContainer.innerHTML = '<div class="empty-state success-msg">Sin grupos en riesgo</div>';
+                        warnContainer.innerHTML = '<div class="empty-state success-msg">Sin grupos en riesgo (70 a 79%)</div>';
                     }
                 }
+            } else {
+                if (critContainer) critContainer.innerHTML = '<div class="error-state">No se pudieron cargar las alertas</div>';
+                if (warnContainer) warnContainer.innerHTML = '';
             }
         })
         .catch(function(e) {

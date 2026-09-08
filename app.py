@@ -14,7 +14,8 @@ from datetime import datetime, date
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'epl-cas-2026-rdg-secret')
+# Sin default en código (auditoría 2026-09-08). Si falta la variable, sesiones por proceso.
+app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
 
 # Configuración de base de datos
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
@@ -26,7 +27,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '20Bube85!21637543')
+# Sin default en código: si falta ADMIN_PASSWORD el login admin queda deshabilitado.
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
 
 # ============ HELPERS ============
 def get_color_class(value):
@@ -40,6 +42,15 @@ def get_color_class(value):
     if value >= 70:
         return 'regular'
     return 'critical'
+
+TABLAS = {'operativas': 'supervisiones_operativas', 'seguridad': 'supervisiones_seguridad'}
+
+def _tabla(tipo):
+    """Tabla de supervisiones para el tipo. None si el tipo no es válido (→ 400)."""
+    return TABLAS.get(tipo)
+
+def _tipo_invalido():
+    return jsonify({'success': False, 'error': "tipo inválido: usa 'operativas' o 'seguridad'"}), 400
 
 def get_territorio(grupo_nombre):
     """Determina territorio del grupo"""
@@ -105,21 +116,33 @@ def _score_cte(tabla, con_periodo, anio=None):
     fantasma 87/86). Ver docs/MARCO-METRICAS-CAS.md.
     """
     if con_periodo:
-        join = ""
-        filtro = "WHERE so.periodo_id = :periodo_id"
-    else:
-        anio_val = int(anio) if anio else date.today().year
-        join = "JOIN periodos_cas p ON so.periodo_id = p.id"
-        filtro = f"WHERE EXTRACT(YEAR FROM p.fecha_inicio) = {anio_val}"
-    return f"""
+        return f"""
         ult AS (
             SELECT so.sucursal_id,
                    AVG(so.calificacion_general) AS calificacion_general
             FROM {tabla} so
             JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
-            {join}
-            {filtro}
+            WHERE so.periodo_id = :periodo_id
             GROUP BY so.sucursal_id
+        )
+    """
+    # Acumulado del Año (M3) ANIDADO: primero el M1 de cada (sucursal, trimestre) y
+    # luego el promedio de esos M1 por sucursal. Una re-supervisión pesa dentro de su
+    # trimestre y no infla el año (decisión D-1, auditoría 2026-09-08).
+    anio_val = int(anio) if anio else date.today().year
+    return f"""
+        ult AS (
+            SELECT q.sucursal_id, AVG(q.m1) AS calificacion_general
+            FROM (
+                SELECT so.sucursal_id, so.periodo_id,
+                       AVG(so.calificacion_general) AS m1
+                FROM {tabla} so
+                JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
+                JOIN periodos_cas p ON so.periodo_id = p.id
+                WHERE EXTRACT(YEAR FROM p.fecha_inicio) = {anio_val}
+                GROUP BY so.sucursal_id, so.periodo_id
+            ) q
+            GROUP BY q.sucursal_id
         )
     """
 
@@ -143,7 +166,7 @@ def admin_login():
     """Login del panel de administración"""
     if request.method == 'POST':
         password = request.form.get('password', '')
-        if password == ADMIN_PASSWORD:
+        if ADMIN_PASSWORD and password == ADMIN_PASSWORD:
             session['admin_logged_in'] = True
             return redirect(url_for('admin'))
         return render_template('admin_login.html', error='Contraseña incorrecta')
@@ -249,7 +272,9 @@ def api_periodo_contexto(tipo):
     try:
         from datetime import date
         hoy = date.today()
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # 1. Buscar periodo activo (prioridad: activo incompleto > fecha > activo > último con datos)
         periodo_actual = None
@@ -269,7 +294,7 @@ def api_periodo_contexto(tipo):
         """))
         row = result.fetchone()
 
-        if row and (row[5] or 0) < (row[6] or 86):
+        if row and (row[5] or 0) < (row[6] or 0):
             periodo_actual = {
                 'id': row[0], 'codigo': row[1], 'nombre': row[2],
                 'fecha_inicio': str(row[3]), 'fecha_fin': str(row[4]),
@@ -341,29 +366,35 @@ def api_periodo_contexto(tipo):
             WHERE EXTRACT(YEAR FROM fecha_inicio) = :anio
             ORDER BY fecha_inicio DESC
         """), {'anio': anio_sel})
+        actual_id = periodo_actual['id'] if periodo_actual else None
         periodos = [{'id': r[0], 'codigo': r[1], 'nombre': r[2],
                      'fecha_inicio': str(r[3]) if r[3] else '',
-                     'fecha_fin': str(r[4]) if r[4] else ''} for r in result]
+                     'fecha_fin': str(r[4]) if r[4] else '',
+                     # 'futuro': todavía no inicia y no es el activo → el selector lo muestra como "Próximo"
+                     'futuro': bool(r[3] and r[3] > hoy and r[0] != actual_id)} for r in result]
 
         # 3. Progreso de sucursales (usa periodo_id del query param si viene, si no el actual)
         progreso_periodo_id = request.args.get('periodo_id') or (periodo_actual['id'] if periodo_actual else None)
-        progreso = {'supervisadas': 0, 'total': 86, 'porcentaje': 0}
-        if progreso_periodo_id:
-            result = db.session.execute(text(f"""
+        total = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true")).scalar() or 0
+        progreso = {'supervisadas': 0, 'total': total, 'porcentaje': 0}
+        if progreso_periodo_id == 'all':
+            # Acumulado del Año: sucursales activas con al menos una visita en el año
+            supervisadas = db.session.execute(text(f"""
+                SELECT COUNT(DISTINCT so.sucursal_id) FROM {tabla} so
+                JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
+                JOIN periodos_cas p ON p.id = so.periodo_id
+                WHERE EXTRACT(YEAR FROM p.fecha_inicio) = :anio
+            """), {'anio': anio_sel}).scalar() or 0
+            progreso = {'supervisadas': supervisadas, 'total': total,
+                        'porcentaje': round((supervisadas / total * 100) if total > 0 else 0, 1)}
+        elif progreso_periodo_id:
+            supervisadas = db.session.execute(text(f"""
                 SELECT COUNT(DISTINCT so.sucursal_id) FROM {tabla} so
                 JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
                 WHERE so.periodo_id = :periodo_id
-            """), {'periodo_id': progreso_periodo_id})
-            supervisadas = result.scalar() or 0
-
-            result = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true"))
-            total = result.scalar() or 86
-
-            progreso = {
-                'supervisadas': supervisadas,
-                'total': total,
-                'porcentaje': round((supervisadas / total * 100) if total > 0 else 0, 1)
-            }
+            """), {'periodo_id': progreso_periodo_id}).scalar() or 0
+            progreso = {'supervisadas': supervisadas, 'total': total,
+                        'porcentaje': round((supervisadas / total * 100) if total > 0 else 0, 1)}
 
         return jsonify({
             'success': True,
@@ -417,7 +448,9 @@ def api_kpis(tipo):
     """KPIs principales del dashboard"""
     try:
         periodo_id = request.args.get('periodo_id')
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         params = {}
         params_periodo = {}
@@ -470,11 +503,30 @@ def api_kpis(tipo):
         # Total sucursales
         total_sucursales = db.session.execute(text("SELECT COUNT(*) FROM sucursales WHERE activo = true")).scalar() or 0
 
-        # Total grupos
-        total_grupos = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
+        # Grupos con al menos una sucursal evaluada en el alcance (no el total del catálogo)
+        query_grp = f"""
+            WITH {_score_cte(tabla, con_periodo, anio)}
+            SELECT COUNT(DISTINCT s.grupo_operativo_id)
+            FROM ult u JOIN sucursales s ON s.id = u.sucursal_id
+        """
+        total_grupos = db.session.execute(text(query_grp), params_periodo if con_periodo else {}).scalar() or 0
+        total_grupos_catalogo = db.session.execute(text("SELECT COUNT(*) FROM grupos_operativos WHERE activo = true")).scalar() or 0
+
+        # ¿El trimestre seleccionado es el activo y sigue abierto (cierre por conteo)?
+        activo_row = db.session.execute(text("SELECT id FROM periodos_cas WHERE activo = true ORDER BY fecha_inicio DESC LIMIT 1")).fetchone()
+        periodo_activo_id = activo_row[0] if activo_row else None
+
+        # Año anterior con la MISMA definición (M3 anidado, activas) para comparar años
+        prev_row = db.session.execute(text(f"WITH {_score_cte(tabla, False, anio - 1)} SELECT AVG(calificacion_general), COUNT(*) FROM ult")).fetchone()
+        promedio_anio_anterior = float(round(prev_row[0], 2)) if prev_row and prev_row[0] is not None else None
+        sucursales_anio_anterior = int(prev_row[1] or 0) if prev_row else 0
 
         # Avance del trimestre / año = sucursales revisadas / activas (nunca > 100%)
         cobertura = round((sucursales_supervisadas / total_sucursales * 100) if total_sucursales > 0 else 0, 1)
+        en_curso = bool(con_periodo and periodo_activo_id is not None and str(periodo_activo_id) == str(periodo_id)
+                        and sucursales_supervisadas < total_sucursales)
+        delta_anual = (round(float(promedio_acumulado) - promedio_anio_anterior, 2)
+                       if (promedio_anio_anterior is not None and promedio_acumulado) else None)
 
         # Distribución por rendimiento (cuenta cada sucursal una vez, por su última eval)
         query_dist = f"""
@@ -542,7 +594,14 @@ def api_kpis(tipo):
                 'sucursales_supervisadas': int(sucursales_supervisadas),
                 'total_sucursales': int(total_sucursales),
                 'total_grupos': int(total_grupos),
+                'total_grupos_catalogo': int(total_grupos_catalogo),
                 'cobertura': float(cobertura),
+                'en_curso': en_curso,
+                'periodo_activo_id': periodo_activo_id,
+                'anio_anterior': int(anio) - 1,
+                'promedio_anio_anterior': promedio_anio_anterior,
+                'sucursales_anio_anterior': sucursales_anio_anterior,
+                'delta_anual': delta_anual,
                 'distribucion': {
                     'excelente': int(distribucion['excelente']),
                     'bueno': int(distribucion['bueno']),
@@ -562,7 +621,9 @@ def api_ranking_grupos(tipo):
         periodo_id = request.args.get('periodo_id')
         territorio = request.args.get('territorio')  # local, foranea, mixto, todas
 
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # Query que incluye todos los grupos.
         # promedio = promedio de la última eval de cada sucursal del grupo.
@@ -610,6 +671,8 @@ def api_ranking_grupos(tipo):
                 'promedio': round(float(row[2]), 2) if row[2] else None,
                 'total_sucursales': row[3],
                 'total_supervisiones': row[4],
+                'evaluadas': row[4],
+                'activas': row[3],
                 'territorio': grupo_territorio,
                 'tipo': 'grupo'
             }
@@ -749,7 +812,9 @@ def api_ranking_sucursales(tipo):
         grupo_id = request.args.get('grupo_id')
         territorio = request.args.get('territorio')  # local, foranea
 
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # Query que incluye TODAS las sucursales.
         # promedio = ÚLTIMA evaluación de la sucursal en el alcance (no promedio de todas).
@@ -841,7 +906,9 @@ def api_grupo_detalle(grupo_id, tipo):
     """Detalle de un grupo operativo"""
     try:
         periodo_id = request.args.get('periodo_id')
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # Info del grupo
         grupo = db.session.execute(text("""
@@ -866,29 +933,31 @@ def api_grupo_detalle(grupo_id, tipo):
             JOIN sucursales s ON u.sucursal_id = s.id
             WHERE s.grupo_operativo_id = :grupo_id
         """
-        promedio = db.session.execute(text(query_prom), params).scalar() or 0
+        promedio = db.session.execute(text(query_prom), params).scalar()
+        promedio = round(float(promedio), 2) if promedio is not None else None
 
         # Sucursales del grupo (cada una con su última eval del alcance)
         cnt_filtro = "AND x.periodo_id = :periodo_id" if con_periodo else f"AND x.periodo_id IN (SELECT id FROM periodos_cas WHERE EXTRACT(YEAR FROM fecha_inicio) = {int(anio)})"
         query_suc = f"""
             WITH {_score_cte(tabla, con_periodo, anio)}
             SELECT s.id, s.nombre,
-                   COALESCE(u.calificacion_general, 0) as promedio,
+                   u.calificacion_general as promedio,
                    (SELECT COUNT(*) FROM {tabla} x
                       WHERE x.sucursal_id = s.id {cnt_filtro}) as supervisiones
             FROM sucursales s
             LEFT JOIN ult u ON u.sucursal_id = s.id
             WHERE s.grupo_operativo_id = :grupo_id AND s.activo = true
-            ORDER BY promedio DESC
+            ORDER BY promedio DESC NULLS LAST, s.nombre
         """
 
         result = db.session.execute(text(query_suc), params)
         sucursales = []
         for row in result:
+            prom_s = round(float(row[2]), 2) if row[2] is not None else None
             sucursales.append({
                 'id': row[0], 'nombre': row[1],
-                'promedio': round(float(row[2]), 2),
-                'color': get_color_class(float(row[2])),
+                'promedio': prom_s,
+                'color': get_color_class(prom_s),
                 'supervisiones': row[3]
             })
 
@@ -954,8 +1023,9 @@ def api_grupo_detalle(grupo_id, tipo):
             'success': True,
             'data': {
                 'grupo': {'id': grupo[0], 'nombre': grupo[1]},
-                'promedio': round(promedio, 2),
+                'promedio': promedio,
                 'color': get_color_class(promedio),
+                'sucursales_evaluadas': sum(1 for s in sucursales if s['promedio'] is not None),
                 'anio': int(anio),
                 'promedio_anio': promedio_anio,
                 'color_anio': get_color_class(promedio_anio),
@@ -972,6 +1042,8 @@ def api_grupo_detalle(grupo_id, tipo):
 def api_sucursal_detalle(sucursal_id, tipo):
     """Detalle de una sucursal con áreas/KPIs"""
     try:
+        if not _tabla(tipo):
+            return _tipo_invalido()
         periodo_id = request.args.get('periodo_id')
 
         # Info de la sucursal (usando columnas correctas)
@@ -1055,10 +1127,22 @@ def api_sucursal_detalle(sucursal_id, tipo):
                         'color': get_color_class(float(row[1]) if row[1] else 0)
                     })
 
+        # Cifra principal = MISMA definición que ranking y mapa: M1 del trimestre
+        # (promedio de sus supervisiones en el periodo) o M3 acumulado del año en
+        # modo "Todos". Sin visita en el alcance → None (nunca 0 rojo).
+        tabla = _tabla(tipo)
+        anio = _anio_actual()
+        con_periodo = bool(periodo_id and periodo_id != 'all')
+        q_m = f"WITH {_score_cte(tabla, con_periodo, anio)} SELECT calificacion_general FROM ult WHERE sucursal_id = :sid"
+        p_m = {'sid': sucursal_id}
+        if con_periodo:
+            p_m['periodo_id'] = periodo_id
+        m_val = db.session.execute(text(q_m), p_m).scalar()
+        calificacion_ultima = float(sup[1]) if sup and sup[1] is not None else None
+        promedio = round(float(m_val), 2) if m_val is not None else None
+
         # Tendencia por trimestre de la sucursal (Q1..Q4 del año en curso), igual
         # que en el drill-down de grupo: prende el trimestre con dato + flecha vs anterior.
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
-        anio = _anio_actual()
         tend_rows = db.session.execute(text(f"""
             SELECT p.codigo, p.nombre, AVG(so.calificacion_general) AS prom
             FROM periodos_cas p
@@ -1105,8 +1189,9 @@ def api_sucursal_detalle(sucursal_id, tipo):
                     'grupo_nombre': suc[5],
                     'grupo_id': suc[6]
                 },
-                'promedio': round(promedio, 2),
+                'promedio': promedio,
                 'color': get_color_class(promedio),
+                'calificacion_ultima': round(calificacion_ultima, 2) if calificacion_ultima is not None else None,
                 'anio': int(anio),
                 'promedio_anio': prom_anio,
                 'color_anio': get_color_class(prom_anio),
@@ -1123,7 +1208,9 @@ def api_sucursal_detalle(sucursal_id, tipo):
 def api_sucursal_tendencia(sucursal_id, tipo):
     """Últimas 4 supervisiones individuales de una sucursal"""
     try:
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # Obtener últimas 4 supervisiones individuales
         result = db.session.execute(text(f"""
@@ -1158,6 +1245,8 @@ def api_sucursal_tendencia(sucursal_id, tipo):
 def api_supervision_areas(supervision_id, tipo):
     """Obtener áreas/KPIs de una supervisión específica"""
     try:
+        if not _tabla(tipo):
+            return _tipo_invalido()
         if tipo == 'operativas':
             # Obtener info de la supervisión
             sup = db.session.execute(text("""
@@ -1218,10 +1307,10 @@ def api_supervision_areas(supervision_id, tipo):
             # Obtener KPIs
             kpis_result = db.session.execute(text("""
                 SELECT ck.nombre, sk.porcentaje
-                FROM supervision_kpis sk
-                JOIN catalogo_kpis ck ON sk.kpi_id = ck.id
+                FROM seguridad_kpis sk
+                JOIN catalogo_kpis_seguridad ck ON sk.kpi_id = ck.id
                 WHERE sk.supervision_id = :sup_id
-                ORDER BY ck.id ASC
+                ORDER BY ck.numero ASC
             """), {'sup_id': supervision_id})
 
             areas = []
@@ -1255,7 +1344,9 @@ def api_mapa(tipo):
     """Datos para el mapa - muestra TODAS las sucursales siempre"""
     try:
         periodo_id = request.args.get('periodo_id')
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # Query que incluye TODAS las sucursales con coordenadas fijas.
         # promedio = última eval de la sucursal en el alcance.
@@ -1311,7 +1402,9 @@ def api_historico(tipo):
     """Datos históricos por período CAS estilo McKinsey"""
     try:
         territorio = request.args.get('territorio', 'all')
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         # La tendencia es del AÑO EN CURSO (Q1..Q4), no toda la historia (no 2025).
         anio = _anio_actual()
@@ -1429,7 +1522,9 @@ def api_alertas(tipo):
     """Alertas de rendimiento"""
     try:
         periodo_id = request.args.get('periodo_id')
-        tabla = 'supervisiones_operativas' if tipo == 'operativas' else 'supervisiones_seguridad'
+        tabla = _tabla(tipo)
+        if not tabla:
+            return _tipo_invalido()
 
         alertas = []
 
