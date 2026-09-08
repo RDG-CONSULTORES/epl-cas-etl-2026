@@ -1441,6 +1441,25 @@ def api_historico(tipo):
         # La tendencia es del AÑO EN CURSO (Q1..Q4), no toda la historia (no 2025).
         anio = _anio_actual()
 
+        # ?anio=2025 → año cerrado con DOS calendarios (locales T1–T4 / foráneas S1–S2),
+        # separados por `aplica_a`. Nunca se mezcla con el año en curso.
+        anio_param = request.args.get('anio')
+        if anio_param:
+            try:
+                anio_hist = int(anio_param)
+            except (TypeError, ValueError):
+                return jsonify({'success': False, 'error': 'anio inválido'}), 400
+            if anio_hist != anio:
+                return jsonify({
+                    'success': True,
+                    'data': {
+                        'anio': anio_hist,
+                        'locales': _historico_calendario(tabla, anio_hist, 'local'),
+                        'foraneas': _historico_calendario(tabla, anio_hist, 'foraneo'),
+                        'nota': f'En {anio_hist} se auditó con dos calendarios; no es comparable trimestre a trimestre con {anio}.'
+                    }
+                })
+
         # Periodos del año en curso (columnas de la tendencia)
         periodos = db.session.execute(text("""
             SELECT id, nombre FROM periodos_cas
@@ -1540,6 +1559,7 @@ def api_historico(tipo):
         return jsonify({
             'success': True,
             'data': {
+                'anio': int(anio),
                 'periodos': [{'nombre': p[1]} for p in periodos],
                 'grupos': grupos_list,
                 'epl_cas': epl_cas
@@ -1547,6 +1567,82 @@ def api_historico(tipo):
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+def _historico_calendario(tabla, anio, aplica):
+    """
+    Heatmap de un año cerrado para UN calendario (`aplica` = 'local' | 'foraneo').
+    Misma regla que el histórico del año en curso: M1 = promedio por sucursal
+    dentro del periodo; grupo = promedio simple de sus sucursales con dato;
+    EPL CAS = promedio simple de todas las sucursales con dato en el periodo.
+    Usa TODAS las sucursales con visita ese año (no solo activas: es historia).
+    Solo periodos del año cuyo `aplica_a` sea el calendario pedido (o 'todos').
+    """
+    periodos = db.session.execute(text("""
+        SELECT id, codigo, nombre FROM periodos_cas
+        WHERE EXTRACT(YEAR FROM fecha_inicio) = :anio AND aplica_a IN (:aplica, 'todos')
+        ORDER BY fecha_inicio
+    """), {'anio': int(anio), 'aplica': aplica}).fetchall()
+    out = {
+        'calendario': aplica,
+        'periodos': [{'id': p[0], 'codigo': p[1], 'nombre': p[2]} for p in periodos],
+        'grupos': [],
+        'epl_cas': {'nombre': 'EPL CAS', 'periodos': {}}
+    }
+    if not periodos:
+        return out
+    # ids controlados por el servidor (enteros de la BD), se inyectan directo
+    ids_sql = ','.join(str(int(p[0])) for p in periodos)
+    ult_cte = f"""
+        ult AS (
+            SELECT so.sucursal_id, so.periodo_id,
+                   AVG(so.calificacion_general) AS cg
+            FROM {tabla} so
+            WHERE so.periodo_id IN ({ids_sql})
+            GROUP BY so.sucursal_id, so.periodo_id
+        )
+    """
+    rows = db.session.execute(text(f"""
+        WITH {ult_cte}
+        SELECT g.id, g.nombre, p.nombre AS periodo_nombre,
+               AVG(u.cg) AS promedio, COUNT(u.sucursal_id) AS evaluaciones
+        FROM ult u
+        JOIN sucursales s ON s.id = u.sucursal_id
+        JOIN grupos_operativos g ON g.id = s.grupo_operativo_id
+        JOIN periodos_cas p ON p.id = u.periodo_id
+        GROUP BY g.id, g.nombre, p.nombre, p.fecha_inicio
+        ORDER BY g.nombre, p.fecha_inicio
+    """)).fetchall()
+    grupos = {}
+    for r in rows:
+        gid = r[0]
+        if gid not in grupos:
+            grupos[gid] = {'id': gid, 'nombre': r[1], 'territorio': get_territorio(r[1]),
+                           'periodos': {}, 'promedio_general': 0}
+        prom = round(float(r[3]), 2) if r[3] is not None else None
+        grupos[gid]['periodos'][r[2]] = {
+            'promedio': prom,
+            'evaluaciones': r[4],
+            'color': get_color_class(prom) if prom is not None else 'gray'
+        }
+    for g in grupos.values():
+        vals = [x['promedio'] for x in g['periodos'].values() if x['promedio'] is not None]
+        g['promedio_general'] = round(sum(vals) / len(vals), 2) if vals else 0
+    out['grupos'] = sorted(grupos.values(), key=lambda x: x['promedio_general'], reverse=True)
+
+    epl_rows = db.session.execute(text(f"""
+        WITH {ult_cte}
+        SELECT p.nombre, AVG(u.cg) AS prom, COUNT(u.sucursal_id) AS evaluaciones
+        FROM ult u
+        JOIN periodos_cas p ON p.id = u.periodo_id
+        GROUP BY p.nombre, p.fecha_inicio
+        ORDER BY p.fecha_inicio
+    """)).fetchall()
+    for r in epl_rows:
+        if r[1] is not None:
+            prom = round(float(r[1]), 2)
+            out['epl_cas']['periodos'][r[0]] = {'promedio': prom, 'evaluaciones': r[2], 'color': get_color_class(prom)}
+    return out
 
 # ============ API ENDPOINTS - ALERTAS ============
 @app.route('/api/alertas/<tipo>')
@@ -1581,9 +1677,11 @@ def api_alertas(tipo):
         for row in result:
             alertas.append({
                 'tipo': 'critical',
-                'titulo': f'Rendimiento Crítico: {row[1]}',
-                'descripcion': f'Grupo {row[2]} - Promedio: {round(row[3], 1)}%',
+                'titulo': f'Rendimiento crítico: {row[1]}',
+                'descripcion': f'{row[2]} · {round(row[3], 1)}',
                 'sucursal_id': row[0],
+                'sucursal_nombre': row[1],
+                'grupo_nombre': row[2],
                 'promedio': round(row[3], 2)
             })
 
@@ -1604,18 +1702,65 @@ def api_alertas(tipo):
         for row in result:
             alertas.append({
                 'tipo': 'warning',
-                'titulo': f'Atención Requerida: {row[1]}',
-                'descripcion': f'Promedio del grupo: {round(row[2], 1)}%',
+                'titulo': f'Atención requerida: {row[1]}',
+                'descripcion': f'Promedio del grupo · {round(row[2], 1)}',
                 'grupo_id': row[0],
+                'grupo_nombre': row[1],
                 'promedio': round(row[2], 2)
             })
+
+        # --- Campos NUEVOS (aditivos; `alertas`, `total_criticos` y `total_warnings` no cambian) ---
+        # Grupos por nivel con cobertura (evaluadas/activas): críticos (<70) y en riesgo (70–79).
+        query_grupos = f"""
+            WITH {_score_cte(tabla, con_periodo, anio)}
+            SELECT g.id, g.nombre, AVG(u.calificacion_general) AS promedio,
+                   COUNT(u.sucursal_id) AS evaluadas,
+                   (SELECT COUNT(*) FROM sucursales s2
+                     WHERE s2.grupo_operativo_id = g.id AND s2.activo = true) AS activas
+            FROM grupos_operativos g
+            JOIN sucursales s ON g.id = s.grupo_operativo_id AND s.activo = true
+            JOIN ult u ON u.sucursal_id = s.id
+            WHERE g.activo = true
+            GROUP BY g.id, g.nombre
+            HAVING AVG(u.calificacion_general) < 80
+            ORDER BY promedio
+        """
+        grupos_criticos, grupos_riesgo = [], []
+        for row in db.session.execute(text(query_grupos), params):
+            prom = round(float(row[2]), 2)
+            item = {
+                'grupo_id': row[0], 'grupo_nombre': row[1], 'promedio': prom,
+                'color': get_color_class(prom),
+                'evaluadas': int(row[3] or 0), 'activas': int(row[4] or 0)
+            }
+            (grupos_criticos if prom < 70 else grupos_riesgo).append(item)
+
+        # Pendientes de supervisar: activas sin visita en el trimestre (o en el año en modo 'all')
+        if con_periodo:
+            filtro_visita = "x.periodo_id = :periodo_id"
+        else:
+            filtro_visita = f"x.periodo_id IN (SELECT id FROM periodos_cas WHERE EXTRACT(YEAR FROM fecha_inicio) = {int(anio)})"
+        query_pend = f"""
+            SELECT s.id, s.nombre, g.id AS grupo_id, g.nombre AS grupo
+            FROM sucursales s
+            LEFT JOIN grupos_operativos g ON g.id = s.grupo_operativo_id
+            WHERE s.activo = true
+              AND NOT EXISTS (SELECT 1 FROM {tabla} x WHERE x.sucursal_id = s.id AND {filtro_visita})
+            ORDER BY g.nombre NULLS LAST, s.nombre
+        """
+        pendientes = [{'sucursal_id': r[0], 'nombre': r[1], 'grupo_id': r[2], 'grupo': r[3]}
+                      for r in db.session.execute(text(query_pend), params)]
 
         return jsonify({
             'success': True,
             'data': {
                 'alertas': alertas,
                 'total_criticos': len([a for a in alertas if a['tipo'] == 'critical']),
-                'total_warnings': len([a for a in alertas if a['tipo'] == 'warning'])
+                'total_warnings': len([a for a in alertas if a['tipo'] == 'warning']),
+                'grupos_criticos': grupos_criticos,
+                'grupos_riesgo': grupos_riesgo,
+                'pendientes': pendientes,
+                'total_pendientes': len(pendientes)
             }
         })
     except Exception as e:
