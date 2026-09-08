@@ -247,18 +247,29 @@ function showInfoPopup(title, html) {
     ov.querySelector('.info-popup-close').addEventListener('click', close);
 }
 
-// Explica cómo se calcula el "Acumulado del Año" según el contexto
+// Explica cómo se calcula el "Año N" (promedio de los trimestres del año) según el contexto
 function showAcumuladoInfo(scope, anio) {
     var como;
     if (scope === 'sucursal') {
-        como = 'Es el <strong>promedio</strong> de las calificaciones de esta sucursal en los trimestres del año ' + anio + ' (una visita por trimestre).';
+        como = 'Es el <strong>promedio</strong> de las calificaciones de esta sucursal en los trimestres del año ' + anio + ' (una supervisión por trimestre).';
     } else if (scope === 'grupo') {
         como = 'Es el <strong>promedio</strong> de las calificaciones de las sucursales del grupo durante los trimestres del año ' + anio + '. Cada sucursal pesa igual.';
     } else {
         como = 'Es el <strong>promedio</strong> de las calificaciones de los trimestres del año ' + anio + '. Cada sucursal pesa igual.';
     }
-    showInfoPopup('¿Cómo se calcula el Acumulado del Año?',
+    showInfoPopup('¿Cómo se calcula el Año ' + anio + '?',
         como + '<br><br>Solo cuenta lo de <strong>' + anio + '</strong> — no incluye años anteriores. Se reinicia cada 1 de enero.');
+}
+
+// UN solo término para el concepto anual en toda la UI: "Año 2026"
+function anioLabelTxt() {
+    return anioActual ? ('Año ' + anioActual) : 'Año en curso';
+}
+
+// "Q3 2026" (nombre con espacio) para un periodo de la lista
+function periodoNombre(p) {
+    if (!p) return '';
+    return String(p.nombre || p.codigo || '').replace('-', ' ');
 }
 
 // ========== THEME TOGGLE ==========
@@ -370,8 +381,8 @@ function loadPeriodoContexto() {
 
             if (periodName) {
                 periodName.textContent = (currentPeriodoId === 'all')
-                    ? 'Año completo'
-                    : ((currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || '—');
+                    ? anioLabelTxt()
+                    : (periodoNombre(currentPeriodo) || '—');
             }
 
             // Actualizar progreso (loadKPIs lo vuelve a fijar con el periodo seleccionado)
@@ -403,12 +414,12 @@ function openPeriodSheet() {
     // Generar opciones - empezar con "Todos"
     var html = '';
 
-    // Opción "Acumulado del Año" = promedio de los trimestres del año en curso
+    // Opción "Año N" = promedio de los trimestres del año en curso
     var isAllSelected = currentPeriodoId === 'all';
     html += '<div class="period-option ' + (isAllSelected ? 'selected' : '') + '" data-id="all">' +
         '<div class="period-option-info">' +
-            '<span class="period-option-name">Año completo</span>' +
-            '<span class="period-option-dates">Promedio de los trimestres del año en curso</span>' +
+            '<span class="period-option-name">' + anioLabelTxt() + '</span>' +
+            '<span class="period-option-dates">Promedio de los trimestres del año</span>' +
         '</div>' +
         '<div class="period-option-check">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
@@ -420,8 +431,11 @@ function openPeriodSheet() {
     // Separador
     html += '<div class="period-separator"></div>';
 
-    // Periodos individuales
-    periodosDisponibles.forEach(function(p) {
+    // Periodos individuales, Q1 → Q4 (mismo orden que los chips)
+    var ordenados = periodosDisponibles.slice().sort(function(a, b) {
+        return String(a.fecha_inicio || '').localeCompare(String(b.fecha_inicio || ''));
+    });
+    ordenados.forEach(function(p) {
         var isSelected = currentPeriodoId && currentPeriodoId == p.id;
         var fechas = formatPeriodDates(p.fecha_inicio, p.fecha_fin);
         var isActivo = p.activo || (periodoActivoId && p.id == periodoActivoId);
@@ -429,11 +443,11 @@ function openPeriodSheet() {
 
         html += '<div class="period-option ' + (isSelected ? 'selected' : '') + (isFuturo ? ' disabled' : '') + '" data-id="' + p.id + '"' + (isFuturo ? ' aria-disabled="true"' : '') + '>' +
             '<div class="period-option-info">' +
-                '<span class="period-option-name">' + (p.codigo || p.nombre) +
+                '<span class="period-option-name">' + periodoNombre(p) +
                     (isActivo ? ' <span class="period-activo-badge">En curso</span>' : '') +
                     (isFuturo ? ' <span class="period-futuro-badge">Próximo</span>' : '') +
                 '</span>' +
-                '<span class="period-option-dates">' + fechas + '</span>' +
+                '<span class="period-option-dates">' + fechas + (isFuturo ? ' · disponible al iniciar el trimestre' : '') + '</span>' +
             '</div>' +
             '<div class="period-option-check">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
@@ -476,12 +490,12 @@ function selectPeriodo(periodoId) {
     var periodName = document.getElementById('periodName');
 
     if (periodoId === 'all') {
-        // Seleccionar "Acumulado del Año"
+        // Seleccionar "Año N" (promedio de los trimestres del año)
         currentPeriodoId = 'all';
         currentPeriodo = null;
 
         if (periodName) {
-            periodName.textContent = 'Año completo';
+            periodName.textContent = anioLabelTxt();
         }
 
         // Cerrar sheet y recargar todo lo visible
@@ -505,7 +519,7 @@ function selectPeriodo(periodoId) {
 
         // Actualizar UI
         if (periodName) {
-            periodName.textContent = periodo.codigo || periodo.nombre;
+            periodName.textContent = periodoNombre(periodo);
         }
 
         // Cerrar sheet
@@ -646,14 +660,19 @@ function loadKPIs() {
             var tipoTxt = (currentTipo === 'operativas') ? 'Operativa' : 'de Seguridad';
             var periodoTxt = esAnio
                 ? ('Año ' + d.anio)
-                : (((currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre').replace('-', ' '));
+                : (periodoNombre(currentPeriodo) || 'Trimestre');
             var tiene = (d.promedio !== null && d.promedio !== undefined);
             var faltan = (d.total_sucursales || 0) - (d.sucursales_supervisadas || 0);
+            var trimestres = d.trimestres || [];
+            // El año está "en curso" mientras haya un trimestre en curso (no se dice "preliminar")
+            var anioEnCurso = trimestres.some(function(q) { return q.en_curso; });
+            var ultimoQ = trimestres.filter(function(q) { return q.promedio !== null && q.promedio !== undefined; }).pop();
+            var hastaTxt = ultimoQ ? ((ultimoQ.codigo || '').split('-')[0] || ultimoQ.nombre) : '';
 
             // 1) Tarjeta principal: qué mide · de qué periodo · sobre cuántas
             if (el('kpiPromedioLabel')) {
                 el('kpiPromedioLabel').innerHTML = 'Calificación ' + tipoTxt + ' · ' + periodoTxt +
-                    (d.en_curso ? ' <span class="pill pill-curso">En curso</span>' : (esAnio ? ' <span class="pill pill-muted">preliminar</span>' : ''));
+                    ((d.en_curso || (esAnio && anioEnCurso)) ? ' <span class="pill pill-curso">En curso</span>' : '');
             }
             if (el('kpiPromedio')) {
                 el('kpiPromedio').textContent = tiene ? fmt1(d.promedio) : '—';
@@ -666,7 +685,7 @@ function loadKPIs() {
                     : 'Sin supervisiones en ' + periodoTxt;
             }
 
-            // 2) Tendencia: siempre con signo; "preliminar" mientras el trimestre no cierre
+            // 2) Tendencia: siempre con signo (el pill "En curso" ya avisa que puede moverse)
             var trendEl = el('kpiTrend');
             if (trendEl) {
                 var t = (!esAnio) ? d.tendencia : null;
@@ -674,8 +693,7 @@ function loadKPIs() {
                     var arrow = t.direccion === 'up' ? '▲' : (t.direccion === 'down' ? '▼' : '≈');
                     trendEl.className = 'kpi-trend ' + t.direccion;
                     trendEl.innerHTML = arrow + ' ' + (t.delta > 0 ? '+' : '') + fmt1(t.delta) +
-                        ' <span class="trend-vs">vs ' + t.vs + ' ' + d.anio + (t.prev !== undefined ? ' (' + fmt1(t.prev) + ')' : '') +
-                        (t.preliminar ? ' · preliminar' : '') + '</span>';
+                        ' <span class="trend-vs">vs ' + t.vs + ' ' + d.anio + (t.prev !== undefined ? ' (' + fmt1(t.prev) + ')' : '') + '</span>';
                     trendEl.style.display = '';
                 } else if (esAnio && d.delta_anual !== null && d.delta_anual !== undefined) {
                     var dirA = d.delta_anual >= 0.1 ? 'up' : (d.delta_anual <= -0.1 ? 'down' : 'flat');
@@ -703,17 +721,17 @@ function loadKPIs() {
                 }).join('');
             }
 
-            // 4) Año N (preliminar hasta cerrar Q4) y Año N-1 (cerrado, referencia)
+            // 4) Año N (en curso hasta cerrar Q4) y Año N-1 (cerrado, referencia)
             if (el('kpiAnioLabel')) el('kpiAnioLabel').textContent = 'Año ' + d.anio;
             if (el('kpiAnio')) {
                 el('kpiAnio').textContent = fmt1(d.promedio_acumulado);
                 el('kpiAnio').className = 'kpi-value mid ' + getColorClass(d.promedio_acumulado);
             }
-            if (el('kpiAnioSub')) el('kpiAnioSub').textContent = (d.sucursales_anio || 0) + ' sucursales · preliminar';
+            if (el('kpiAnioSub')) el('kpiAnioSub').textContent = (d.sucursales_anio || 0) + ' sucursales' + (hastaTxt ? ' · hasta ' + hastaTxt : '');
             if (el('kpiPrevLabel')) el('kpiPrevLabel').textContent = 'Año ' + d.anio_anterior;
             var hayPrev = (d.promedio_anio_anterior !== null && d.promedio_anio_anterior !== undefined);
             if (el('kpiPrev')) el('kpiPrev').textContent = hayPrev ? fmt1(d.promedio_anio_anterior) : '—';
-            if (el('kpiPrevSub')) el('kpiPrevSub').textContent = hayPrev ? ((d.sucursales_anio_anterior || 0) + ' sucursales · cerrado') : 'Sin datos';
+            if (el('kpiPrevSub')) el('kpiPrevSub').textContent = hayPrev ? ((d.sucursales_anio_anterior || 0) + ' sucursales · año cerrado') : 'Sin datos';
             var deltaEl = el('kpiDelta');
             if (deltaEl) {
                 if (hayPrev && d.delta_anual !== null && d.delta_anual !== undefined) {
@@ -734,10 +752,10 @@ function loadKPIs() {
             if (el('kpiGrupos')) el('kpiGrupos').innerHTML = (d.total_grupos || 0) + '<span class="kpi-de"> de ' + (d.total_grupos_catalogo || 0) + '</span>';
             if (el('kpiGruposSub')) el('kpiGruposSub').textContent = 'con supervisión en ' + periodoTxt;
 
-            // 6) Fecha de corte de los datos
+            // 6) Fecha de corte de los datos (sin nombrar al proveedor de captura)
             if (el('dataCut')) {
-                el('dataCut').textContent = (d.fecha_corte ? 'Datos al ' + fmtFecha(d.fecha_corte) + ' · Zenput' : '') +
-                    (hayPrev ? ' · ' + d.anio_anterior + ' se auditó con otro calendario' : '');
+                el('dataCut').textContent = (d.fecha_corte ? 'Datos al ' + fmtFecha(d.fecha_corte) : '') +
+                    (hayPrev ? (d.fecha_corte ? ' · ' : '') + d.anio_anterior + ' no es comparable trimestre a trimestre (otro calendario)' : '');
             }
 
             // Barra de periodo: nombre + estado
@@ -879,13 +897,18 @@ function escAttr(s) {
         .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Meta "N de M sucursales · parcial" para un grupo del ranking
+// Meta "N de M sucursales · faltan K" para un grupo del ranking ("parcial" va como tag junto a la cifra)
 function coberturaTxt(evaluadas, activas) {
     var ev = (evaluadas === null || evaluadas === undefined) ? 0 : evaluadas;
     var ac = (activas === null || activas === undefined) ? 0 : activas;
     var txt = ev + ' de ' + ac + ' sucursal' + (ac === 1 ? '' : 'es');
-    if (ev > 0 && ev < ac) txt += ' · parcial';
+    if (ev > 0 && ev < ac) txt += ' · faltan ' + (ac - ev);
     return txt;
+}
+
+// Tag "PARCIAL · 1/4" bajo la cifra de un grupo con sucursales sin supervisar
+function partialTag(evaluadas, activas) {
+    return '<small class="partial-tag">Parcial · ' + (evaluadas || 0) + '/' + (activas || 0) + '</small>';
 }
 
 // Renderiza una fila de grupo (ranking principal o dentro de PLOG)
@@ -907,7 +930,7 @@ function renderGrupoRow(g, pos, extraClass) {
         '<span class="ranking-meta">' + meta + '</span>' +
         '</div>' +
         '<span class="ranking-score ' + colorClass + (parcial ? ' partial' : '') + '">' + promedio +
-            (parcial ? '<small class="partial-tag">parcial</small>' : '') + '</span>' +
+            (parcial ? partialTag(evaluadas, activas) : '') + '</span>' +
         '</div>';
 }
 
@@ -956,7 +979,7 @@ function renderAgrupacion(agrupacion) {
                 '<span class="ranking-meta">' + agrupacion.total_grupos + ' grupos · ' + coberturaTxt(evaluadas, activas) + '</span>' +
             '</div>' +
             '<span class="ranking-score ' + colorClass + (parcial ? ' partial' : '') + '">' + promedio +
-                (parcial ? '<small class="partial-tag">parcial</small>' : '') + '</span>' +
+                (parcial ? partialTag(evaluadas, activas) : '') + '</span>' +
         '</div>' +
         '<div class="agrupacion-body">' + gruposHtml + '</div>' +
     '</div>';
@@ -976,9 +999,8 @@ function toggleAgrupacion(agrupacionId) {
 // ========== MODALS ==========
 function periodoLabelTxt() {
     // "Q3 2026" | "Año 2026"
-    if (currentPeriodoId === 'all') return 'Año ' + (anioActual || '');
-    var c = currentPeriodo && (currentPeriodo.nombre || currentPeriodo.codigo);
-    return c ? String(c).replace('-', ' ') : 'Trimestre';
+    if (currentPeriodoId === 'all') return anioLabelTxt();
+    return periodoNombre(currentPeriodo) || 'Trimestre';
 }
 
 function tipoLabelTxt() {
@@ -1048,7 +1070,7 @@ function openGrupoModal(grupoId) {
                 var scoreTxt = pendiente ? '—' : fmt1(s.promedio);
                 var n = s.supervisiones || 0;
                 var metaTxt = pendiente
-                    ? (esAnio ? 'Sin supervisión en el año' : 'Sin supervisión este trimestre')
+                    ? ('Sin supervisión en ' + periodoLabelTxt())
                     : (n + ' supervisi' + (n === 1 ? 'ón' : 'ones'));
                 var aria = s.nombre + ', ' + (pendiente ? 'sin supervisión' : fmt1(s.promedio) + ', ' + nivelTxt(sColorClass));
                 return '<div class="modal-list-item" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + s.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + s.id + ')}">' +
@@ -1068,7 +1090,7 @@ function openGrupoModal(grupoId) {
                 var promAnioHtml = '';
                 if (g.promedio_anio !== null && g.promedio_anio !== undefined) {
                     promAnioHtml = '<span class="trend-anio ' + (g.color_anio || 'gray') + '">' +
-                        'Acumulado del Año ' + anioTxt + ': <strong>' + fmt1(g.promedio_anio) + '</strong>' +
+                        'Año ' + anioTxt + ': <strong>' + fmt1(g.promedio_anio) + '</strong>' +
                         '<button type="button" class="info-i" onclick="showAcumuladoInfo(\'grupo\', ' + (anioTxt || 0) + ')" aria-label="Cómo se calcula el acumulado">i</button></span>';
                 }
                 tendenciaHtml = '<div class="trend-head">' +
@@ -1092,8 +1114,8 @@ function openGrupoModal(grupoId) {
                 (evalTxt ? '<span class="modal-kpi-date">' + evalTxt + '</span>' : '') +
                 '</div>' +
                 '<div class="modal-stats">' +
-                '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">Supervisiones</span></div>' +
-                '<div class="modal-stat"><span class="stat-value">' + activas + '</span><span class="stat-label">Sucursales</span></div>' +
+                '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">' + ((g.total_supervisiones || 0) === 1 ? 'Supervisión' : 'Supervisiones') + ' · ' + periodoLbl + '</span></div>' +
+                '<div class="modal-stat"><span class="stat-value">' + activas + '</span><span class="stat-label">' + (activas === 1 ? 'Sucursal' : 'Sucursales') + '</span></div>' +
                 '</div>' +
                 tendenciaHtml +
                 '<h4 class="modal-section-title">Sucursales del grupo</h4>' +
@@ -1198,7 +1220,7 @@ function openSucursalModal(sucursalId) {
             var sPromAnioHtml = '';
             if (s.promedio_anio !== null && s.promedio_anio !== undefined) {
                 sPromAnioHtml = '<span class="trend-anio ' + (s.color_anio || 'gray') + '">' +
-                    'Acumulado del Año ' + (s.anio || '') + ': <strong>' + fmt1(s.promedio_anio) + '</strong>' +
+                    'Año ' + (s.anio || '') + ': <strong>' + fmt1(s.promedio_anio) + '</strong>' +
                     '<button type="button" class="info-i" onclick="showAcumuladoInfo(\'sucursal\', ' + (s.anio || 0) + ')" aria-label="Cómo se calcula el acumulado">i</button></span>';
             }
             trendQHtml = '<div class="trend-head">' +
@@ -1242,14 +1264,14 @@ function openSucursalModal(sucursalId) {
               '<span class="modal-kpi-value ' + colorClass + '" aria-label="' + escAttr(fmt1(s.promedio) + ', ' + nivelTxt(colorClass)) + '">' + fmt1(s.promedio) + '</span>' +
               '<span class="modal-kpi-label">Calificación ' + tipoLabelTxt() + ' · ' + periodoLbl + '</span>' +
               (ultimaTxt ? '<span class="modal-kpi-date">' + ultimaTxt + '</span>' : '') +
-              (ultimaDifiere ? '<span class="modal-kpi-date">Última visita: <strong class="' + getColorClass(s.calificacion_ultima) + '">' + fmt1(s.calificacion_ultima) + '</strong>' +
+              (ultimaDifiere ? '<span class="modal-kpi-date">Calificación de la última supervisión: <strong class="' + getColorClass(s.calificacion_ultima) + '">' + fmt1(s.calificacion_ultima) + '</strong>' +
                   (esAnio ? ' · el número principal promedia los trimestres del año' : ' · el número principal promedia las visitas del trimestre') + '</span>' : '') +
               '</div>';
 
         body.innerHTML = kpiHtml +
             infoHtml +
             '<div class="modal-stats">' +
-            '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '—') + '</span><span class="stat-label">Supervisor</span></div>' +
+            '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || 'Sin asignar') + '</span><span class="stat-label">Supervisor</span></div>' +
             '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '—') + '</span><span class="stat-label">Grupo</span></div>' +
             '</div>' +
             trendQHtml +
@@ -1287,9 +1309,11 @@ function renderAreasCards(areas) {
 
 function showAreasInfo() {
     var what = currentTipo === 'operativas' ? 'las áreas' : 'los KPIs';
-    showInfoPopup('¿Por qué ' + what + ' no promedian a la general?',
-        'La <strong>calificación general</strong> viene <strong>ponderada de Zenput</strong>: cada área pesa distinto según su importancia en la supervisión. ' +
-        'Por eso ' + what + ' no promedian a la general; sirven para ver <strong>dónde</strong> está la oportunidad, no para recalcular el total.');
+    var calif = 'Calificación ' + tipoLabelTxt();
+    showInfoPopup('¿Por qué ' + what + ' no promedian a la calificación?',
+        'La <strong>' + calif + '</strong> pondera cada ' + (currentTipo === 'operativas' ? 'área' : 'KPI') + ' según su peso en la supervisión, ' +
+        'por eso el promedio simple de ' + what + ' no coincide con ella. ' +
+        (currentTipo === 'operativas' ? 'Las áreas sirven' : 'Los KPIs sirven') + ' para ver <strong>dónde</strong> está la oportunidad, no para recalcular el total.');
 }
 
 // Cargar áreas de una supervisión específica cuando se hace click en una barra
@@ -1430,12 +1454,12 @@ function loadMapData() {
                 }).addTo(map);
 
                 // Popup con botón para ver detalle
-                var scoreText = isPendiente ? 'Sin supervisión' : fmt1(item.promedio) + ' · ' + nivelTxt(colorClass);
+                var scoreText = isPendiente ? 'Sin supervisión en ' + periodoLabelTxt() : fmt1(item.promedio) + ' · ' + nivelTxt(colorClass);
                 var popupContent = '<div class="map-popup">' +
                     '<strong>' + item.nombre + '</strong><br>' +
                     '<span class="popup-grupo">' + (item.grupo || '—') + '</span><br>' +
                     '<span class="popup-score ' + colorClass + '">' + scoreText + '</span><br>' +
-                    '<button type="button" class="popup-btn" onclick="openSucursalModal(' + item.id + ')">Ver detalle</button>' +
+                    '<button type="button" class="popup-btn" onclick="openSucursalModal(' + item.id + ')">Ver sucursal</button>' +
                     '</div>';
 
                 marker.bindPopup(popupContent);
@@ -1452,7 +1476,7 @@ function loadMapData() {
             if (bounds.length > 0) {
                 map.fitBounds(bounds, { padding: [20, 20] });
             }
-            setMapStatus(conDato + ' de ' + items.length + ' sucursales con supervisión · ' + periodoLabelTxt(), false);
+            setMapStatus('Calificación ' + tipoLabelTxt() + ' · ' + periodoLabelTxt() + ' · ' + conDato + ' de ' + items.length + ' supervisadas', false);
         })
         .catch(function(e) {
             console.error('Error loading map:', e);
@@ -1518,11 +1542,11 @@ function renderHeatmap(periodos, grupos, eplCas, corner) {
         }).join('');
     }
 
-    // 1) Fila "Promedio EPL CAS" SIEMPRE primero, resaltada
+    // 1) Fila "PROMEDIO" SIEMPRE primero, resaltada
     var eplHtml = '';
     if (eplCas) {
         eplHtml = '<div class="heatmap-row heatmap-total" role="row">' +
-            '<div class="heatmap-entity" role="rowheader">Promedio EPL CAS</div>' +
+            '<div class="heatmap-entity" role="rowheader" title="Promedio EPL CAS">Promedio</div>' +
             rowCells(eplCas.periodos) +
             '</div>';
     }
@@ -1713,7 +1737,7 @@ function loadAlertas() {
                 if (pendTitle) pendTitle.textContent = 'Pendientes de supervisar (' + totalPend + ')';
                 if (pendientes.length === 0) {
                     pendContainer.innerHTML = '<div class="empty-state success-msg">' +
-                        (esAnio ? 'Todas las sucursales activas tienen visita este año' : 'Todas las sucursales activas ya fueron supervisadas') + '</div>';
+                        '✓ Todas las sucursales activas ya fueron supervisadas en ' + periodoLabelTxt() + '</div>';
                 } else {
                     // Agrupadas por grupo operativo
                     var porGrupo = {};
@@ -1728,7 +1752,7 @@ function loadAlertas() {
                             return '<div class="alerta-item pending" role="button" tabindex="0" aria-label="' + escAttr(p.nombre + ', pendiente de supervisar, ' + k) + '" onclick="openSucursalModal(' + p.sucursal_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + p.sucursal_id + ')}">' +
                                 '<div class="alerta-info">' +
                                 '<span class="alerta-name">' + p.nombre + '</span>' +
-                                '<span class="alerta-meta">' + (esAnio ? 'Sin visita en el año' : 'Sin visita en ' + periodoLabelTxt()) + '</span>' +
+                                '<span class="alerta-meta">Sin supervisión en ' + periodoLabelTxt() + '</span>' +
                                 '</div>' +
                                 '<span class="alerta-score gray">—</span>' +
                                 '</div>';
