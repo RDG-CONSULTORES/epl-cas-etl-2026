@@ -98,7 +98,7 @@ def _anio_actual():
     return date.today().year
 
 
-def _score_cte(tabla, con_periodo, anio=None):
+def _score_cte(tabla, con_periodo, anio=None, solo_activas=True):
     """
     CTE 'ult' = calificación por sucursal dentro del alcance. SIEMPRE acotada a un
     alcance temporal — nunca "toda la historia" (eso mezclaba 2025 y era la causa
@@ -130,6 +130,8 @@ def _score_cte(tabla, con_periodo, anio=None):
     # luego el promedio de esos M1 por sucursal. Una re-supervisión pesa dentro de su
     # trimestre y no infla el año (decisión D-1, auditoría 2026-09-08).
     anio_val = int(anio) if anio else date.today().year
+    # Año en curso: solo activas (universo de hoy). Año cerrado: todas las que operaron ese año.
+    activas_sql = ' AND sa.activo = true' if solo_activas else ''
     return f"""
         ult AS (
             SELECT q.sucursal_id, AVG(q.m1) AS calificacion_general
@@ -137,7 +139,7 @@ def _score_cte(tabla, con_periodo, anio=None):
                 SELECT so.sucursal_id, so.periodo_id,
                        AVG(so.calificacion_general) AS m1
                 FROM {tabla} so
-                JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
+                JOIN sucursales sa ON sa.id = so.sucursal_id{activas_sql}
                 JOIN periodos_cas p ON so.periodo_id = p.id
                 WHERE EXTRACT(YEAR FROM p.fecha_inicio) = {anio_val}
                 GROUP BY so.sucursal_id, so.periodo_id
@@ -517,7 +519,32 @@ def api_kpis(tipo):
         periodo_activo_id = activo_row[0] if activo_row else None
 
         # Año anterior con la MISMA definición (M3 anidado, activas) para comparar años
-        prev_row = db.session.execute(text(f"WITH {_score_cte(tabla, False, anio - 1)} SELECT AVG(calificacion_general), COUNT(*) FROM ult")).fetchone()
+        prev_row = db.session.execute(text(f"WITH {_score_cte(tabla, False, anio - 1, solo_activas=False)} SELECT AVG(calificacion_general), COUNT(*) FROM ult")).fetchone()
+        # Sucursales con visita en el año en curso (universo del Año N)
+        sucursales_anio = db.session.execute(text(f"WITH {_score_cte(tabla, False, anio)} SELECT COUNT(*) FROM ult")).scalar() or 0
+        # M2 Estado actual: última supervisión de cada sucursal activa, cualquier fecha
+        m2 = db.session.execute(text(f"""
+            SELECT AVG(x.cg), COUNT(*) FROM (
+                SELECT DISTINCT ON (so.sucursal_id) so.sucursal_id, so.calificacion_general AS cg
+                FROM {tabla} so JOIN sucursales sa ON sa.id = so.sucursal_id AND sa.activo = true
+                ORDER BY so.sucursal_id, so.fecha_supervision DESC
+            ) x
+        """)).fetchone()
+        estado_actual = float(round(m2[0], 2)) if m2 and m2[0] is not None else None
+        # Chips Q1..Q4: M1 de la marca por trimestre + evaluadas/activas + estado
+        hoy_d = date.today()
+        trimestres = []
+        for r in db.session.execute(text("SELECT id, codigo, nombre, fecha_inicio FROM periodos_cas WHERE EXTRACT(YEAR FROM fecha_inicio) = :anio ORDER BY fecha_inicio"), {'anio': anio}):
+            rr = db.session.execute(text(f"WITH {_score_cte(tabla, True)} SELECT AVG(calificacion_general), COUNT(*) FROM ult"), {'periodo_id': r[0]}).fetchone()
+            ev = int(rr[1] or 0) if rr else 0
+            trimestres.append({
+                'id': r[0], 'codigo': r[1], 'nombre': r[2],
+                'promedio': float(round(rr[0], 2)) if rr and rr[0] is not None else None,
+                'evaluadas': ev, 'activas': int(total_sucursales),
+                'en_curso': bool(periodo_activo_id == r[0] and ev < total_sucursales),
+                'futuro': bool(r[3] and r[3] > hoy_d and periodo_activo_id != r[0]),
+            })
+        fecha_corte = db.session.execute(text(f"SELECT MAX(fecha_supervision) FROM {tabla}")).scalar()
         promedio_anio_anterior = float(round(prev_row[0], 2)) if prev_row and prev_row[0] is not None else None
         sucursales_anio_anterior = int(prev_row[1] or 0) if prev_row else 0
 
@@ -572,12 +599,13 @@ def api_kpis(tipo):
                     {'periodo_id': prev[0]}).scalar()
                 if prev_prom is not None:
                     delta = round(float(promedio_periodo) - float(prev_prom), 2)
-                    direccion = 'up' if delta > 0.5 else ('down' if delta < -0.5 else 'flat')
+                    direccion = 'up' if delta >= 0.1 else ('down' if delta <= -0.1 else 'flat')
                     tendencia = {
                         'delta': delta,
                         'direccion': direccion,
                         'vs': (prev[1] or '').split('-')[0],
-                        'preliminar': bool(sucursales_supervisadas < total_sucursales)
+                        'preliminar': bool(sucursales_supervisadas < total_sucursales),
+                        'prev': float(round(prev_prom, 2))
                     }
 
         return jsonify({
@@ -602,6 +630,10 @@ def api_kpis(tipo):
                 'promedio_anio_anterior': promedio_anio_anterior,
                 'sucursales_anio_anterior': sucursales_anio_anterior,
                 'delta_anual': delta_anual,
+                'sucursales_anio': int(sucursales_anio),
+                'estado_actual': estado_actual,
+                'trimestres': trimestres,
+                'fecha_corte': fecha_corte.strftime('%Y-%m-%d') if fecha_corte else None,
                 'distribucion': {
                     'excelente': int(distribucion['excelente']),
                     'bueno': int(distribucion['bueno']),
@@ -991,9 +1023,9 @@ def api_grupo_detalle(grupo_id, tipo):
             direccion, delta = None, None
             if tiene and prev is not None:
                 delta = round(prom - prev, 2)
-                if delta > 0.5:
+                if delta >= 0.1:
                     direccion = 'up'
-                elif delta < -0.5:
+                elif delta <= -0.1:
                     direccion = 'down'
                 else:
                     direccion = 'flat'
@@ -1159,7 +1191,7 @@ def api_sucursal_detalle(sucursal_id, tipo):
             direccion, delta = None, None
             if tiene and prev is not None:
                 delta = round(prom - prev, 2)
-                direccion = 'up' if delta > 0.5 else ('down' if delta < -0.5 else 'flat')
+                direccion = 'up' if delta >= 0.1 else ('down' if delta <= -0.1 else 'flat')
             tendencia.append({
                 'codigo': r[0], 'nombre': r[1], 'promedio': prom,
                 'tiene_dato': tiene, 'color': get_color_class(prom) if tiene else 'gray',

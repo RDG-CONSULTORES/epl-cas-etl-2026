@@ -77,28 +77,39 @@
         <main class="tab-content">
             <!-- Dashboard Tab -->
             <section class="tab-panel active" id="dashboard">
-                <!-- KPI Cards -->
+                <!-- KPI Cards: header de 4 métricas (M1+cobertura, M4, Año N vs N-1, M2) -->
                 <div class="kpi-section">
                     <div class="kpi-grid">
-                        <div class="kpi-card main">
-                            <span class="kpi-value" id="kpiPromedio">-</span>
-                            <span class="kpi-trend" id="kpiTrend" style="display:none"></span>
+                        <div class="kpi-card main" id="kpiMain">
                             <span class="kpi-label" id="kpiPromedioLabel">Calificación del Trimestre</span>
-                            <span class="kpi-acumulado" id="kpiAcumulado">-</span>
+                            <span class="kpi-value" id="kpiPromedio">-</span>
+                            <span class="kpi-sub" id="kpiSub">&nbsp;</span>
+                            <span class="kpi-trend" id="kpiTrend" style="display:none"></span>
+                            <div class="q-chips" id="qChips"></div>
                         </div>
                         <div class="kpi-card">
-                            <span class="kpi-value" id="kpiTotal">-</span>
-                            <span class="kpi-label">Total Supervisiones</span>
+                            <span class="kpi-label" id="kpiAnioLabel">Año</span>
+                            <span class="kpi-value mid" id="kpiAnio">-</span>
+                            <span class="kpi-sub" id="kpiAnioSub">&nbsp;</span>
+                        </div>
+                        <div class="kpi-card year-prev" id="kpiPrevCard">
+                            <span class="pill pill-delta" id="kpiDelta" style="display:none"></span>
+                            <span class="kpi-label" id="kpiPrevLabel">Año anterior</span>
+                            <span class="kpi-value mid gray" id="kpiPrev">-</span>
+                            <span class="kpi-sub" id="kpiPrevSub">&nbsp;</span>
                         </div>
                         <div class="kpi-card">
-                            <span class="kpi-value" id="kpiGrupos">-</span>
-                            <span class="kpi-label">Grupos Evaluados</span>
+                            <span class="kpi-label">Estado actual</span>
+                            <span class="kpi-value mid" id="kpiEstado">-</span>
+                            <span class="kpi-sub">Última visita de cada sucursal</span>
                         </div>
                         <div class="kpi-card">
-                            <span class="kpi-value" id="kpiSucursales">-</span>
-                            <span class="kpi-label">Sucursales Evaluadas</span>
+                            <span class="kpi-label">Grupos</span>
+                            <span class="kpi-value mid" id="kpiGrupos">-</span>
+                            <span class="kpi-sub" id="kpiGruposSub">con supervisión</span>
                         </div>
                     </div>
+                    <div class="data-cut" id="dataCut"></div>
                 </div>
 
                 <!-- Distribution -->

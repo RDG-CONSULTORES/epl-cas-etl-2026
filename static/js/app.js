@@ -194,8 +194,8 @@ function openPeriodSheet() {
     var isAllSelected = currentPeriodoId === 'all';
     html += '<div class="period-option ' + (isAllSelected ? 'selected' : '') + '" data-id="all">' +
         '<div class="period-option-info">' +
-            '<span class="period-option-name">Acumulado del Año</span>' +
-            '<span class="period-option-dates">Promedio de los trimestres de este año</span>' +
+            '<span class="period-option-name">Año completo</span>' +
+            '<span class="period-option-dates">Promedio de los trimestres del año en curso</span>' +
         '</div>' +
         '<div class="period-option-check">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">' +
@@ -268,7 +268,7 @@ function selectPeriodo(periodoId) {
         currentPeriodo = null;
 
         if (periodName) {
-            periodName.textContent = 'Acumulado del Año';
+            periodName.textContent = 'Año completo';
         }
 
         // Cerrar sheet y recargar
@@ -412,86 +412,145 @@ function loadDashboard() {
 }
 
 // ========== KPIs ==========
+function fmt1(v) {
+    if (v === null || v === undefined || isNaN(parseFloat(v))) return '—';
+    return (Math.round(parseFloat(v) * 10) / 10).toFixed(1);
+}
+
+function fmtFecha(iso) {
+    if (!iso) return '';
+    var meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    var p = iso.split('-');
+    if (p.length < 3) return iso;
+    return parseInt(p[2], 10) + ' ' + meses[parseInt(p[1], 10) - 1] + ' ' + p[0];
+}
+
 function loadKPIs() {
     var url = '/api/kpis/' + currentTipo;
     if (currentPeriodoId) {
         url += '?periodo_id=' + currentPeriodoId;
     }
+    var el = function(id) { return document.getElementById(id); };
 
     fetch(url)
         .then(function(res) { return res.json(); })
         .then(function(data) {
-            console.log('KPIs response:', data);
-            if (data.success && data.data) {
-                var d = data.data;
-                var promEl = document.getElementById('kpiPromedio');
-                var promLabelEl = document.getElementById('kpiPromedioLabel');
-                var acumEl = document.getElementById('kpiAcumulado');
-                var totalEl = document.getElementById('kpiTotal');
-                var gruposEl = document.getElementById('kpiGrupos');
-                var sucEl = document.getElementById('kpiSucursales');
-
-                // Promedio principal
-                var tieneProm = (d.promedio !== null && d.promedio !== undefined);
-                if (promEl) {
-                    promEl.textContent = tieneProm ? d.promedio + '%' : '—';
-                    promEl.className = 'kpi-value ' + (tieneProm ? (d.color || 'gray') : 'gray');
-                }
-
-                // Label y acumulado (etiquetas claras, sin tecnicismos)
-                // M4 Tendencia: flecha ▲/▼/▬ + Δ vs trimestre anterior (en la tarjeta principal)
-                var trendEl = document.getElementById('kpiTrend');
-                if (trendEl) {
-                    var t = (currentPeriodoId !== 'all') ? d.tendencia : null;
-                    if (t && t.direccion) {
-                        var arrow = t.direccion === 'up' ? '▲' : (t.direccion === 'down' ? '▼' : '▬');
-                        var deltaTxt = (t.delta > 0 ? '+' : '') + t.delta;
-                        trendEl.className = 'kpi-trend ' + t.direccion;
-                        trendEl.innerHTML = arrow + ' ' + deltaTxt + ' vs ' + t.vs +
-                            (t.preliminar ? ' <span class="prelim-tag">preliminar</span>' : '');
-                        trendEl.style.display = '';
-                    } else {
-                        trendEl.style.display = 'none';
-                        trendEl.innerHTML = '';
-                    }
-                }
-
-                var nombreAcum = d.nombre_acumulado || 'Acumulado del Año';
-                if (currentPeriodoId === 'all') {
-                    // Modo "Acumulado del Año" - promedio de los trimestres del año en curso
-                    if (promLabelEl) promLabelEl.textContent = nombreAcum + ' · ' + (d.sucursales_supervisadas || 0) + ' de ' + (d.total_sucursales || 0) + ' sucursales';
-                    if (acumEl) acumEl.style.display = 'none';
-                    var ptAll = document.getElementById('progressText');
-                    if (ptAll) ptAll.textContent = (d.sucursales_supervisadas || 0) + '/' + (d.total_sucursales || 0);
-                } else {
-                    // Modo trimestre específico
-                    var periodoTxt = (currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre';
-                    var revisadas = d.sucursales_supervisadas || 0;
-                    var totalSuc = d.total_sucursales || 0;
-                    var enCurso = !!d.en_curso;
-                    // Badge "En curso (x/y)" cuando el trimestre aún no llega a 86/86
-                    if (promLabelEl) {
-                        promLabelEl.textContent = 'Calificación ' + periodoTxt +
-                            (enCurso ? ' · En curso (' + revisadas + '/' + totalSuc + ')' : '');
-                    }
-                    if (acumEl) {
-                        acumEl.style.display = 'block';
-                        acumEl.textContent = nombreAcum + ': ' + (d.promedio_acumulado ? d.promedio_acumulado + '%' : '-');
-                    }
-                }
-
-                if (totalEl) totalEl.textContent = d.total_supervisiones || 0;
-                if (gruposEl) gruposEl.textContent = (d.total_grupos || 0) + (d.total_grupos_catalogo ? ' de ' + d.total_grupos_catalogo : '');
-                if (sucEl) sucEl.textContent = (d.sucursales_supervisadas || 0) + (d.total_sucursales ? ' de ' + d.total_sucursales : '');
-
-                renderDistribution(d.distribucion || {});
-            } else {
-                var promErr = document.getElementById('kpiPromedio');
-                if (promErr) { promErr.textContent = '—'; promErr.className = 'kpi-value gray'; }
+            if (!(data.success && data.data)) {
+                if (el('kpiPromedio')) { el('kpiPromedio').textContent = '—'; el('kpiPromedio').className = 'kpi-value gray'; }
+                if (el('kpiSub')) el('kpiSub').textContent = 'No se pudieron cargar los datos';
+                return;
             }
+            var d = data.data;
+            var esAnio = (currentPeriodoId === 'all');
+            var tipoTxt = (currentTipo === 'operativas') ? 'Operativa' : 'de Seguridad';
+            var periodoTxt = esAnio
+                ? ('Año ' + d.anio)
+                : (((currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre').replace('-', ' '));
+            var tiene = (d.promedio !== null && d.promedio !== undefined);
+            var faltan = (d.total_sucursales || 0) - (d.sucursales_supervisadas || 0);
+
+            // 1) Tarjeta principal: qué mide · de qué periodo · sobre cuántas
+            if (el('kpiPromedioLabel')) {
+                el('kpiPromedioLabel').innerHTML = 'Calificación ' + tipoTxt + ' · ' + periodoTxt +
+                    (d.en_curso ? ' <span class="pill pill-curso">En curso</span>' : (esAnio ? ' <span class="pill pill-muted">preliminar</span>' : ''));
+            }
+            if (el('kpiPromedio')) {
+                el('kpiPromedio').textContent = tiene ? fmt1(d.promedio) : '—';
+                el('kpiPromedio').className = 'kpi-value ' + (tiene ? (d.color || 'gray') : 'gray');
+            }
+            if (el('kpiSub')) {
+                el('kpiSub').textContent = tiene
+                    ? ((d.sucursales_supervisadas || 0) + ' de ' + (d.total_sucursales || 0) + ' sucursales supervisadas' +
+                       ((d.en_curso && faltan > 0) ? ' · faltan ' + faltan : ''))
+                    : 'Sin supervisiones en ' + periodoTxt;
+            }
+
+            // 2) Tendencia: siempre con signo; "preliminar" mientras el trimestre no cierre
+            var trendEl = el('kpiTrend');
+            if (trendEl) {
+                var t = (!esAnio) ? d.tendencia : null;
+                if (t && t.direccion) {
+                    var arrow = t.direccion === 'up' ? '▲' : (t.direccion === 'down' ? '▼' : '≈');
+                    trendEl.className = 'kpi-trend ' + t.direccion;
+                    trendEl.innerHTML = arrow + ' ' + (t.delta > 0 ? '+' : '') + fmt1(t.delta) +
+                        ' <span class="trend-vs">vs ' + t.vs + ' ' + d.anio + (t.prev !== undefined ? ' (' + fmt1(t.prev) + ')' : '') +
+                        (t.preliminar ? ' · preliminar' : '') + '</span>';
+                    trendEl.style.display = '';
+                } else if (esAnio && d.delta_anual !== null && d.delta_anual !== undefined) {
+                    var dirA = d.delta_anual >= 0.1 ? 'up' : (d.delta_anual <= -0.1 ? 'down' : 'flat');
+                    trendEl.className = 'kpi-trend ' + dirA;
+                    trendEl.innerHTML = (dirA === 'up' ? '▲' : (dirA === 'down' ? '▼' : '≈')) + ' ' + (d.delta_anual > 0 ? '+' : '') + fmt1(d.delta_anual) +
+                        ' <span class="trend-vs">vs Año ' + d.anio_anterior + ' (' + fmt1(d.promedio_anio_anterior) + ')</span>';
+                    trendEl.style.display = '';
+                } else {
+                    trendEl.style.display = 'none';
+                    trendEl.innerHTML = '';
+                }
+            }
+
+            // 3) Chips Q1..Q4 de la marca (tocar = seleccionar ese trimestre)
+            var chips = el('qChips');
+            if (chips) {
+                chips.innerHTML = (d.trimestres || []).map(function(q) {
+                    var qLbl = (q.codigo || '').split('-')[0];
+                    var cls = 'q-chip' + (q.futuro ? ' off' : '') + (q.en_curso ? ' on' : '') + ((!esAnio && currentPeriodoId == q.id) ? ' sel' : '');
+                    var val = q.futuro ? '—' : fmt1(q.promedio);
+                    var vcls = q.futuro ? '' : getColorClass(q.promedio);
+                    var sub = q.futuro ? 'Próximo' : (q.en_curso ? q.evaluadas + '/' + q.activas : (q.promedio === null ? 'sin datos' : qLbl === '' ? '' : q.evaluadas + '/' + q.activas));
+                    return '<div class="' + cls + '" role="button" tabindex="0" ' + (q.futuro ? 'aria-disabled="true"' : 'onclick="selectPeriodo(' + q.id + ')"') +
+                        ' aria-label="' + qLbl + ' ' + d.anio + '"><b class="' + vcls + '">' + val + '</b><span>' + qLbl + ' · ' + sub + '</span></div>';
+                }).join('');
+            }
+
+            // 4) Año N (preliminar hasta cerrar Q4) y Año N-1 (cerrado, referencia)
+            if (el('kpiAnioLabel')) el('kpiAnioLabel').textContent = 'Año ' + d.anio;
+            if (el('kpiAnio')) {
+                el('kpiAnio').textContent = fmt1(d.promedio_acumulado);
+                el('kpiAnio').className = 'kpi-value mid ' + getColorClass(d.promedio_acumulado);
+            }
+            if (el('kpiAnioSub')) el('kpiAnioSub').textContent = (d.sucursales_anio || 0) + ' sucursales · preliminar';
+            if (el('kpiPrevLabel')) el('kpiPrevLabel').textContent = 'Año ' + d.anio_anterior;
+            var hayPrev = (d.promedio_anio_anterior !== null && d.promedio_anio_anterior !== undefined);
+            if (el('kpiPrev')) el('kpiPrev').textContent = hayPrev ? fmt1(d.promedio_anio_anterior) : '—';
+            if (el('kpiPrevSub')) el('kpiPrevSub').textContent = hayPrev ? ((d.sucursales_anio_anterior || 0) + ' sucursales · cerrado') : 'Sin datos';
+            var deltaEl = el('kpiDelta');
+            if (deltaEl) {
+                if (hayPrev && d.delta_anual !== null && d.delta_anual !== undefined) {
+                    var up = d.delta_anual >= 0;
+                    deltaEl.className = 'pill pill-delta ' + (up ? 'pill-up' : 'pill-down');
+                    deltaEl.textContent = (up ? '▲ +' : '▼ ') + fmt1(d.delta_anual);
+                    deltaEl.style.display = '';
+                } else {
+                    deltaEl.style.display = 'none';
+                }
+            }
+
+            // 5) Estado actual (M2) y grupos con datos
+            if (el('kpiEstado')) {
+                el('kpiEstado').textContent = fmt1(d.estado_actual);
+                el('kpiEstado').className = 'kpi-value mid ' + getColorClass(d.estado_actual);
+            }
+            if (el('kpiGrupos')) el('kpiGrupos').innerHTML = (d.total_grupos || 0) + '<span class="kpi-de"> de ' + (d.total_grupos_catalogo || 0) + '</span>';
+            if (el('kpiGruposSub')) el('kpiGruposSub').textContent = 'con supervisión en ' + periodoTxt;
+
+            // 6) Fecha de corte de los datos
+            if (el('dataCut')) {
+                el('dataCut').textContent = (d.fecha_corte ? 'Datos al ' + fmtFecha(d.fecha_corte) + ' · Zenput' : '') +
+                    (hayPrev ? ' · ' + d.anio_anterior + ' se auditó con otro calendario' : '');
+            }
+
+            // Barra de periodo: nombre + estado
+            var periodName = el('periodName');
+            if (periodName) periodName.textContent = periodoTxt + (d.en_curso ? ' · En curso' : '');
+            var pt = el('progressText');
+            if (pt) pt.textContent = (d.sucursales_supervisadas || 0) + '/' + (d.total_sucursales || 0);
+
+            renderDistribution(d.distribucion || {});
         })
         .catch(function(e) {
             console.error('Error loading KPIs:', e);
+            if (el('kpiPromedio')) { el('kpiPromedio').textContent = '—'; el('kpiPromedio').className = 'kpi-value gray'; }
+            if (el('kpiSub')) el('kpiSub').textContent = 'No se pudieron cargar los datos';
         });
 }
 
