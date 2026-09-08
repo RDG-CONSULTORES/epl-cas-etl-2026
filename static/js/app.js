@@ -9,8 +9,12 @@ var currentView = 'grupos';
 var currentTerritorio = 'todas';
 var currentPeriodoId = null;
 var currentPeriodo = null;
+var currentTab = 'dashboard';      // dashboard | mapa | historico | alertas
 var periodosDisponibles = [];
 var periodoActivoId = null; // ID del periodo marcado como activo
+var anioActual = null;      // Año del calendario en curso (de periodo-contexto)
+var histAnio = null;        // Año que muestra la pestaña Histórico
+var pendingPeriodoFromHash = null; // Periodo pedido en la URL, se valida al cargar el contexto
 var map = null;
 var markers = [];
 var scrollPosition = 0; // Para guardar posición de scroll en iOS
@@ -18,6 +22,187 @@ var openModalsCount = 0; // Contador de modales abiertos
 
 // Estado de agrupaciones expandidas/colapsadas
 var agrupacionesEstado = {};
+
+var TABS_VALIDAS = ['dashboard', 'mapa', 'historico', 'alertas'];
+var NIVEL_TXT = { excellent: 'Excelente', good: 'Bueno', regular: 'Regular', critical: 'Crítico', gray: 'Sin datos' };
+
+// ========== ESTADO EN LA URL (hash) ==========
+// #p=<periodo_id|all>&t=<operativas|seguridad>&v=<tab>&r=<grupos|sucursales>
+function parseHash() {
+    var h = (window.location.hash || '').replace(/^#/, '');
+    var out = {};
+    h.split('&').forEach(function(kv) {
+        if (!kv) return;
+        var i = kv.indexOf('=');
+        var k = i < 0 ? kv : kv.slice(0, i);
+        var v = i < 0 ? '' : kv.slice(i + 1);
+        try { v = decodeURIComponent(v); } catch (e) { /* hash malformado: se ignora */ }
+        out[k] = v;
+    });
+    return out;
+}
+
+// Restaura tipo/tab/vista desde el hash ANTES de pedir datos. El periodo se
+// deja pendiente: se valida contra periodosDisponibles en loadPeriodoContexto.
+function applyHashState() {
+    var st = parseHash();
+    if (st.t === 'operativas' || st.t === 'seguridad') {
+        currentTipo = st.t;
+        document.querySelectorAll('.toggle-btn').forEach(function(b) {
+            b.classList.toggle('active', b.dataset.tipo === currentTipo);
+        });
+    }
+    if (st.r === 'grupos' || st.r === 'sucursales') {
+        currentView = st.r;
+        document.querySelectorAll('.sub-toggle[data-view]').forEach(function(b) {
+            b.classList.toggle('active', b.dataset.view === currentView);
+        });
+        var title = document.getElementById('rankingTitle');
+        if (title) title.textContent = currentView === 'grupos' ? 'de Grupos' : 'de Sucursales';
+    }
+    if (TABS_VALIDAS.indexOf(st.v) >= 0) {
+        setActiveTab(st.v, false);
+    }
+    if (st.p) {
+        pendingPeriodoFromHash = (st.p === 'all') ? 'all' : parseInt(st.p, 10);
+        if (pendingPeriodoFromHash !== 'all' && isNaN(pendingPeriodoFromHash)) pendingPeriodoFromHash = null;
+    }
+}
+
+function updateHash() {
+    var parts = [];
+    if (currentPeriodoId !== null && currentPeriodoId !== undefined) parts.push('p=' + currentPeriodoId);
+    parts.push('t=' + currentTipo);
+    parts.push('v=' + currentTab);
+    parts.push('r=' + currentView);
+    var newHash = '#' + parts.join('&');
+    if (window.location.hash === newHash) return;
+    try {
+        // replaceState: no llena el historial (el gesto "atrás" sigue reservado a los modales)
+        history.replaceState(history.state, '', newHash);
+    } catch (e) {
+        window.location.hash = newHash;
+    }
+}
+
+// Activa una pestaña (UI). Si load=true carga su contenido.
+function setActiveTab(tabId, load) {
+    if (TABS_VALIDAS.indexOf(tabId) < 0) tabId = 'dashboard';
+    currentTab = tabId;
+    document.querySelectorAll('.bottom-tab').forEach(function(b) {
+        var on = b.dataset.tab === tabId;
+        b.classList.toggle('active', on);
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    document.querySelectorAll('.tab-panel').forEach(function(p) {
+        p.classList.toggle('active', p.id === tabId);
+    });
+    if (load) refreshActiveTab();
+}
+
+// Recarga SOLO la pestaña visible (mapa/histórico/alertas o dashboard)
+function refreshActiveTab() {
+    if (currentTab === 'mapa') {
+        initMap();
+        loadMapData();
+    } else if (currentTab === 'historico') {
+        loadHistorico();
+    } else if (currentTab === 'alertas') {
+        loadAlertas();
+    } else {
+        loadDashboard();
+    }
+}
+
+// Recarga TODO lo visible: dashboard (KPIs + ranking) y, si aplica, la pestaña activa
+function refreshAll() {
+    loadDashboard();
+    if (currentTab !== 'dashboard') refreshActiveTab();
+}
+
+// ========== FETCH CON ERRORES CLAROS ==========
+// Devuelve el JSON del API; lanza si la red falla, el HTTP no es 2xx o success=false.
+function fetchJson(url) {
+    return fetch(url, { cache: 'no-store' }).then(function(res) {
+        return res.json().catch(function() { return null; }).then(function(data) {
+            if (!res.ok || !data || data.success === false) {
+                var err = new Error((data && data.error) || ('HTTP ' + res.status));
+                err.data = data;
+                throw err;
+            }
+            return data;
+        });
+    });
+}
+
+var ERROR_MSG = 'No se pudieron cargar los datos.';
+function errorHtml(retryId) {
+    return '<div class="error-state" role="alert">' + ERROR_MSG +
+        (retryId ? ' <button type="button" class="retry-btn" id="' + retryId + '">Reintentar</button>' : '') +
+        '</div>';
+}
+function renderError(container, retryFn) {
+    if (!container) return;
+    var id = 'retry-' + Math.random().toString(36).slice(2, 8);
+    container.innerHTML = errorHtml(id);
+    var btn = document.getElementById(id);
+    if (btn && retryFn) btn.addEventListener('click', retryFn);
+}
+function loadingHtml(txt) {
+    return '<div class="loading" role="status" aria-live="polite">' + (txt || 'Cargando…') + '</div>';
+}
+
+// ========== HISTORIAL DE MODALES (gesto "atrás" del iPhone) ==========
+// Cada modal abierto hace pushState({modal, id, depth}); popstate cierra los
+// modales por encima de la profundidad del estado al que se regresó.
+function pushModalState(kind, id) {
+    try {
+        history.pushState({ modal: kind, id: id, depth: openModalsCount }, '');
+    } catch (e) { /* sin historial (p. ej. file://) */ }
+}
+
+function hideOverlay(ov) {
+    if (ov) ov.classList.remove('active');
+}
+
+// Cierra los modales cuya profundidad sea mayor a `depth` (0 = ninguno abierto)
+function closeModalsAbove(depth) {
+    var suc = document.getElementById('sucursalModalOverlay');
+    var grp = document.getElementById('modalOverlay');
+    var guard = 0;
+    while (openModalsCount > depth && guard++ < 5) {
+        if (suc && suc.classList.contains('active')) {
+            hideOverlay(suc);
+            unlockBodyScroll();
+        } else if (grp && grp.classList.contains('active')) {
+            hideOverlay(grp);
+            unlockBodyScroll();
+        } else {
+            // Contador desfasado: normalizar
+            openModalsCount = depth;
+            if (depth <= 0) unlockBodyScroll();
+            break;
+        }
+    }
+}
+
+// Cierra el modal superior. Usa history.back() SOLO si el estado actual del
+// historial es el de ese modal (evita saltos fuera de la página).
+function closeTopModal() {
+    if (openModalsCount <= 0) return;
+    var st = history.state;
+    if (st && st.modal && st.depth === openModalsCount) {
+        history.back(); // popstate → closeModalsAbove(depth-1)
+    } else {
+        closeModalsAbove(openModalsCount - 1);
+    }
+}
+
+window.addEventListener('popstate', function(e) {
+    var st = e.state;
+    var depth = (st && st.modal) ? (st.depth || 0) : 0;
+    closeModalsAbove(depth);
+});
 
 // ========== iOS MODAL FIX ==========
 function lockBodyScroll() {
@@ -113,6 +298,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initToggles();
     initTabs();
     initPeriodSelector();
+    initHistoricoControls();
+    // Un estado de modal viejo (recarga con modal abierto) no debe capturar "atrás"
+    try {
+        if (history.state && history.state.modal) history.replaceState(null, '', window.location.href);
+    } catch (e) { /* ignorar */ }
+    applyHashState();      // Restaurar tipo/tab/vista/periodo desde la URL ANTES de pedir datos
     loadPeriodoContexto(); // Cargar periodo primero, luego dashboard
 });
 
@@ -137,46 +328,68 @@ function initPeriodSelector() {
 }
 
 function loadPeriodoContexto() {
-    fetch('/api/periodo-contexto/' + currentTipo)
-        .then(function(res) { return res.json(); })
+    var periodName = document.getElementById('periodName');
+    if (periodName) periodName.textContent = 'Cargando…';
+
+    fetchJson('/api/periodo-contexto/' + currentTipo)
         .then(function(data) {
-            if (data.success && data.data) {
-                var d = data.data;
+            var d = data.data || {};
 
-                // Guardar periodo actual
-                if (d.periodo_actual) {
-                    currentPeriodo = d.periodo_actual;
-                    currentPeriodoId = d.periodo_actual.id;
-                    periodoActivoId = d.periodo_actual.id; // Guardar el activo
-
-                    // Actualizar UI
-                    var periodName = document.getElementById('periodName');
-                    if (periodName) {
-                        periodName.textContent = d.periodo_actual.codigo || d.periodo_actual.nombre;
-                    }
-                }
-
-                // Guardar lista de periodos con info de activo
-                periodosDisponibles = (d.periodos || []).map(function(p) {
-                    p.activo = (periodoActivoId && p.id == periodoActivoId);
-                    return p;
-                });
-
-                // Actualizar progreso
-                if (d.progreso) {
-                    var progressText = document.getElementById('progressText');
-                    if (progressText) {
-                        progressText.textContent = d.progreso.supervisadas + '/' + d.progreso.total;
-                    }
-                }
-
-                // Ahora cargar el dashboard con el periodo
-                loadDashboard();
+            // Guardar periodo activo (el "en curso")
+            if (d.periodo_actual) {
+                currentPeriodo = d.periodo_actual;
+                currentPeriodoId = d.periodo_actual.id;
+                periodoActivoId = d.periodo_actual.id;
+                if (d.periodo_actual.fecha_inicio) anioActual = parseInt(String(d.periodo_actual.fecha_inicio).slice(0, 4), 10) || null;
             }
+
+            // Guardar lista de periodos con info de activo
+            periodosDisponibles = (d.periodos || []).map(function(p) {
+                p.activo = (periodoActivoId && p.id == periodoActivoId);
+                return p;
+            });
+            if (!anioActual && periodosDisponibles.length && periodosDisponibles[0].fecha_inicio) {
+                anioActual = parseInt(String(periodosDisponibles[0].fecha_inicio).slice(0, 4), 10) || null;
+            }
+            if (!histAnio) histAnio = anioActual;
+
+            // Periodo pedido en la URL: solo si existe en la lista y no es futuro; si no, el activo
+            if (pendingPeriodoFromHash !== null) {
+                if (pendingPeriodoFromHash === 'all') {
+                    currentPeriodoId = 'all';
+                    currentPeriodo = null;
+                } else {
+                    var pf = periodosDisponibles.find(function(p) { return p.id == pendingPeriodoFromHash; });
+                    if (pf && !(pf.futuro && !pf.activo)) {
+                        currentPeriodoId = pf.id;
+                        currentPeriodo = pf;
+                    }
+                }
+                pendingPeriodoFromHash = null;
+            }
+
+            if (periodName) {
+                periodName.textContent = (currentPeriodoId === 'all')
+                    ? 'Año completo'
+                    : ((currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || '—');
+            }
+
+            // Actualizar progreso (loadKPIs lo vuelve a fijar con el periodo seleccionado)
+            if (d.progreso) {
+                var progressText = document.getElementById('progressText');
+                if (progressText) {
+                    progressText.textContent = d.progreso.supervisadas + '/' + d.progreso.total;
+                }
+            }
+
+            updateHash();
+            refreshAll();
         })
         .catch(function(e) {
             console.error('Error loading periodo contexto:', e);
-            loadDashboard(); // Cargar dashboard aunque falle
+            if (periodName) periodName.textContent = 'Sin conexión';
+            pendingPeriodoFromHash = null;
+            refreshAll(); // Cargar lo visible aunque falle (mostrará su propio error)
         });
 }
 
@@ -271,9 +484,10 @@ function selectPeriodo(periodoId) {
             periodName.textContent = 'Año completo';
         }
 
-        // Cerrar sheet y recargar
+        // Cerrar sheet y recargar todo lo visible
         closePeriodSheet();
-        loadDashboard();
+        updateHash();
+        refreshAll();
         // En modo año mostramos avance del año (revisadas / activas)
         var progressText = document.getElementById('progressText');
         if (progressText) {
@@ -297,8 +511,9 @@ function selectPeriodo(periodoId) {
         // Cerrar sheet
         closePeriodSheet();
 
-        // Recargar todo con el nuevo periodo
-        loadDashboard();
+        // Recargar todo lo visible con el nuevo periodo (dashboard + mapa/histórico/alertas si están abiertos)
+        updateHash();
+        refreshAll();
         loadPeriodoProgreso();
     }
 }
@@ -306,19 +521,19 @@ function selectPeriodo(periodoId) {
 function loadPeriodoProgreso() {
     // Recargar progreso del periodo seleccionado
     var url = '/api/periodo-contexto/' + currentTipo;
-    if (currentPeriodoId && currentPeriodoId !== 'all') {
-        url += '?periodo_id=' + currentPeriodoId;
+    if (currentPeriodoId) {
+        url += '?periodo_id=' + currentPeriodoId; // el API acepta 'all' (avance del año)
     }
-    fetch(url)
-        .then(function(res) { return res.json(); })
+    fetchJson(url)
         .then(function(data) {
-            if (data.success && data.data && data.data.progreso) {
+            if (data.data && data.data.progreso) {
                 var progressText = document.getElementById('progressText');
                 if (progressText) {
                     progressText.textContent = data.data.progreso.supervisadas + '/' + data.data.progreso.total;
                 }
             }
-        });
+        })
+        .catch(function(e) { console.error('Error loading progreso:', e); });
 }
 
 function formatPeriodDates(inicio, fin) {
@@ -346,10 +561,14 @@ function initToggles() {
     // Main toggle: Operativas / Seguridad
     document.querySelectorAll('.toggle-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
+            if (btn.dataset.tipo === currentTipo) return;
             document.querySelectorAll('.toggle-btn').forEach(function(b) { b.classList.remove('active'); });
             btn.classList.add('active');
             currentTipo = btn.dataset.tipo;
-            loadPeriodoContexto(); // Recargar contexto con nuevo tipo
+            // CONSERVA el periodo seleccionado (no vuelve al activo) y recarga todo lo visible
+            updateHash();
+            refreshAll();
+            loadPeriodoProgreso();
         });
     });
 
@@ -361,6 +580,7 @@ function initToggles() {
             currentView = btn.dataset.view;
             var title = document.getElementById('rankingTitle');
             if (title) title.textContent = currentView === 'grupos' ? 'de Grupos' : 'de Sucursales';
+            updateHash();
             loadRanking();
         });
     });
@@ -381,25 +601,11 @@ function initTabs() {
     // Bottom navigation tabs (iOS style)
     document.querySelectorAll('.bottom-tab').forEach(function(btn) {
         btn.addEventListener('click', function() {
-            // Remove active from all tabs
-            document.querySelectorAll('.bottom-tab').forEach(function(b) { b.classList.remove('active'); });
-            document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-
-            // Add active to clicked tab
-            btn.classList.add('active');
             var tabId = btn.dataset.tab;
-            var panel = document.getElementById(tabId);
-            if (panel) panel.classList.add('active');
-
-            // Load tab-specific content
-            if (tabId === 'mapa') {
-                initMap();
-                loadMapData();
-            } else if (tabId === 'historico') {
-                loadHistorico();
-            } else if (tabId === 'alertas') {
-                loadAlertas();
-            }
+            setActiveTab(tabId, false);
+            updateHash();
+            // El dashboard ya está cargado; las demás pestañas se cargan al entrar
+            if (tabId !== 'dashboard') refreshActiveTab();
         });
     });
 }
@@ -431,15 +637,10 @@ function loadKPIs() {
         url += '?periodo_id=' + currentPeriodoId;
     }
     var el = function(id) { return document.getElementById(id); };
+    if (el('kpiSub')) el('kpiSub').textContent = 'Cargando…';
 
-    fetch(url)
-        .then(function(res) { return res.json(); })
+    fetchJson(url)
         .then(function(data) {
-            if (!(data.success && data.data)) {
-                if (el('kpiPromedio')) { el('kpiPromedio').textContent = '—'; el('kpiPromedio').className = 'kpi-value gray'; }
-                if (el('kpiSub')) el('kpiSub').textContent = 'No se pudieron cargar los datos';
-                return;
-            }
             var d = data.data;
             var esAnio = (currentPeriodoId === 'all');
             var tipoTxt = (currentTipo === 'operativas') ? 'Operativa' : 'de Seguridad';
@@ -550,7 +751,12 @@ function loadKPIs() {
         .catch(function(e) {
             console.error('Error loading KPIs:', e);
             if (el('kpiPromedio')) { el('kpiPromedio').textContent = '—'; el('kpiPromedio').className = 'kpi-value gray'; }
-            if (el('kpiSub')) el('kpiSub').textContent = 'No se pudieron cargar los datos';
+            if (el('kpiSub')) {
+                el('kpiSub').innerHTML = ERROR_MSG + ' <button type="button" class="retry-btn retry-inline" onclick="loadKPIs()">Reintentar</button>';
+            }
+            if (el('qChips')) el('qChips').innerHTML = '';
+            var dist = el('distributionBars');
+            if (dist) renderError(dist, loadKPIs);
         });
 }
 
@@ -561,38 +767,39 @@ function renderDistribution(dist) {
     var total = (dist.excelente || 0) + (dist.bueno || 0) + (dist.regular || 0) + (dist.critico || 0);
 
     if (total === 0) {
-        container.innerHTML = '<div class="empty-state">Sin datos</div>';
+        container.innerHTML = '<div class="empty-state">Sin sucursales supervisadas en este periodo</div>';
         return;
     }
 
+    // Semáforo con texto además de color (accesible sin depender del color)
     var items = [
-        { label: 'Excelente', count: dist.excelente || 0, cls: 'excellent' },
-        { label: 'Bueno', count: dist.bueno || 0, cls: 'good' },
-        { label: 'Regular', count: dist.regular || 0, cls: 'regular' },
-        { label: 'Critico', count: dist.critico || 0, cls: 'critical' }
+        { label: 'Excelente', rango: '≥90', count: dist.excelente || 0, cls: 'excellent' },
+        { label: 'Bueno', rango: '80–89', count: dist.bueno || 0, cls: 'good' },
+        { label: 'Regular', rango: '70–79', count: dist.regular || 0, cls: 'regular' },
+        { label: 'Crítico', rango: '<70', count: dist.critico || 0, cls: 'critical' }
     ];
 
     var html = items.map(function(item) {
         var pct = Math.round((item.count / total) * 100);
-        return '<div class="dist-bar">' +
+        return '<div class="dist-bar" role="group" aria-label="' + item.label + ' ' + item.rango + ': ' + item.count + ' sucursales (' + pct + '%)">' +
             '<div class="dist-label">' +
-            '<span class="dist-name ' + item.cls + '">' + item.label + '</span>' +
+            '<span class="dist-name ' + item.cls + '">' + item.label + ' <small class="dist-range">' + item.rango + '</small></span>' +
             '<span class="dist-count">' + item.count + ' (' + pct + '%)</span>' +
             '</div>' +
-            '<div class="dist-track">' +
+            '<div class="dist-track" aria-hidden="true">' +
             '<div class="dist-fill ' + item.cls + '" style="width: ' + pct + '%"></div>' +
             '</div>' +
             '</div>';
     }).join('');
 
-    container.innerHTML = html;
+    container.innerHTML = html + '<div class="dist-legend">' + total + ' sucursales supervisadas · Excelente ≥90 · Bueno 80–89 · Regular 70–79 · Crítico &lt;70</div>';
 }
 
 // ========== RANKING ==========
 function loadRanking() {
     var container = document.getElementById('rankingList');
     if (!container) return;
-    container.innerHTML = '<div class="loading">Cargando...</div>';
+    container.innerHTML = loadingHtml();
 
     var endpoint = currentView === 'grupos'
         ? '/api/ranking/grupos/' + currentTipo
@@ -610,118 +817,146 @@ function loadRanking() {
         endpoint += '?' + params.join('&');
     }
 
-    fetch(endpoint)
-        .then(function(res) { return res.json(); })
+    fetchJson(endpoint)
         .then(function(data) {
-            console.log('Ranking response:', data);
-            if (data.success && data.data && data.data.length > 0) {
-                var items = data.data;
-
-                if (items.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Sin resultados para este filtro</div>';
-                    return;
-                }
-
-                var html = '';
-
-                if (currentView === 'grupos') {
-                    // Vista de grupos con soporte para agrupaciones
-                    items.forEach(function(item) {
-                        if (item.tipo === 'agrupacion') {
-                            html += renderAgrupacion(item);
-                        } else {
-                            html += renderGrupoItem(item);
-                        }
-                    });
-                } else {
-                    // Vista de sucursales (sin cambios)
-                    html = items.map(function(item) {
-                        var pos = item.posicion;
-                        var isPendiente = pos === null;
-                        var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
-                        var colorClass = item.color || 'gray';
-                        var promedio = item.promedio !== null ? item.promedio + '%' : 'Pendiente';
-
-                        return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openSucursalModal(' + item.id + ')">' +
-                            '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
-                            '<div class="ranking-info">' +
-                            '<span class="ranking-name">' + item.nombre + '</span>' +
-                            '<span class="ranking-meta">' + (item.grupo_nombre || '-') + '</span>' +
-                            '</div>' +
-                            '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
-                            '</div>';
-                    }).join('');
-                }
-
-                container.innerHTML = html;
-            } else {
-                container.innerHTML = '<div class="empty-state">No hay datos de ranking</div>';
+            var items = data.data || [];
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state">Sin resultados para este filtro</div>';
+                return;
             }
+
+            var html = '';
+
+            if (currentView === 'grupos') {
+                // Vista de grupos con soporte para agrupaciones
+                items.forEach(function(item) {
+                    if (item.tipo === 'agrupacion') {
+                        html += renderAgrupacion(item);
+                    } else {
+                        html += renderGrupoItem(item);
+                    }
+                });
+            } else {
+                // Vista de sucursales
+                var esAnio = (currentPeriodoId === 'all');
+                html = items.map(function(item) {
+                    var pos = item.posicion;
+                    var isPendiente = pos === null;
+                    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+                    var colorClass = item.color || 'gray';
+                    var promedio = item.promedio !== null ? fmt1(item.promedio) : 'Pendiente';
+                    var meta = (item.grupo_nombre || '—');
+                    if (esAnio && item.total_supervisiones) {
+                        meta += ' · ' + item.total_supervisiones + ' trimestre' + (item.total_supervisiones === 1 ? '' : 's');
+                    }
+                    var aria = item.nombre + ', ' + (item.promedio !== null ? fmt1(item.promedio) + ', ' + nivelTxt(colorClass) : 'pendiente de supervisar');
+
+                    return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + item.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + item.id + ')}">' +
+                        '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+                        '<div class="ranking-info">' +
+                        '<span class="ranking-name">' + item.nombre + '</span>' +
+                        '<span class="ranking-meta">' + meta + '</span>' +
+                        '</div>' +
+                        '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
+                        '</div>';
+                }).join('');
+            }
+
+            container.innerHTML = html;
         })
         .catch(function(e) {
             console.error('Error loading ranking:', e);
-            container.innerHTML = '<div class="error-state">Error al cargar ranking</div>';
+            renderError(container, loadRanking);
         });
+}
+
+function nivelTxt(colorClass) {
+    return NIVEL_TXT[colorClass] || NIVEL_TXT.gray;
+}
+
+function escAttr(s) {
+    return String(s === null || s === undefined ? '' : s)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Meta "N de M sucursales · parcial" para un grupo del ranking
+function coberturaTxt(evaluadas, activas) {
+    var ev = (evaluadas === null || evaluadas === undefined) ? 0 : evaluadas;
+    var ac = (activas === null || activas === undefined) ? 0 : activas;
+    var txt = ev + ' de ' + ac + ' sucursal' + (ac === 1 ? '' : 'es');
+    if (ev > 0 && ev < ac) txt += ' · parcial';
+    return txt;
+}
+
+// Renderiza una fila de grupo (ranking principal o dentro de PLOG)
+function renderGrupoRow(g, pos, extraClass) {
+    var isPendiente = (g.promedio === null || g.promedio === undefined);
+    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
+    var colorClass = isPendiente ? 'gray' : (g.color || getColorClass(g.promedio));
+    var evaluadas = (g.evaluadas !== undefined) ? g.evaluadas : g.total_supervisiones;
+    var activas = (g.activas !== undefined) ? g.activas : g.total_sucursales;
+    var parcial = !isPendiente && evaluadas < activas;
+    var promedio = isPendiente ? 'Pendiente' : fmt1(g.promedio);
+    var meta = coberturaTxt(evaluadas, activas) + ' · ' + territorioTxt(g.territorio);
+    var aria = g.nombre + ', ' + (isPendiente ? 'sin supervisión' : fmt1(g.promedio) + ', ' + nivelTxt(colorClass) + (parcial ? ', parcial' : '')) + ', ' + coberturaTxt(evaluadas, activas);
+
+    return '<div class="ranking-item ' + (extraClass || '') + (isPendiente ? ' pendiente' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openGrupoModal(' + g.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGrupoModal(' + g.id + ')}">' +
+        '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
+        '<div class="ranking-info">' +
+        '<span class="ranking-name">' + g.nombre + '</span>' +
+        '<span class="ranking-meta">' + meta + '</span>' +
+        '</div>' +
+        '<span class="ranking-score ' + colorClass + (parcial ? ' partial' : '') + '">' + promedio +
+            (parcial ? '<small class="partial-tag">parcial</small>' : '') + '</span>' +
+        '</div>';
+}
+
+function territorioTxt(t) {
+    if (t === 'local') return 'Local';
+    if (t === 'foranea') return 'Foránea';
+    if (t === 'mixto') return 'Mixto';
+    return t || '';
 }
 
 // Renderiza un grupo individual
 function renderGrupoItem(item) {
-    var pos = item.posicion;
-    var isPendiente = pos === null;
-    var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
-    var colorClass = item.color || 'gray';
-    var promedio = item.promedio !== null ? item.promedio + '%' : 'Pendiente';
-
-    return '<div class="ranking-item ' + (isPendiente ? 'pendiente' : '') + '" onclick="openGrupoModal(' + item.id + ')">' +
-        '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
-        '<div class="ranking-info">' +
-        '<span class="ranking-name">' + item.nombre + '</span>' +
-        '<span class="ranking-meta">' + item.total_sucursales + ' sucursales | ' + item.territorio + '</span>' +
-        '</div>' +
-        '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
-        '</div>';
+    return renderGrupoRow(item, item.posicion, '');
 }
 
-// Renderiza una agrupación con sus grupos anidados
+// Renderiza una agrupación (PLOG) con sus grupos anidados
 function renderAgrupacion(agrupacion) {
     var isExpanded = agrupacionesEstado[agrupacion.id] === true;
-    var colorClass = agrupacion.color || 'gray';
-    var promedio = agrupacion.promedio !== null ? agrupacion.promedio + '%' : 'Pendiente';
+    var isPendiente = (agrupacion.promedio === null || agrupacion.promedio === undefined);
+    var colorClass = isPendiente ? 'gray' : (agrupacion.color || 'gray');
+    var evaluadas = agrupacion.total_supervisiones || 0; // nº de sucursales evaluadas en la agrupación
+    var activas = agrupacion.total_sucursales || 0;
+    var parcial = !isPendiente && evaluadas < activas;
+    var promedio = isPendiente ? 'Pendiente' : fmt1(agrupacion.promedio);
     var pos = agrupacion.posicion;
     var posClass = pos && pos <= 3 ? 'pos-' + pos : '';
 
-    // Renderizar grupos dentro de la agrupación
+    // Renderizar grupos dentro de la agrupación (misma fila que el ranking principal)
     var gruposHtml = '';
     if (agrupacion.grupos && agrupacion.grupos.length > 0) {
         gruposHtml = agrupacion.grupos.map(function(g) {
-            var gPos = g.posicion_interna;
-            var gPosClass = gPos && gPos <= 3 ? 'pos-' + gPos : '';
-            var gColorClass = g.color || 'gray';
-            var gPromedio = g.promedio !== null ? g.promedio + '%' : 'Pendiente';
-            var gIsPendiente = g.promedio === null;
-
-            return '<div class="ranking-item agrupacion-child ' + (gIsPendiente ? 'pendiente' : '') + '" onclick="openGrupoModal(' + g.id + ')">' +
-                '<span class="ranking-pos ' + gPosClass + '">' + (gPos || '-') + '</span>' +
-                '<div class="ranking-info">' +
-                '<span class="ranking-name">' + g.nombre + '</span>' +
-                '<span class="ranking-meta">' + g.total_sucursales + ' sucursales | ' + g.territorio + '</span>' +
-                '</div>' +
-                '<span class="ranking-score ' + gColorClass + '">' + gPromedio + '</span>' +
-                '</div>';
+            return renderGrupoRow(g, g.posicion_interna, 'agrupacion-child');
         }).join('');
     }
+    var aria = agrupacion.nombre + ', ' + (isPendiente ? 'sin supervisión' : fmt1(agrupacion.promedio) + ', ' + nivelTxt(colorClass)) +
+        ', ' + agrupacion.total_grupos + ' grupos, ' + coberturaTxt(evaluadas, activas) + (isExpanded ? ', expandido' : ', contraído');
 
     return '<div class="agrupacion-item ' + (isExpanded ? 'expanded' : '') + '" data-agrupacion="' + agrupacion.id + '">' +
-        '<div class="agrupacion-header" onclick="toggleAgrupacion(\'' + agrupacion.id + '\')">' +
+        '<div class="agrupacion-header" role="button" tabindex="0" aria-expanded="' + (isExpanded ? 'true' : 'false') + '" aria-label="' + escAttr(aria) + '" onclick="toggleAgrupacion(\'' + agrupacion.id + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleAgrupacion(\'' + agrupacion.id + '\')}">' +
             '<span class="ranking-pos ' + posClass + '">' + (pos || '-') + '</span>' +
-            '<svg class="agrupacion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<svg class="agrupacion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
                 '<polyline points="9 6 15 12 9 18"/>' +
             '</svg>' +
             '<div class="ranking-info">' +
                 '<span class="ranking-name">' + agrupacion.nombre + '</span>' +
-                '<span class="ranking-meta">' + agrupacion.total_grupos + ' grupos | ' + agrupacion.total_sucursales + ' sucursales</span>' +
+                '<span class="ranking-meta">' + agrupacion.total_grupos + ' grupos · ' + coberturaTxt(evaluadas, activas) + '</span>' +
             '</div>' +
-            '<span class="ranking-score ' + colorClass + '">' + promedio + '</span>' +
+            '<span class="ranking-score ' + colorClass + (parcial ? ' partial' : '') + '">' + promedio +
+                (parcial ? '<small class="partial-tag">parcial</small>' : '') + '</span>' +
         '</div>' +
         '<div class="agrupacion-body">' + gruposHtml + '</div>' +
     '</div>';
@@ -733,10 +968,43 @@ function toggleAgrupacion(agrupacionId) {
     var element = document.querySelector('[data-agrupacion="' + agrupacionId + '"]');
     if (element) {
         element.classList.toggle('expanded');
+        var head = element.querySelector('.agrupacion-header');
+        if (head) head.setAttribute('aria-expanded', element.classList.contains('expanded') ? 'true' : 'false');
     }
 }
 
 // ========== MODALS ==========
+function periodoLabelTxt() {
+    // "Q3 2026" | "Año 2026"
+    if (currentPeriodoId === 'all') return 'Año ' + (anioActual || '');
+    var c = currentPeriodo && (currentPeriodo.nombre || currentPeriodo.codigo);
+    return c ? String(c).replace('-', ' ') : 'Trimestre';
+}
+
+function tipoLabelTxt() {
+    return currentTipo === 'operativas' ? 'Operativa' : 'de Seguridad';
+}
+
+// Chips Q1..Q4 con flecha (compartido por modal de grupo y de sucursal)
+function renderTrendChips(tendencia) {
+    return tendencia.map(function(t) {
+        var qLabel = (t.codigo || '').split('-')[0];
+        var score = t.tiene_dato ? fmt1(t.promedio) : '—';
+        var arrow = '';
+        if (t.direccion === 'up') arrow = '<span class="trend-arrow up" aria-label="sube">▲</span>';
+        else if (t.direccion === 'down') arrow = '<span class="trend-arrow down" aria-label="baja">▼</span>';
+        else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat" aria-label="estable">▬</span>';
+        var deltaTxt = (t.delta !== null && t.delta !== undefined) ? ((t.delta > 0 ? '+' : '') + fmt1(t.delta)) : '';
+        var cls = t.tiene_dato ? t.color : 'off';
+        var title = (t.nombre || '') + (t.tiene_dato ? ' · ' + fmt1(t.promedio) + ' · ' + nivelTxt(t.color) : ' · sin datos') +
+            (deltaTxt ? ' · ' + deltaTxt + ' vs trimestre anterior' : '');
+        return '<div class="trend-chip ' + cls + '" title="' + escAttr(title) + '" aria-label="' + escAttr(title) + '">' +
+            '<span class="trend-q">' + qLabel + '</span>' +
+            '<span class="trend-score">' + score + '</span>' + arrow +
+            '</div>';
+    }).join('');
+}
+
 function openGrupoModal(grupoId) {
     var overlay = document.getElementById('modalOverlay');
     var body = document.getElementById('modalBody');
@@ -745,10 +1013,16 @@ function openGrupoModal(grupoId) {
 
     if (!overlay || !body) return;
 
-    // iOS fix: bloquear scroll del body
-    lockBodyScroll();
+    var yaAbierto = overlay.classList.contains('active');
+    if (!yaAbierto) {
+        // iOS fix: bloquear scroll del body
+        lockBodyScroll();
+        // El gesto "atrás" cierra el modal en vez de salir de la página
+        pushModalState('grupo', grupoId);
+    }
 
-    body.innerHTML = '<div class="loading">Cargando...</div>';
+    if (title) title.textContent = 'Grupo';
+    body.innerHTML = loadingHtml();
     body.scrollTop = 0;
     overlay.classList.add('active');
 
@@ -760,107 +1034,87 @@ function openGrupoModal(grupoId) {
     var grupoUrl = '/api/grupo/' + grupoId + '/' + currentTipo;
     if (currentPeriodoId) grupoUrl += '?periodo_id=' + currentPeriodoId;
 
-    fetch(grupoUrl)
-        .then(function(res) { return res.json(); })
+    fetchJson(grupoUrl)
         .then(function(data) {
-            if (data.success && data.data) {
-                var g = data.data;
-                if (title) title.textContent = g.grupo ? g.grupo.nombre : 'Grupo';
+            var g = data.data;
+            if (title) title.textContent = g.grupo ? g.grupo.nombre : 'Grupo';
 
-                var colorClass = g.color || getColorClass(g.promedio);
+            var colorClass = g.color || getColorClass(g.promedio);
+            var esAnio = (currentPeriodoId === 'all');
 
-                var sucursalesHtml = (g.sucursales || []).map(function(s, i) {
-                    var pendiente = !s.supervisiones;
-                    var sColorClass = pendiente ? 'gray' : (s.color || getColorClass(s.promedio));
-                    var scoreTxt = pendiente ? '—' : s.promedio;
-                    var metaTxt = pendiente ? 'Sin revision este trimestre' : ((s.supervisiones || 0) + ' revision' + ((s.supervisiones || 0) === 1 ? '' : 'es'));
-                    return '<div class="modal-list-item" onclick="openSucursalModal(' + s.id + ')">' +
-                        '<span class="ranking-pos pos-' + (i + 1) + '">' + (i + 1) + '</span>' +
-                        '<div class="ranking-info">' +
-                        '<span class="ranking-name">' + s.nombre + '</span>' +
-                        '<span class="ranking-meta">' + metaTxt + '</span>' +
-                        '</div>' +
-                        '<span class="ranking-score ' + sColorClass + '">' + scoreTxt + '</span>' +
-                        '</div>';
-                }).join('');
+            var sucursalesHtml = (g.sucursales || []).map(function(s, i) {
+                var pendiente = !s.supervisiones;
+                var sColorClass = pendiente ? 'gray' : (s.color || getColorClass(s.promedio));
+                var scoreTxt = pendiente ? '—' : fmt1(s.promedio);
+                var n = s.supervisiones || 0;
+                var metaTxt = pendiente
+                    ? (esAnio ? 'Sin supervisión en el año' : 'Sin supervisión este trimestre')
+                    : (n + ' supervisi' + (n === 1 ? 'ón' : 'ones'));
+                var aria = s.nombre + ', ' + (pendiente ? 'sin supervisión' : fmt1(s.promedio) + ', ' + nivelTxt(sColorClass));
+                return '<div class="modal-list-item" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + s.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + s.id + ')}">' +
+                    '<span class="ranking-pos pos-' + (i + 1) + '">' + (i + 1) + '</span>' +
+                    '<div class="ranking-info">' +
+                    '<span class="ranking-name">' + s.nombre + '</span>' +
+                    '<span class="ranking-meta">' + metaTxt + '</span>' +
+                    '</div>' +
+                    '<span class="ranking-score ' + sColorClass + '">' + scoreTxt + '</span>' +
+                    '</div>';
+            }).join('');
 
-                // Tendencia por trimestre: chips que se "prenden" + flecha ↑/↓/▬
-                var tendenciaHtml = '';
-                if (g.tendencia && g.tendencia.length) {
-                    var chips = g.tendencia.map(function(t) {
-                        var qLabel = (t.codigo || '').split('-')[0];
-                        var score = t.tiene_dato ? t.promedio : '—';
-                        var arrow = '';
-                        if (t.direccion === 'up') arrow = '<span class="trend-arrow up">▲</span>';
-                        else if (t.direccion === 'down') arrow = '<span class="trend-arrow down">▼</span>';
-                        else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat">▬</span>';
-                        var deltaTxt = (t.delta !== null && t.delta !== undefined)
-                            ? ((t.delta > 0 ? '+' : '') + t.delta) : '';
-                        var cls = t.tiene_dato ? t.color : 'off';
-                        return '<div class="trend-chip ' + cls + '" title="' + (t.nombre || '') +
-                                (deltaTxt ? ' · ' + deltaTxt + ' vs trim. anterior' : '') + '">' +
-                            '<span class="trend-q">' + qLabel + '</span>' +
-                            '<span class="trend-score">' + score + '</span>' +
-                            arrow +
-                            '</div>';
-                    }).join('');
-                    var anioTxt = g.anio || '';
-                    var promAnioHtml = '';
-                    if (g.promedio_anio !== null && g.promedio_anio !== undefined) {
-                        promAnioHtml = '<span class="trend-anio ' + (g.color_anio || 'gray') + '">' +
-                            'Acumulado del Año ' + anioTxt + ': <strong>' + g.promedio_anio + '%</strong>' +
-                            '<button class="info-i" onclick="showAcumuladoInfo(\'grupo\', ' + (anioTxt || 0) + ')" aria-label="Cómo se calcula">i</button></span>';
-                    }
-                    tendenciaHtml = '<div class="trend-head">' +
-                        '<h4 class="modal-section-title">Tendencia por trimestre</h4>' +
-                        promAnioHtml +
-                        '</div>' +
-                        '<div class="trend-chips">' + chips + '</div>';
+            // Tendencia por trimestre: chips que se "prenden" + flecha ↑/↓/▬
+            var tendenciaHtml = '';
+            if (g.tendencia && g.tendencia.length) {
+                var anioTxt = g.anio || '';
+                var promAnioHtml = '';
+                if (g.promedio_anio !== null && g.promedio_anio !== undefined) {
+                    promAnioHtml = '<span class="trend-anio ' + (g.color_anio || 'gray') + '">' +
+                        'Acumulado del Año ' + anioTxt + ': <strong>' + fmt1(g.promedio_anio) + '</strong>' +
+                        '<button type="button" class="info-i" onclick="showAcumuladoInfo(\'grupo\', ' + (anioTxt || 0) + ')" aria-label="Cómo se calcula el acumulado">i</button></span>';
                 }
-
-                var sinDatosGrupo = (g.promedio === null || g.promedio === undefined);
-                var periodoLbl = (currentPeriodoId === 'all')
-                    ? ('Acumulado del Año ' + (g.anio || ''))
-                    : ((currentPeriodo && (currentPeriodo.codigo || currentPeriodo.nombre)) || 'Trimestre');
-                var evalTxt = (g.sucursales_evaluadas !== undefined) ? (g.sucursales_evaluadas + ' de ' + (g.total_sucursales || 0) + ' sucursales') : '';
-                body.innerHTML = '<div class="modal-kpi">' +
-                    '<span class="modal-kpi-value ' + (sinDatosGrupo ? 'gray' : colorClass) + '">' + (sinDatosGrupo ? '—' : g.promedio + '%') + '</span>' +
-                    '<span class="modal-kpi-label">' + (sinDatosGrupo
-                        ? 'Sin supervisión · ' + periodoLbl
-                        : 'Calificación ' + (currentTipo === 'operativas' ? 'Operativa' : 'de Seguridad') + ' · ' + periodoLbl + (evalTxt ? ' · ' + evalTxt : '')) + '</span>' +
+                tendenciaHtml = '<div class="trend-head">' +
+                    '<h4 class="modal-section-title">Tendencia por trimestre</h4>' +
+                    promAnioHtml +
                     '</div>' +
-                    '<div class="modal-stats">' +
-                    '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">Supervisiones</span></div>' +
-                    '<div class="modal-stat"><span class="stat-value">' + (g.total_sucursales || 0) + '</span><span class="stat-label">Sucursales</span></div>' +
-                    '</div>' +
-                    tendenciaHtml +
-                    '<h4 class="modal-section-title">Sucursales del Grupo</h4>' +
-                    '<div class="modal-list">' + sucursalesHtml + '</div>';
-
-                // Resetear scroll DESPUÉS de cargar contenido
-                setTimeout(function() {
-                    body.scrollTop = 0;
-                    if (body.scrollTo) body.scrollTo(0, 0);
-                }, 50);
+                    '<div class="trend-chips">' + renderTrendChips(g.tendencia) + '</div>';
             }
+
+            var sinDatosGrupo = (g.promedio === null || g.promedio === undefined);
+            var periodoLbl = periodoLabelTxt();
+            var evaluadas = (g.sucursales_evaluadas !== undefined) ? g.sucursales_evaluadas : null;
+            var activas = g.total_sucursales || 0;
+            var parcial = !sinDatosGrupo && evaluadas !== null && evaluadas < activas;
+            var evalTxt = (evaluadas !== null) ? coberturaTxt(evaluadas, activas) : '';
+            body.innerHTML = '<div class="modal-kpi">' +
+                '<span class="modal-kpi-value ' + (sinDatosGrupo ? 'gray' : colorClass) + (parcial ? ' partial' : '') + '" aria-label="' + escAttr(sinDatosGrupo ? 'Sin supervisión' : fmt1(g.promedio) + ', ' + nivelTxt(colorClass)) + '">' + (sinDatosGrupo ? '—' : fmt1(g.promedio)) + '</span>' +
+                '<span class="modal-kpi-label">' + (sinDatosGrupo
+                    ? 'Sin supervisión · ' + periodoLbl
+                    : 'Calificación ' + tipoLabelTxt() + ' · ' + periodoLbl) + '</span>' +
+                (evalTxt ? '<span class="modal-kpi-date">' + evalTxt + '</span>' : '') +
+                '</div>' +
+                '<div class="modal-stats">' +
+                '<div class="modal-stat"><span class="stat-value">' + (g.total_supervisiones || 0) + '</span><span class="stat-label">Supervisiones</span></div>' +
+                '<div class="modal-stat"><span class="stat-value">' + activas + '</span><span class="stat-label">Sucursales</span></div>' +
+                '</div>' +
+                tendenciaHtml +
+                '<h4 class="modal-section-title">Sucursales del grupo</h4>' +
+                '<div class="modal-list">' + sucursalesHtml + '</div>';
+
+            // Resetear scroll DESPUÉS de cargar contenido
+            setTimeout(function() {
+                body.scrollTop = 0;
+                if (body.scrollTo) body.scrollTo(0, 0);
+            }, 50);
         })
         .catch(function(e) {
-            body.innerHTML = '<div class="error-state">Error al cargar datos</div>';
+            console.error('Error loading grupo:', e);
+            renderError(body, function() { openGrupoModal(grupoId); });
         });
 
-    // Close handlers
+    // Close handlers (cierran vía historial cuando el estado actual es el del modal)
     var closeBtn = document.getElementById('modalClose');
-    if (closeBtn) {
-        closeBtn.onclick = function() {
-            overlay.classList.remove('active');
-            unlockBodyScroll();
-        };
-    }
+    if (closeBtn) closeBtn.onclick = function() { closeTopModal(); };
     overlay.onclick = function(e) {
-        if (e.target === overlay) {
-            overlay.classList.remove('active');
-            unlockBodyScroll();
-        }
+        if (e.target === overlay) closeTopModal();
     };
 }
 
@@ -872,10 +1126,20 @@ function openSucursalModal(sucursalId) {
 
     if (!overlay || !body) return;
 
-    // iOS fix: bloquear scroll (solo incrementa contador si ya hay modal abierto)
-    lockBodyScroll();
+    var yaAbierto = overlay.classList.contains('active');
+    if (!yaAbierto) {
+        // iOS fix: bloquear scroll (solo incrementa contador si ya hay modal abierto)
+        lockBodyScroll();
+        pushModalState('sucursal', sucursalId);
+    }
 
-    body.innerHTML = '<div class="loading">Cargando...</div>';
+    // Flecha "atrás" solo tiene sentido si debajo hay un modal de grupo
+    var backBtn = document.getElementById('modalBack');
+    var grupoOverlay = document.getElementById('modalOverlay');
+    if (backBtn) backBtn.style.visibility = (grupoOverlay && grupoOverlay.classList.contains('active')) ? '' : 'hidden';
+
+    if (title) title.textContent = 'Sucursal';
+    body.innerHTML = loadingHtml();
     body.scrollTop = 0;
     overlay.classList.add('active');
 
@@ -890,161 +1154,142 @@ function openSucursalModal(sucursalId) {
     var sucUrl = '/api/sucursal/' + sucursalId + '/' + currentTipo;
     if (currentPeriodoId) sucUrl += '?periodo_id=' + currentPeriodoId;
 
-    // Cargar datos de sucursal y tendencia en paralelo
+    // Cargar datos de sucursal y tendencia en paralelo (la tendencia es opcional)
     Promise.all([
-        fetch(sucUrl).then(function(r) { return r.json(); }),
-        fetch('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).then(function(r) { return r.json(); })
+        fetchJson(sucUrl),
+        fetchJson('/api/sucursal-tendencia/' + sucursalId + '/' + currentTipo).catch(function() { return { data: [] }; })
     ]).then(function(results) {
-        var sucData = results[0];
+        var s = results[0].data;
         var tendData = results[1];
+        var sucInfo = s.sucursal || {};
+        if (title) title.textContent = sucInfo.nombre || 'Sucursal';
 
-        if (sucData.success && sucData.data) {
-            var s = sucData.data;
-            var sucInfo = s.sucursal || {};
-            if (title) title.textContent = sucInfo.nombre || 'Sucursal';
+        var colorClass = s.color || getColorClass(s.promedio);
+        var esAnio = (currentPeriodoId === 'all');
+        var periodoLbl = periodoLabelTxt();
 
-            var colorClass = s.color || getColorClass(s.promedio);
-
-            // Construir HTML de tendencia (últimas 4 supervisiones)
-            var tendenciaHtml = '';
-            var lastSupervisionId = null;
-            if (tendData.success && tendData.data && tendData.data.length > 0) {
-                var maxVal = 100;
-                // Guardar el ID de la última supervisión (la más reciente está al final)
-                lastSupervisionId = tendData.data[tendData.data.length - 1].id;
-
-                var barsHtml = tendData.data.map(function(t, index) {
-                    var height = Math.max((t.calificacion / maxVal) * 100, 5);
-                    var tColor = t.color || getColorClass(t.calificacion);
-                    var isLast = index === tendData.data.length - 1;
-                    return '<div class="trend-bar ' + (isLast ? 'selected' : '') + '" data-sup-id="' + t.id + '" data-fecha="' + t.fecha + '" onclick="loadSupervisionAreas(' + t.id + ', this)">' +
-                        '<div class="trend-fill ' + tColor + '" style="height: ' + height + '%">' +
-                        '<span class="trend-value">' + t.calificacion + '</span>' +
-                        '</div>' +
-                        '<span class="trend-label">' + t.fecha + '</span>' +
-                        '</div>';
-                }).join('');
-
-                tendenciaHtml = '<div class="tendencia-section">' +
-                    '<h4 class="modal-section-title">Ultimas ' + tendData.data.length + ' Supervisiones</h4>' +
-                    '<p class="trend-hint">Toca una barra para ver sus areas</p>' +
-                    '<div class="trend-chart">' + barsHtml + '</div>' +
+        // Construir HTML de tendencia (últimas 4 supervisiones)
+        var tendenciaHtml = '';
+        if (tendData.data && tendData.data.length > 0) {
+            var maxVal = 100;
+            var barsHtml = tendData.data.map(function(t, index) {
+                var height = Math.max((t.calificacion / maxVal) * 100, 5);
+                var tColor = t.color || getColorClass(t.calificacion);
+                var isLast = index === tendData.data.length - 1;
+                var aria = fmtFecha(t.fecha) + ': ' + fmt1(t.calificacion) + ', ' + nivelTxt(tColor);
+                return '<div class="trend-bar ' + (isLast ? 'selected' : '') + '" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" data-sup-id="' + t.id + '" data-fecha="' + t.fecha + '" onclick="loadSupervisionAreas(' + t.id + ', this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();loadSupervisionAreas(' + t.id + ', this)}">' +
+                    '<div class="trend-fill ' + tColor + '" style="height: ' + height + '%">' +
+                    '<span class="trend-value">' + fmt1(t.calificacion) + '</span>' +
+                    '</div>' +
+                    '<span class="trend-label">' + t.fecha + '</span>' +
                     '</div>';
-            }
+            }).join('');
 
-            // Tendencia por trimestre (chips que se prenden + flecha), igual que el grupo
-            var trendQHtml = '';
-            if (s.tendencia && s.tendencia.length) {
-                var sChips = s.tendencia.map(function(t) {
-                    var qLabel = (t.codigo || '').split('-')[0];
-                    var score = t.tiene_dato ? t.promedio : '—';
-                    var arrow = '';
-                    if (t.direccion === 'up') arrow = '<span class="trend-arrow up">▲</span>';
-                    else if (t.direccion === 'down') arrow = '<span class="trend-arrow down">▼</span>';
-                    else if (t.direccion === 'flat') arrow = '<span class="trend-arrow flat">▬</span>';
-                    var deltaTxt = (t.delta !== null && t.delta !== undefined) ? ((t.delta > 0 ? '+' : '') + t.delta) : '';
-                    var cls = t.tiene_dato ? t.color : 'off';
-                    return '<div class="trend-chip ' + cls + '" title="' + (t.nombre || '') +
-                            (deltaTxt ? ' · ' + deltaTxt + ' vs trim. anterior' : '') + '">' +
-                        '<span class="trend-q">' + qLabel + '</span>' +
-                        '<span class="trend-score">' + score + '</span>' + arrow +
-                        '</div>';
-                }).join('');
-                var sPromAnioHtml = '';
-                if (s.promedio_anio !== null && s.promedio_anio !== undefined) {
-                    sPromAnioHtml = '<span class="trend-anio ' + (s.color_anio || 'gray') + '">' +
-                        'Acumulado del Año ' + (s.anio || '') + ': <strong>' + s.promedio_anio + '%</strong>' +
-                        '<button class="info-i" onclick="showAcumuladoInfo(\'sucursal\', ' + (s.anio || 0) + ')" aria-label="Cómo se calcula">i</button></span>';
-                }
-                trendQHtml = '<div class="trend-head">' +
-                    '<h4 class="modal-section-title">Tendencia por trimestre</h4>' + sPromAnioHtml +
-                    '</div><div class="trend-chips">' + sChips + '</div>';
-            }
-
-            // Construir HTML de áreas/KPIs (en contenedor actualizable)
-            var areasHtml = '';
-            var areasTypeLabel = currentTipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
-            var areasCount = s.areas ? s.areas.length : 0;
-            if (s.areas && s.areas.length > 0) {
-                areasHtml = '<div id="areasContainer" data-tipo="' + currentTipo + '">' +
-                    '<h4 class="modal-section-title" id="areasTitle">' + areasTypeLabel + ' (' + areasCount + ') - Ultima Supervision</h4>' +
-                    '<div class="areas-grid" id="areasGrid">' +
-                    s.areas.map(function(a) {
-                        var aColorClass = a.color || getColorClass(a.porcentaje);
-                        return '<div class="area-card ' + aColorClass + '">' +
-                            '<span class="area-name">' + a.nombre + '</span>' +
-                            '<span class="area-score">' + a.porcentaje + '%</span>' +
-                            '</div>';
-                    }).join('') +
-                    '</div></div>';
-            } else {
-                areasHtml = '<div id="areasContainer"><div class="empty-state">Sin datos de areas</div></div>';
-            }
-
-            // Info adicional
-            var infoHtml = '';
-            if (sucInfo.ciudad || sucInfo.estado) {
-                infoHtml = '<div class="sucursal-location">' +
-                    '<span class="location-icon">📍</span>' +
-                    '<span>' + (sucInfo.ciudad || '') + (sucInfo.ciudad && sucInfo.estado ? ', ' : '') + (sucInfo.estado || '') + '</span>' +
-                    '</div>';
-            }
-
-            // Si NO hubo revisión en el trimestre seleccionado, no mostrar "0%" (rojo)
-            var sinRevision = !s.fecha_supervision;
-            var kpiHtml = sinRevision
-                ? '<div class="modal-kpi"><span class="modal-kpi-value gray">—</span>' +
-                  '<span class="modal-kpi-label">Sin revision en este trimestre</span></div>'
-                : '<div class="modal-kpi">' +
-                  '<span class="modal-kpi-value ' + colorClass + '">' + s.promedio + '%</span>' +
-                  '<span class="modal-kpi-label">' + (currentTipo === 'operativas' ? 'Calificacion Operativa' : 'Calificacion Seguridad') + '</span>' +
-                  '<span class="modal-kpi-date">' + s.fecha_supervision.split(' ')[0] + '</span>' +
-                  '</div>';
-
-            body.innerHTML = kpiHtml +
-                infoHtml +
-                '<div class="modal-stats">' +
-                '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '-') + '</span><span class="stat-label">Supervisor</span></div>' +
-                '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '-') + '</span><span class="stat-label">Grupo</span></div>' +
-                '</div>' +
-                trendQHtml +
-                tendenciaHtml +
-                areasHtml;
-
-            // IMPORTANTE: Resetear scroll DESPUÉS de cargar contenido
-            setTimeout(function() {
-                body.scrollTop = 0;
-                body.scrollTo && body.scrollTo(0, 0);
-            }, 50);
-        } else {
-            body.innerHTML = '<div class="error-state">No se encontraron datos</div>';
+            tendenciaHtml = '<div class="tendencia-section">' +
+                '<h4 class="modal-section-title">Últimas ' + tendData.data.length + ' supervisiones</h4>' +
+                '<p class="trend-hint">Toca una barra para ver sus áreas</p>' +
+                '<div class="trend-chart">' + barsHtml + '</div>' +
+                '</div>';
         }
+
+        // Tendencia por trimestre (chips que se prenden + flecha), igual que el grupo
+        var trendQHtml = '';
+        if (s.tendencia && s.tendencia.length) {
+            var sPromAnioHtml = '';
+            if (s.promedio_anio !== null && s.promedio_anio !== undefined) {
+                sPromAnioHtml = '<span class="trend-anio ' + (s.color_anio || 'gray') + '">' +
+                    'Acumulado del Año ' + (s.anio || '') + ': <strong>' + fmt1(s.promedio_anio) + '</strong>' +
+                    '<button type="button" class="info-i" onclick="showAcumuladoInfo(\'sucursal\', ' + (s.anio || 0) + ')" aria-label="Cómo se calcula el acumulado">i</button></span>';
+            }
+            trendQHtml = '<div class="trend-head">' +
+                '<h4 class="modal-section-title">Tendencia por trimestre</h4>' + sPromAnioHtml +
+                '</div><div class="trend-chips">' + renderTrendChips(s.tendencia) + '</div>';
+        }
+
+        // Construir HTML de áreas/KPIs (en contenedor actualizable)
+        var areasHtml = '';
+        var areasTypeLabel = currentTipo === 'operativas' ? 'Áreas evaluadas' : 'KPIs de seguridad';
+        var areasCount = s.areas ? s.areas.length : 0;
+        var infoBtn = '<button type="button" class="info-i" onclick="showAreasInfo()" aria-label="Cómo se relacionan las áreas con la calificación general">i</button>';
+        if (s.areas && s.areas.length > 0) {
+            areasHtml = '<div id="areasContainer" data-tipo="' + currentTipo + '">' +
+                '<h4 class="modal-section-title areas-title"><span id="areasTitle">' + areasTypeLabel + ' (' + areasCount + ') · última supervisión</span>' + infoBtn + '</h4>' +
+                '<div class="areas-grid" id="areasGrid">' + renderAreasCards(s.areas) + '</div></div>';
+        } else {
+            areasHtml = '<div id="areasContainer"><div class="empty-state">Sin datos de áreas</div></div>';
+        }
+
+        // Info adicional
+        var infoHtml = '';
+        if (sucInfo.ciudad || sucInfo.estado) {
+            infoHtml = '<div class="sucursal-location">' +
+                '<span class="location-icon" aria-hidden="true">📍</span>' +
+                '<span>' + (sucInfo.ciudad || '') + (sucInfo.ciudad && sucInfo.estado ? ', ' : '') + (sucInfo.estado || '') + '</span>' +
+                '</div>';
+        }
+
+        // Número principal = MISMA definición que ranking/mapa (M1 trimestre o M3 año).
+        // Si NO hubo revisión en el alcance, no mostrar "0" (rojo).
+        var sinRevision = (s.promedio === null || s.promedio === undefined) || !s.fecha_supervision;
+        var fechaTxt = s.fecha_supervision ? fmtFecha(String(s.fecha_supervision).split(' ')[0]) : '';
+        var ultimaTxt = fechaTxt ? ('Última supervisión: ' + fechaTxt + (s.supervisor ? ' · ' + s.supervisor : '')) : '';
+        var ultimaDifiere = (s.calificacion_ultima !== null && s.calificacion_ultima !== undefined &&
+            s.promedio !== null && s.promedio !== undefined && fmt1(s.calificacion_ultima) !== fmt1(s.promedio));
+        var kpiHtml = sinRevision
+            ? '<div class="modal-kpi"><span class="modal-kpi-value gray">—</span>' +
+              '<span class="modal-kpi-label">Sin supervisión · ' + periodoLbl + '</span></div>'
+            : '<div class="modal-kpi">' +
+              '<span class="modal-kpi-value ' + colorClass + '" aria-label="' + escAttr(fmt1(s.promedio) + ', ' + nivelTxt(colorClass)) + '">' + fmt1(s.promedio) + '</span>' +
+              '<span class="modal-kpi-label">Calificación ' + tipoLabelTxt() + ' · ' + periodoLbl + '</span>' +
+              (ultimaTxt ? '<span class="modal-kpi-date">' + ultimaTxt + '</span>' : '') +
+              (ultimaDifiere ? '<span class="modal-kpi-date">Última visita: <strong class="' + getColorClass(s.calificacion_ultima) + '">' + fmt1(s.calificacion_ultima) + '</strong>' +
+                  (esAnio ? ' · el número principal promedia los trimestres del año' : ' · el número principal promedia las visitas del trimestre') + '</span>' : '') +
+              '</div>';
+
+        body.innerHTML = kpiHtml +
+            infoHtml +
+            '<div class="modal-stats">' +
+            '<div class="modal-stat"><span class="stat-value">' + (s.supervisor || '—') + '</span><span class="stat-label">Supervisor</span></div>' +
+            '<div class="modal-stat"><span class="stat-value">' + (sucInfo.grupo_nombre || '—') + '</span><span class="stat-label">Grupo</span></div>' +
+            '</div>' +
+            trendQHtml +
+            tendenciaHtml +
+            areasHtml;
+
+        // IMPORTANTE: Resetear scroll DESPUÉS de cargar contenido
+        setTimeout(function() {
+            body.scrollTop = 0;
+            body.scrollTo && body.scrollTo(0, 0);
+        }, 50);
     }).catch(function(e) {
         console.error('Error loading sucursal:', e);
-        body.innerHTML = '<div class="error-state">Error al cargar datos</div>';
+        renderError(body, function() { openSucursalModal(sucursalId); });
     });
 
-    // Close handlers
+    // Close handlers: X, flecha atrás y tocar fuera cierran SOLO este modal (el de grupo sigue)
     var closeBtn = document.getElementById('sucursalModalClose');
-    if (closeBtn) {
-        closeBtn.onclick = function() {
-            overlay.classList.remove('active');
-            unlockBodyScroll(); // Decrementa contador, solo desbloquea si es el último
-        };
-    }
-    var backBtn = document.getElementById('modalBack');
-    if (backBtn) {
-        backBtn.onclick = function() {
-            overlay.classList.remove('active');
-            unlockBodyScroll(); // Decrementa contador, el modal de grupo sigue activo
-        };
-    }
+    if (closeBtn) closeBtn.onclick = function() { closeTopModal(); };
+    if (backBtn) backBtn.onclick = function() { closeTopModal(); };
     overlay.onclick = function(e) {
-        if (e.target === overlay) {
-            overlay.classList.remove('active');
-            unlockBodyScroll();
-        }
+        if (e.target === overlay) closeTopModal();
     };
+}
+
+function renderAreasCards(areas) {
+    return areas.map(function(a) {
+        var aColorClass = a.color || getColorClass(a.porcentaje);
+        return '<div class="area-card ' + aColorClass + '" aria-label="' + escAttr(a.nombre + ': ' + fmt1(a.porcentaje) + '%, ' + nivelTxt(aColorClass)) + '">' +
+            '<span class="area-name">' + a.nombre + '</span>' +
+            '<span class="area-score">' + fmt1(a.porcentaje) + '%</span>' +
+            '</div>';
+    }).join('');
+}
+
+function showAreasInfo() {
+    var what = currentTipo === 'operativas' ? 'las áreas' : 'los KPIs';
+    showInfoPopup('¿Por qué ' + what + ' no promedian a la general?',
+        'La <strong>calificación general</strong> viene <strong>ponderada de Zenput</strong>: cada área pesa distinto según su importancia en la supervisión. ' +
+        'Por eso ' + what + ' no promedian a la general; sirven para ver <strong>dónde</strong> está la oportunidad, no para recalcular el total.');
 }
 
 // Cargar áreas de una supervisión específica cuando se hace click en una barra
@@ -1067,43 +1312,32 @@ function loadSupervisionAreas(supervisionId, barElement) {
 
     // Mostrar loading en las áreas
     if (areasGrid) {
-        areasGrid.innerHTML = '<div class="loading-inline">Cargando...</div>';
+        areasGrid.innerHTML = '<div class="loading-inline" role="status">Cargando…</div>';
     }
 
-    // Obtener fecha de la barra para mostrar en el título
-    var fecha = barElement ? barElement.getAttribute('data-fecha') : '';
-
     // Llamar al API
-    fetch('/api/supervision/' + supervisionId + '/areas/' + tipo)
-        .then(function(res) { return res.json(); })
+    fetchJson('/api/supervision/' + supervisionId + '/areas/' + tipo)
         .then(function(data) {
-            if (data.success && data.data) {
-                var d = data.data;
-                var areasTypeLabel = tipo === 'operativas' ? 'Areas Evaluadas' : 'KPIs de Seguridad';
+            var d = data.data;
+            var areasTypeLabel = tipo === 'operativas' ? 'Áreas evaluadas' : 'KPIs de seguridad';
+            var areas = d.areas || [];
 
-                // Actualizar título
-                if (areasTitle) {
-                    areasTitle.textContent = areasTypeLabel + ' (' + d.areas.length + ') - ' + d.fecha;
-                }
+            // Actualizar título
+            if (areasTitle) {
+                areasTitle.textContent = areasTypeLabel + ' (' + areas.length + ') · ' + (d.fecha ? fmtFecha(String(d.fecha).split(' ')[0]) : 'supervisión');
+            }
 
-                // Actualizar grid de áreas
-                if (areasGrid && d.areas && d.areas.length > 0) {
-                    areasGrid.innerHTML = d.areas.map(function(a) {
-                        var aColorClass = a.color || getColorClass(a.porcentaje);
-                        return '<div class="area-card ' + aColorClass + '">' +
-                            '<span class="area-name">' + a.nombre + '</span>' +
-                            '<span class="area-score">' + a.porcentaje + '%</span>' +
-                            '</div>';
-                    }).join('');
-                } else if (areasGrid) {
-                    areasGrid.innerHTML = '<div class="empty-state">Sin datos de areas para esta supervision</div>';
-                }
+            // Actualizar grid de áreas
+            if (areasGrid && areas.length > 0) {
+                areasGrid.innerHTML = renderAreasCards(areas);
+            } else if (areasGrid) {
+                areasGrid.innerHTML = '<div class="empty-state">Sin datos de áreas para esta supervisión</div>';
             }
         })
         .catch(function(e) {
             console.error('Error loading supervision areas:', e);
             if (areasGrid) {
-                areasGrid.innerHTML = '<div class="error-state">Error al cargar areas</div>';
+                renderError(areasGrid, function() { loadSupervisionAreas(supervisionId, barElement); });
             }
         });
 }
@@ -1141,66 +1375,88 @@ function initMap() {
     }, 200);
 }
 
+function setMapStatus(html, isError, retryFn) {
+    var st = document.getElementById('mapStatus');
+    if (!st) return;
+    if (!html) {
+        st.innerHTML = '';
+        st.hidden = true;
+        return;
+    }
+    st.hidden = false;
+    st.className = 'map-status' + (isError ? ' error' : '');
+    st.innerHTML = html;
+    var btn = st.querySelector('.retry-btn');
+    if (btn && retryFn) btn.addEventListener('click', retryFn);
+}
+
 function loadMapData() {
     if (!map) return;
 
     markers.forEach(function(m) { map.removeLayer(m); });
     markers = [];
+    setMapStatus('<span role="status">Cargando…</span>', false);
 
     var url = '/api/mapa/' + currentTipo;
     if (currentPeriodoId) {
         url += '?periodo_id=' + currentPeriodoId;
     }
 
-    fetch(url)
-        .then(function(res) { return res.json(); })
+    fetchJson(url)
         .then(function(data) {
-            if (data.success && data.data && data.data.length > 0) {
-                var bounds = [];
+            var items = data.data || [];
+            if (items.length === 0) {
+                setMapStatus('Sin sucursales para mostrar', false);
+                return;
+            }
+            var bounds = [];
+            var conDato = 0;
 
-                data.data.forEach(function(item) {
-                    if (!item.lat || !item.lng) return;
+            items.forEach(function(item) {
+                if (!item.lat || !item.lng) return;
 
-                    var colorClass = item.color || 'gray';
-                    var color = getMarkerColor(colorClass);
-                    var isPendiente = item.promedio === null;
+                var colorClass = item.color || 'gray';
+                var color = getMarkerColor(colorClass);
+                var isPendiente = item.promedio === null || item.promedio === undefined;
+                if (!isPendiente) conDato++;
 
-                    var marker = L.circleMarker([item.lat, item.lng], {
-                        radius: isPendiente ? 8 : 10,
-                        fillColor: color,
-                        color: '#fff',
-                        weight: 2,
-                        opacity: isPendiente ? 0.6 : 1,
-                        fillOpacity: isPendiente ? 0.5 : 0.9
-                    }).addTo(map);
+                var marker = L.circleMarker([item.lat, item.lng], {
+                    radius: isPendiente ? 8 : 10,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: isPendiente ? 0.6 : 1,
+                    fillOpacity: isPendiente ? 0.5 : 0.9
+                }).addTo(map);
 
-                    // Popup con botón para ver detalle
-                    var scoreText = isPendiente ? 'Pendiente' : item.promedio + '%';
-                    var popupContent = '<div class="map-popup">' +
-                        '<strong>' + item.nombre + '</strong><br>' +
-                        '<span class="popup-grupo">' + (item.grupo || '-') + '</span><br>' +
-                        '<span class="popup-score ' + colorClass + '">' + scoreText + '</span><br>' +
-                        '<button class="popup-btn" onclick="openSucursalModal(' + item.id + ')">Ver Detalle</button>' +
-                        '</div>';
+                // Popup con botón para ver detalle
+                var scoreText = isPendiente ? 'Sin supervisión' : fmt1(item.promedio) + ' · ' + nivelTxt(colorClass);
+                var popupContent = '<div class="map-popup">' +
+                    '<strong>' + item.nombre + '</strong><br>' +
+                    '<span class="popup-grupo">' + (item.grupo || '—') + '</span><br>' +
+                    '<span class="popup-score ' + colorClass + '">' + scoreText + '</span><br>' +
+                    '<button type="button" class="popup-btn" onclick="openSucursalModal(' + item.id + ')">Ver detalle</button>' +
+                    '</div>';
 
-                    marker.bindPopup(popupContent);
+                marker.bindPopup(popupContent);
 
-                    // También abrir modal al hacer click directamente en el marker
-                    marker.on('dblclick', function() {
-                        openSucursalModal(item.id);
-                    });
-
-                    markers.push(marker);
-                    bounds.push([item.lat, item.lng]);
+                // También abrir modal al hacer doble click directamente en el marker
+                marker.on('dblclick', function() {
+                    openSucursalModal(item.id);
                 });
 
-                if (bounds.length > 0) {
-                    map.fitBounds(bounds, { padding: [20, 20] });
-                }
+                markers.push(marker);
+                bounds.push([item.lat, item.lng]);
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [20, 20] });
             }
+            setMapStatus(conDato + ' de ' + items.length + ' sucursales con supervisión · ' + periodoLabelTxt(), false);
         })
         .catch(function(e) {
             console.error('Error loading map:', e);
+            setMapStatus(ERROR_MSG + ' <button type="button" class="retry-btn">Reintentar</button>', true, loadMapData);
         });
 }
 
@@ -1217,146 +1473,279 @@ function getMarkerColor(colorClass) {
 }
 
 // ========== HISTORICO ==========
+function initHistoricoControls() {
+    var seg = document.getElementById('histYearSeg');
+    if (!seg) return;
+    seg.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-anio]');
+        if (!btn || btn.disabled) return;
+        var y = parseInt(btn.dataset.anio, 10);
+        if (!y || y === histAnio) return;
+        histAnio = y;
+        loadHistorico();
+    });
+}
+
+// Pinta el control segmentado "2026 | 2025" y el título "Año 2026"
+function renderHistoricoHeader() {
+    var seg = document.getElementById('histYearSeg');
+    var title = document.getElementById('histTitle');
+    var anio = anioActual || histAnio;
+    if (!histAnio) histAnio = anio;
+    if (title) title.textContent = 'Año ' + histAnio;
+    if (seg && anio) {
+        var years = [anio, anio - 1];
+        seg.innerHTML = years.map(function(y) {
+            return '<button type="button" class="seg-btn' + (y === histAnio ? ' active' : '') + '" data-anio="' + y + '" aria-pressed="' + (y === histAnio ? 'true' : 'false') + '">' + y + '</button>';
+        }).join('');
+    }
+}
+
+// Heatmap genérico: periodos = [{nombre}], grupos = [{nombre, periodos:{nombre:{promedio,color}}}], eplCas = {periodos:{...}}
+function renderHeatmap(periodos, grupos, eplCas, corner) {
+    var headerHtml = periodos.map(function(p) {
+        return '<div class="heatmap-period" role="columnheader">' + ((p.label || p.nombre || '').substring(0, 12)) + '</div>';
+    }).join('');
+
+    function rowCells(periodosData) {
+        return periodos.map(function(p) {
+            var pd = (periodosData && periodosData[p.nombre]) || {};
+            var val = pd.promedio;
+            var tiene = (val !== null && val !== undefined);
+            var colorClass = tiene ? (pd.color || getColorClass(val)) : 'gray';
+            var display = tiene ? fmt1(val) : '—';
+            return '<div class="heatmap-cell ' + colorClass + '" role="cell" aria-label="' + escAttr(p.nombre + ': ' + (tiene ? fmt1(val) + ', ' + nivelTxt(colorClass) : 'sin datos')) + '">' + display + '</div>';
+        }).join('');
+    }
+
+    // 1) Fila "Promedio EPL CAS" SIEMPRE primero, resaltada
+    var eplHtml = '';
+    if (eplCas) {
+        eplHtml = '<div class="heatmap-row heatmap-total" role="row">' +
+            '<div class="heatmap-entity" role="rowheader">Promedio EPL CAS</div>' +
+            rowCells(eplCas.periodos) +
+            '</div>';
+    }
+
+    // 2) TODOS los grupos (sin límite), ya vienen ordenados mayor→menor
+    var bodyHtml = grupos.map(function(g) {
+        return '<div class="heatmap-row" role="row">' +
+            '<div class="heatmap-entity" role="rowheader">' + g.nombre + '</div>' +
+            rowCells(g.periodos) +
+            '</div>';
+    }).join('');
+
+    return '<div class="heatmap-table" role="table">' +
+        '<div class="heatmap-header" role="row">' +
+        '<div class="heatmap-corner" role="columnheader">' + (corner || 'Grupo') + '</div>' +
+        headerHtml +
+        '</div>' +
+        '<div class="heatmap-body">' + eplHtml + bodyHtml + '</div>' +
+        '</div>';
+}
+
+// Oculta columnas de trimestres FUTUROS sin ningún dato (Q4 hoy)
+function periodosConDato(periodos, grupos, eplCas) {
+    return periodos.filter(function(p) {
+        var hay = !!(eplCas && eplCas.periodos && eplCas.periodos[p.nombre] && eplCas.periodos[p.nombre].promedio !== null && eplCas.periodos[p.nombre].promedio !== undefined);
+        if (!hay) {
+            hay = grupos.some(function(g) {
+                var pd = g.periodos && g.periodos[p.nombre];
+                return pd && pd.promedio !== null && pd.promedio !== undefined;
+            });
+        }
+        if (hay) return true;
+        // Sin datos: se muestra solo si es un periodo ya iniciado y no futuro (p. ej. trimestre en curso recién abierto)
+        var pd = periodosDisponibles.find(function(x) { return x.nombre === p.nombre || x.codigo === p.nombre; });
+        return !!(pd && !pd.futuro);
+    });
+}
+
 function loadHistorico() {
     var container = document.getElementById('heatmapContainer');
     if (!container) return;
-    container.innerHTML = '<div class="loading">Cargando...</div>';
+    renderHistoricoHeader();
+    container.innerHTML = loadingHtml();
 
-    fetch('/api/historico/' + currentTipo)
-        .then(function(res) { return res.json(); })
+    var esAnioActual = !anioActual || !histAnio || histAnio === anioActual;
+    var url = '/api/historico/' + currentTipo + (esAnioActual ? '' : '?anio=' + histAnio);
+    var tipoTxt = tipoLabelTxt();
+
+    fetchJson(url)
         .then(function(data) {
-            if (data.success && data.data) {
-                var periodos = data.data.periodos || [];
-                var grupos = data.data.grupos || [];
-                var eplCas = data.data.epl_cas || null;
+            var d = data.data || {};
 
-                if (grupos.length === 0) {
-                    container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
-                    return;
-                }
-
-                var headerHtml = periodos.map(function(p) {
-                    return '<div class="heatmap-period">' + ((p.nombre || '').substring(0, 12)) + '</div>';
-                }).join('');
-
-                // Helper: celdas de una entidad por cada periodo
-                function rowCells(periodosData) {
-                    return periodos.map(function(p) {
-                        var pd = (periodosData && periodosData[p.nombre]) || {};
-                        var val = pd.promedio;
-                        var colorClass = pd.color || getColorClass(val);
-                        var display = (val !== null && val !== undefined) ? val : '-';
-                        return '<div class="heatmap-cell ' + colorClass + '">' + display + '</div>';
-                    }).join('');
-                }
-
-                // 1) Fila "Promedio EPL CAS" SIEMPRE primero, resaltada
-                var eplHtml = '';
-                if (eplCas) {
-                    eplHtml = '<div class="heatmap-row heatmap-total">' +
-                        '<div class="heatmap-entity">Promedio EPL CAS</div>' +
-                        rowCells(eplCas.periodos) +
-                        '</div>';
-                }
-
-                // 2) Todos los grupos (sin límite), ya vienen ordenados mayor->menor
-                var bodyHtml = grupos.map(function(g) {
-                    return '<div class="heatmap-row">' +
-                        '<div class="heatmap-entity">' + g.nombre + '</div>' +
-                        rowCells(g.periodos) +
-                        '</div>';
-                }).join('');
-
-                container.innerHTML = '<div class="heatmap-table">' +
-                    '<div class="heatmap-header">' +
-                    '<div class="heatmap-corner">Grupo</div>' +
-                    headerHtml +
-                    '</div>' +
-                    '<div class="heatmap-body">' + eplHtml + bodyHtml + '</div>' +
-                    '</div>';
-            } else {
-                container.innerHTML = '<div class="empty-state">No hay datos historicos</div>';
+            if (!esAnioActual && (d.locales || d.foraneas)) {
+                // Año con DOS calendarios (2025): dos heatmaps apilados, nunca mezclados con el año en curso
+                var loc = d.locales || { periodos: [], grupos: [], epl_cas: null };
+                var forr = d.foraneas || { periodos: [], grupos: [], epl_cas: null };
+                // Columnas con el código del calendario (T1 2025 / S1 2025), no "Q1 2025"
+                [loc, forr].forEach(function(cal) {
+                    (cal.periodos || []).forEach(function(p) {
+                        var pref = (p.codigo || '').split('-')[0];
+                        p.label = pref ? (pref + ' ' + histAnio) : p.nombre;
+                    });
+                });
+                var html = '<p class="hist-note">En ' + histAnio + ' se auditó con dos calendarios; no es comparable trimestre a trimestre con ' + (anioActual || '') + '.</p>';
+                html += '<h4 class="hist-subtitle">Locales · trimestres ' + rangoPeriodos(loc.periodos, 'T1–T4') + '</h4>';
+                html += (loc.grupos && loc.grupos.length)
+                    ? renderHeatmap(loc.periodos || [], loc.grupos, loc.epl_cas, 'Grupo')
+                    : '<div class="empty-state">Sin datos de locales en ' + histAnio + '</div>';
+                html += '<h4 class="hist-subtitle">Foráneas · semestres ' + rangoPeriodos(forr.periodos, 'S1–S2') + '</h4>';
+                html += (forr.grupos && forr.grupos.length)
+                    ? renderHeatmap(forr.periodos || [], forr.grupos, forr.epl_cas, 'Grupo')
+                    : '<div class="empty-state">Sin datos de foráneas en ' + histAnio + '</div>';
+                html += '<div class="dist-legend">Calificación ' + tipoTxt + ' · Excelente ≥90 · Bueno 80–89 · Regular 70–79 · Crítico &lt;70</div>';
+                container.innerHTML = html;
+                return;
             }
+
+            var grupos = d.grupos || [];
+            var eplCas = d.epl_cas || null;
+            if (grupos.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay datos históricos para ' + histAnio + '</div>';
+                return;
+            }
+            var periodos = periodosConDato(d.periodos || [], grupos, eplCas);
+            container.innerHTML = renderHeatmap(periodos, grupos, eplCas, 'Grupo') +
+                '<div class="dist-legend">Calificación ' + tipoTxt + ' · ' + grupos.length + ' grupos · Excelente ≥90 · Bueno 80–89 · Regular 70–79 · Crítico &lt;70</div>';
         })
         .catch(function(e) {
             console.error('Error loading historico:', e);
-            container.innerHTML = '<div class="error-state">Error al cargar historico</div>';
+            renderError(container, loadHistorico);
         });
+}
+
+// "T1–T4" a partir de los códigos de periodo (T1-2025 → T1)
+function rangoPeriodos(periodos, fallback) {
+    if (!periodos || !periodos.length) return fallback;
+    var cods = periodos.map(function(p) { return (p.codigo || p.nombre || '').split(/[- ]/)[0]; }).filter(Boolean);
+    if (!cods.length) return fallback;
+    return cods.length === 1 ? cods[0] : cods[0] + '–' + cods[cods.length - 1];
 }
 
 // ========== ALERTAS ==========
 function loadAlertas() {
     var critContainer = document.getElementById('alertasCriticos');
     var warnContainer = document.getElementById('alertasWarning');
+    var pendContainer = document.getElementById('alertasPendientes');
     var summaryContainer = document.getElementById('alertasSummary');
+    var scopeEl = document.getElementById('alertasScope');
 
-    if (critContainer) critContainer.innerHTML = '<div class="loading">Cargando...</div>';
-    if (warnContainer) warnContainer.innerHTML = '<div class="loading">Cargando...</div>';
+    if (critContainer) critContainer.innerHTML = loadingHtml();
+    if (warnContainer) warnContainer.innerHTML = loadingHtml();
+    if (pendContainer) pendContainer.innerHTML = loadingHtml();
+    if (scopeEl) scopeEl.textContent = 'Calificación ' + tipoLabelTxt() + ' · ' + periodoLabelTxt();
 
     var url = '/api/alertas/' + currentTipo;
     if (currentPeriodoId) {
         url += '?periodo_id=' + currentPeriodoId;
     }
+    var esAnio = (currentPeriodoId === 'all');
 
-    fetch(url)
-        .then(function(res) { return res.json(); })
+    fetchJson(url)
         .then(function(data) {
-            if (data.success && data.data) {
-                var alertas = data.data.alertas || [];
-                var criticos = alertas.filter(function(a) { return a.tipo === 'critical'; });
-                var warning = alertas.filter(function(a) { return a.tipo === 'warning'; });
+            var d = data.data || {};
+            var alertas = d.alertas || [];
+            var criticos = alertas.filter(function(a) { return a.tipo === 'critical'; });
+            var gruposCriticos = d.grupos_criticos || [];
+            var gruposRiesgo = d.grupos_riesgo || alertas.filter(function(a) { return a.tipo === 'warning'; });
+            var pendientes = d.pendientes || [];
+            var totalCriticos = (d.total_criticos || 0) + gruposCriticos.length;
+            var totalRiesgo = (d.total_warnings !== undefined) ? d.total_warnings : gruposRiesgo.length;
+            var totalPend = (d.total_pendientes !== undefined) ? d.total_pendientes : pendientes.length;
 
-                if (summaryContainer) {
-                    summaryContainer.innerHTML = '<div class="alert-summary-card critical">' +
-                        '<span class="alert-count">' + (data.data.total_criticos || 0) + '</span>' +
-                        '<span class="alert-label">Criticos</span>' +
-                        '</div>' +
-                        '<div class="alert-summary-card warning">' +
-                        '<span class="alert-count">' + (data.data.total_warnings || 0) + '</span>' +
-                        '<span class="alert-label">En Riesgo</span>' +
-                        '</div>';
-                }
+            if (summaryContainer) {
+                summaryContainer.innerHTML =
+                    '<div class="alert-summary-card critical" aria-label="' + totalCriticos + ' críticas">' +
+                    '<span class="alert-count">' + totalCriticos + '</span>' +
+                    '<span class="alert-label">Críticas</span>' +
+                    '</div>' +
+                    '<div class="alert-summary-card warning" aria-label="' + totalRiesgo + ' en riesgo">' +
+                    '<span class="alert-count">' + totalRiesgo + '</span>' +
+                    '<span class="alert-label">En riesgo</span>' +
+                    '</div>' +
+                    '<div class="alert-summary-card pending" aria-label="' + totalPend + ' pendientes">' +
+                    '<span class="alert-count">' + totalPend + '</span>' +
+                    '<span class="alert-label">Pendientes</span>' +
+                    '</div>';
+            }
 
-                if (critContainer) {
-                    if (criticos.length > 0) {
-                        critContainer.innerHTML = criticos.map(function(item) {
-                            return '<div class="alerta-item critical" onclick="openSucursalModal(' + item.sucursal_id + ')">' +
+            function grupoAlerta(g, cls) {
+                var prom = g.promedio;
+                var aria = 'Grupo ' + (g.grupo_nombre || g.nombre || '') + ', ' + fmt1(prom) + ', ' + nivelTxt(getColorClass(prom));
+                return '<div class="alerta-item ' + cls + ' grupo" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openGrupoModal(' + g.grupo_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openGrupoModal(' + g.grupo_id + ')}">' +
+                    '<div class="alerta-info">' +
+                    '<span class="alerta-name">' + (cls === 'critical' ? 'Grupo crítico: ' : 'Grupo en riesgo: ') + (g.grupo_nombre || g.nombre || '') + '</span>' +
+                    '<span class="alerta-meta">' + coberturaTxt(g.evaluadas, g.activas) + ' · promedio del grupo</span>' +
+                    '</div>' +
+                    '<span class="alerta-score">' + fmt1(prom) + '</span>' +
+                    '</div>';
+            }
+
+            function sucursalAlerta(item) {
+                var nombre = item.sucursal_nombre || (item.titulo || '').replace(/^.*?:\s*/, '');
+                var grupo = item.grupo_nombre || '';
+                var aria = nombre + ', ' + fmt1(item.promedio) + ', crítico' + (grupo ? ', ' + grupo : '');
+                return '<div class="alerta-item critical" role="button" tabindex="0" aria-label="' + escAttr(aria) + '" onclick="openSucursalModal(' + item.sucursal_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + item.sucursal_id + ')}">' +
+                    '<div class="alerta-info">' +
+                    '<span class="alerta-name">Rendimiento crítico: ' + nombre + '</span>' +
+                    '<span class="alerta-meta">' + (grupo ? grupo + ' · ' : '') + fmt1(item.promedio) + '</span>' +
+                    '</div>' +
+                    '<span class="alerta-score">' + fmt1(item.promedio) + '</span>' +
+                    '</div>';
+            }
+
+            if (critContainer) {
+                var critHtml = gruposCriticos.map(function(g) { return grupoAlerta(g, 'critical'); }).join('') +
+                    criticos.map(sucursalAlerta).join('');
+                critContainer.innerHTML = critHtml || '<div class="empty-state success-msg">Sin sucursales ni grupos críticos (&lt;70)</div>';
+            }
+
+            if (warnContainer) {
+                warnContainer.innerHTML = gruposRiesgo.length
+                    ? gruposRiesgo.map(function(g) { return grupoAlerta(g, 'warning'); }).join('')
+                    : '<div class="empty-state success-msg">Sin grupos en riesgo (70–79)</div>';
+            }
+
+            if (pendContainer) {
+                var pendTitle = document.getElementById('pendientesTitle');
+                if (pendTitle) pendTitle.textContent = 'Pendientes de supervisar (' + totalPend + ')';
+                if (pendientes.length === 0) {
+                    pendContainer.innerHTML = '<div class="empty-state success-msg">' +
+                        (esAnio ? 'Todas las sucursales activas tienen visita este año' : 'Todas las sucursales activas ya fueron supervisadas') + '</div>';
+                } else {
+                    // Agrupadas por grupo operativo
+                    var porGrupo = {};
+                    var orden = [];
+                    pendientes.forEach(function(p) {
+                        var k = p.grupo || '—';
+                        if (!porGrupo[k]) { porGrupo[k] = []; orden.push(k); }
+                        porGrupo[k].push(p);
+                    });
+                    pendContainer.innerHTML = orden.map(function(k) {
+                        var items = porGrupo[k].map(function(p) {
+                            return '<div class="alerta-item pending" role="button" tabindex="0" aria-label="' + escAttr(p.nombre + ', pendiente de supervisar, ' + k) + '" onclick="openSucursalModal(' + p.sucursal_id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSucursalModal(' + p.sucursal_id + ')}">' +
                                 '<div class="alerta-info">' +
-                                '<span class="alerta-name">' + item.titulo + '</span>' +
-                                '<span class="alerta-meta">' + item.descripcion + '</span>' +
+                                '<span class="alerta-name">' + p.nombre + '</span>' +
+                                '<span class="alerta-meta">' + (esAnio ? 'Sin visita en el año' : 'Sin visita en ' + periodoLabelTxt()) + '</span>' +
                                 '</div>' +
-                                '<span class="alerta-score">' + item.promedio + '%</span>' +
+                                '<span class="alerta-score gray">—</span>' +
                                 '</div>';
                         }).join('');
-                    } else {
-                        critContainer.innerHTML = '<div class="empty-state success-msg">Sin sucursales criticas</div>';
-                    }
+                        return '<div class="pending-group">' +
+                            '<div class="pending-group-title">' + k + ' <span class="pending-count">' + porGrupo[k].length + '</span></div>' +
+                            items + '</div>';
+                    }).join('');
                 }
-
-                if (warnContainer) {
-                    if (warning.length > 0) {
-                        warnContainer.innerHTML = warning.map(function(item) {
-                            return '<div class="alerta-item warning">' +
-                                '<div class="alerta-info">' +
-                                '<span class="alerta-name">' + item.titulo + '</span>' +
-                                '<span class="alerta-meta">' + item.descripcion + '</span>' +
-                                '</div>' +
-                                '<span class="alerta-score">' + item.promedio + '%</span>' +
-                                '</div>';
-                        }).join('');
-                    } else {
-                        warnContainer.innerHTML = '<div class="empty-state success-msg">Sin grupos en riesgo (70 a 79%)</div>';
-                    }
-                }
-            } else {
-                if (critContainer) critContainer.innerHTML = '<div class="error-state">No se pudieron cargar las alertas</div>';
-                if (warnContainer) warnContainer.innerHTML = '';
             }
         })
         .catch(function(e) {
             console.error('Error loading alertas:', e);
-            if (critContainer) critContainer.innerHTML = '<div class="error-state">Error al cargar alertas</div>';
+            if (summaryContainer) summaryContainer.innerHTML = '';
+            if (critContainer) renderError(critContainer, loadAlertas);
             if (warnContainer) warnContainer.innerHTML = '';
+            if (pendContainer) pendContainer.innerHTML = '';
         });
 }
 

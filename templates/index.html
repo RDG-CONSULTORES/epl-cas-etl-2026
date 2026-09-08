@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <!-- Zoom permitido (accesibilidad): sin restricciones de escala en el viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a0f">
@@ -19,9 +20,9 @@
                 <p class="header-subtitle">Dashboard de Supervisiones</p>
             </div>
             <div class="header-actions">
-                <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema claro/oscuro">
                     <!-- Sun icon (for dark mode - click to go light) -->
-                    <svg class="icon-sun" viewBox="0 0 24 24">
+                    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
                         <circle cx="12" cy="12" r="5"/>
                         <line x1="12" y1="1" x2="12" y2="3"/>
                         <line x1="12" y1="21" x2="12" y2="23"/>
@@ -33,7 +34,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                     </svg>
                     <!-- Moon icon (for light mode - click to go dark) -->
-                    <svg class="icon-moon" viewBox="0 0 24 24">
+                    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                     </svg>
                 </button>
@@ -43,8 +44,8 @@
 
         <!-- Period Bar -->
         <div class="period-bar" id="periodBar">
-            <button class="period-selector" id="periodSelector">
-                <span class="period-icon">
+            <button type="button" class="period-selector" id="periodSelector" aria-haspopup="dialog" aria-label="Seleccionar periodo">
+                <span class="period-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -52,14 +53,14 @@
                         <line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
                 </span>
-                <span class="period-name" id="periodName">Cargando...</span>
-                <span class="period-chevron">
+                <span class="period-name" id="periodName">Cargando…</span>
+                <span class="period-chevron" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="6 9 12 15 18 9"/>
                     </svg>
                 </span>
             </button>
-            <div class="period-progress">
+            <div class="period-progress" aria-label="Sucursales revisadas">
                 <span class="progress-text" id="progressText">-/-</span>
                 <span class="progress-label">revisadas</span>
             </div>
@@ -67,9 +68,9 @@
 
         <!-- Main Toggle: Operativas / Seguridad -->
         <div class="main-toggle-container">
-            <div class="main-toggle">
-                <button class="toggle-btn active" data-tipo="operativas">Operativas</button>
-                <button class="toggle-btn" data-tipo="seguridad">Seguridad</button>
+            <div class="main-toggle" role="group" aria-label="Tipo de supervisión">
+                <button type="button" class="toggle-btn active" data-tipo="operativas">Operativas</button>
+                <button type="button" class="toggle-btn" data-tipo="seguridad">Seguridad</button>
             </div>
         </div>
 
@@ -114,7 +115,7 @@
 
                 <!-- Distribution -->
                 <div class="distribution-section">
-                    <h3 class="section-title">Distribucion por Desempeno</h3>
+                    <h3 class="section-title">Distribución por desempeño</h3>
                     <div class="distribution-bars" id="distributionBars">
                         <!-- Filled by JS -->
                     </div>
@@ -122,15 +123,15 @@
 
                 <!-- Secondary Toggles -->
                 <div class="secondary-toggles">
-                    <div class="toggle-group">
-                        <button class="sub-toggle active" data-view="grupos">Grupos</button>
-                        <button class="sub-toggle" data-view="sucursales">Sucursales</button>
+                    <div class="toggle-group" role="group" aria-label="Vista del ranking">
+                        <button type="button" class="sub-toggle active" data-view="grupos">Grupos</button>
+                        <button type="button" class="sub-toggle" data-view="sucursales">Sucursales</button>
                     </div>
-                    <div class="toggle-group territorio-toggle">
-                        <button class="territorio-btn active" data-territorio="todas">Todas</button>
-                        <button class="territorio-btn" data-territorio="local">Local</button>
-                        <button class="territorio-btn" data-territorio="foranea">Foranea</button>
-                        <button class="territorio-btn" data-territorio="mixto">Mixto</button>
+                    <div class="toggle-group territorio-toggle" role="group" aria-label="Territorio">
+                        <button type="button" class="territorio-btn active" data-territorio="todas">Todas</button>
+                        <button type="button" class="territorio-btn" data-territorio="local">Local</button>
+                        <button type="button" class="territorio-btn" data-territorio="foranea">Foránea</button>
+                        <button type="button" class="territorio-btn" data-territorio="mixto">Mixto</button>
                     </div>
                 </div>
 
@@ -138,56 +139,60 @@
                 <div class="ranking-section">
                     <h3 class="section-title">Ranking <span id="rankingTitle">de Grupos</span></h3>
                     <div class="ranking-list" id="rankingList">
-                        <div class="loading">Cargando...</div>
+                        <div class="loading" role="status">Cargando…</div>
                     </div>
                 </div>
             </section>
 
             <!-- Mapa Tab -->
             <section class="tab-panel" id="mapa">
-                <div class="map-controls">
-                    <select class="map-filter" id="mapFilter">
-                        <option value="todas">Todas las sucursales</option>
-                    </select>
-                </div>
-                <div class="map-container" id="mapContainer"></div>
-                <div class="map-legend">
-                    <div class="legend-item"><span class="dot excellent"></span> Excelente (90%+)</div>
-                    <div class="legend-item"><span class="dot good"></span> Bueno (80-89%)</div>
-                    <div class="legend-item"><span class="dot regular"></span> Regular (70-79%)</div>
-                    <div class="legend-item"><span class="dot critical"></span> Critico (&lt;70%)</div>
+                <div class="map-status" id="mapStatus" hidden></div>
+                <div class="map-container" id="mapContainer" aria-label="Mapa de sucursales"></div>
+                <div class="map-legend" aria-label="Semáforo">
+                    <div class="legend-item"><span class="dot excellent" aria-hidden="true"></span> Excelente ≥90</div>
+                    <div class="legend-item"><span class="dot good" aria-hidden="true"></span> Bueno 80–89</div>
+                    <div class="legend-item"><span class="dot regular" aria-hidden="true"></span> Regular 70–79</div>
+                    <div class="legend-item"><span class="dot critical" aria-hidden="true"></span> Crítico &lt;70</div>
+                    <div class="legend-item"><span class="dot gray" aria-hidden="true"></span> Sin supervisión</div>
                 </div>
             </section>
 
-            <!-- Historico Tab -->
+            <!-- Histórico Tab -->
             <section class="tab-panel" id="historico">
                 <div class="historico-header">
-                    <h3 class="section-title">Tendencia por Periodo CAS</h3>
-                    <div class="toggle-group">
-                        <button class="sub-toggle active" data-hist="grupos">Grupos</button>
-                        <button class="sub-toggle" data-hist="sucursales">Sucursales</button>
+                    <div>
+                        <h3 class="section-title" id="histTitle">Año</h3>
+                        <p class="section-subtitle">Tendencia por periodo CAS · grupos</p>
                     </div>
+                    <div class="seg-control" id="histYearSeg" role="group" aria-label="Año del histórico"></div>
                 </div>
                 <div class="heatmap-container" id="heatmapContainer">
-                    <div class="loading">Cargando...</div>
+                    <div class="loading" role="status">Cargando…</div>
                 </div>
             </section>
 
             <!-- Alertas Tab -->
             <section class="tab-panel" id="alertas">
+                <p class="alertas-scope" id="alertasScope"></p>
                 <div class="alertas-summary" id="alertasSummary">
                     <!-- Summary cards -->
                 </div>
                 <div class="alertas-section">
-                    <h3 class="section-title critical-title">Criticos (&lt;70%)</h3>
+                    <h3 class="section-title critical-title">Críticas (&lt;70)</h3>
                     <div class="alertas-list" id="alertasCriticos">
-                        <div class="loading">Cargando...</div>
+                        <div class="loading" role="status">Cargando…</div>
                     </div>
                 </div>
                 <div class="alertas-section">
-                    <h3 class="section-title warning-title">En Riesgo (70-79%)</h3>
+                    <h3 class="section-title warning-title">En riesgo (70–79)</h3>
                     <div class="alertas-list" id="alertasWarning">
-                        <div class="loading">Cargando...</div>
+                        <div class="loading" role="status">Cargando…</div>
+                    </div>
+                </div>
+                <div class="alertas-section">
+                    <h3 class="section-title pending-title" id="pendientesTitle">Pendientes de supervisar</h3>
+                    <div class="alertas-list" id="alertasPendientes">
+                        <div class="loading" role="status">Cargando…</div>
                     </div>
                 </div>
             </section>
@@ -197,10 +202,10 @@
 
     <!-- Period Sheet Picker (iOS Style) -->
     <div class="sheet-overlay" id="periodSheetOverlay">
-        <div class="sheet-container" id="periodSheet">
-            <div class="sheet-handle"></div>
+        <div class="sheet-container" id="periodSheet" role="dialog" aria-modal="true" aria-labelledby="periodSheetTitle">
+            <div class="sheet-handle" aria-hidden="true"></div>
             <div class="sheet-header">
-                <h3 class="sheet-title">Seleccionar Periodo</h3>
+                <h3 class="sheet-title" id="periodSheetTitle">Seleccionar periodo</h3>
             </div>
             <div class="sheet-body" id="periodSheetBody">
                 <!-- Filled by JS -->
@@ -209,9 +214,9 @@
     </div>
 
     <!-- Bottom Tab Navigation (iOS Style) -->
-    <nav class="bottom-nav">
-        <button class="bottom-tab active" data-tab="dashboard">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <nav class="bottom-nav" aria-label="Secciones">
+        <button type="button" class="bottom-tab active" data-tab="dashboard" aria-current="page">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
                 <rect x="14" y="3" width="7" height="7" rx="1"/>
                 <rect x="3" y="14" width="7" height="7" rx="1"/>
@@ -219,22 +224,22 @@
             </svg>
             <span class="tab-label">Dashboard</span>
         </button>
-        <button class="bottom-tab" data-tab="mapa">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button type="button" class="bottom-tab" data-tab="mapa">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
                 <circle cx="12" cy="10" r="3"/>
             </svg>
             <span class="tab-label">Mapa</span>
         </button>
-        <button class="bottom-tab" data-tab="historico">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button type="button" class="bottom-tab" data-tab="historico">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M3 3v18h18"/>
                 <path d="M18 17l-5-5-4 4-3-3"/>
             </svg>
-            <span class="tab-label">Historico</span>
+            <span class="tab-label">Histórico</span>
         </button>
-        <button class="bottom-tab" data-tab="alertas">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button type="button" class="bottom-tab" data-tab="alertas">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                 <path d="M13.73 21a2 2 0 01-3.46 0"/>
             </svg>
@@ -242,12 +247,12 @@
         </button>
     </nav>
 
-    <!-- Modal for Drill-downs -->
+    <!-- Modal for Drill-downs (grupo) -->
     <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-container">
+        <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalTitle">Detalle</h3>
-                <button class="modal-close" id="modalClose">&times;</button>
+                <button type="button" class="modal-close" id="modalClose" aria-label="Cerrar">&times;</button>
             </div>
             <div class="modal-body" id="modalBody">
                 <!-- Dynamic content -->
@@ -257,11 +262,11 @@
 
     <!-- Sucursal Detail Modal -->
     <div class="modal-overlay" id="sucursalModalOverlay">
-        <div class="modal-container modal-large">
+        <div class="modal-container modal-large" role="dialog" aria-modal="true" aria-labelledby="sucursalModalTitle">
             <div class="modal-header">
-                <button class="modal-back" id="modalBack">&larr;</button>
+                <button type="button" class="modal-back" id="modalBack" aria-label="Volver al grupo">&larr;</button>
                 <h3 class="modal-title" id="sucursalModalTitle">Sucursal</h3>
-                <button class="modal-close" id="sucursalModalClose">&times;</button>
+                <button type="button" class="modal-close" id="sucursalModalClose" aria-label="Cerrar">&times;</button>
             </div>
             <div class="modal-body" id="sucursalModalBody">
                 <!-- Dynamic content -->
