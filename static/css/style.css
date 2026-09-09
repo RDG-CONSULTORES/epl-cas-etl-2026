@@ -17,6 +17,12 @@
     --good: #5ac8fa;
     --regular: #ffd60a;
     --critical: #ff453a;
+    /* Barras/marcadores: en oscuro coinciden con el color de texto */
+    --excellent-bar: #30d158;
+    --good-bar: #5ac8fa;
+    --regular-bar: #ffd60a;
+    --critical-bar: #ff453a;
+    --accent-text: #ff6b35; /* acento usado como TEXTO (en claro se oscurece para contraste) */
     --warning: #ff9f0a;
     --radius: 12px;
     --radius-lg: 16px;
@@ -29,18 +35,25 @@
 /* Light Mode */
 [data-theme="light"] {
     --bg-primary: #f2f2f7;
-    --bg-secondary: #ffffff;
-    --bg-card: #ffffff;
-    --bg-card-hover: #f5f5f5;
+    --bg-secondary: #ffffff;      /* superficie de modales, sheet y tarjetas de página */
+    --bg-card: #f2f2f7;           /* tarjetas DENTRO de modales/sheet (distinto del blanco para que se vean) */
+    --bg-card-hover: #e5e5ea;
     --text-primary: #000000;
-    --text-secondary: #6e6e73;
+    --text-secondary: #5c5c66; /* ≥4.5:1 sobre blanco (6.6:1) */
     --accent: #ff6b35;
     --accent-light: #ff8c5a;
-    --excellent: #28a745;
-    --good: #007aff;
-    --regular: #ff9500;
-    --critical: #ff3b30;
-    --warning: #ff9500;
+    --accent-text: #c2410c;   /* acento como texto: 5.0:1 sobre #f2f2f7 */
+    /* Texto del semáforo: ≥4.5:1 sobre blanco/#f2f2f7 */
+    --excellent: #1e7e34;
+    --good: #0058b8;
+    --regular: #a35f00; /* texto amarillo legible en claro (5.0:1 sobre blanco) */
+    --critical: #c8261b;
+    /* Barras y marcadores conservan el color vivo */
+    --excellent-bar: #28a745;
+    --good-bar: #007aff;
+    --regular-bar: #ff9500;
+    --critical-bar: #ff3b30;
+    --warning: #a35f00;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     --border-color: rgba(0, 0, 0, 0.1);
 }
@@ -95,6 +108,9 @@ body {
 }
 
 .admin-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     padding: 8px 16px;
     background: var(--bg-card);
     color: var(--text-secondary);
@@ -114,13 +130,13 @@ body {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 /* Theme Toggle */
 .theme-toggle {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--bg-card);
     border: none;
@@ -198,6 +214,38 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
+/* Claro: las tarjetas que viven sobre la PÁGINA (#f2f2f7) son blancas; --bg-card (#f2f2f7)
+   queda para las tarjetas dentro de modales/sheet (superficie blanca). */
+[data-theme="light"] .kpi-card,
+[data-theme="light"] .dist-bar,
+[data-theme="light"] .ranking-item,
+[data-theme="light"] .agrupacion-item,
+[data-theme="light"] .alert-summary-card,
+[data-theme="light"] .alerta-item,
+[data-theme="light"] .map-legend,
+[data-theme="light"] .map-status,
+[data-theme="light"] .hist-note,
+[data-theme="light"] .main-toggle,
+[data-theme="light"] .sub-toggle,
+[data-theme="light"] .territorio-btn,
+[data-theme="light"] .seg-control,
+[data-theme="light"] .period-selector,
+[data-theme="light"] .theme-toggle,
+[data-theme="light"] .admin-btn,
+[data-theme="light"] .heatmap-entity,
+[data-theme="light"] .heatmap-cell,
+[data-theme="light"] .pending-count,
+[data-theme="light"] .kpi-item,
+[data-theme="light"] .login-card,
+[data-theme="light"] .nav-btn {
+    background: var(--bg-secondary);
+}
+[data-theme="light"] .ranking-pos,
+[data-theme="light"] .q-chip,
+[data-theme="light"] .dist-track {
+    background: var(--bg-card);
+}
+
 /* ========== PERIOD BAR ========== */
 .period-bar {
     display: flex;
@@ -212,6 +260,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     padding: 8px 12px;
     background: var(--bg-card);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -259,7 +308,7 @@ body {
 .progress-text {
     font-size: 1rem;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--accent-text);
 }
 
 .progress-label {
@@ -296,7 +345,14 @@ body {
     background: var(--bg-secondary);
     border-radius: 20px 20px 0 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
     animation: sheetSlideUp 0.3s ease;
+}
+
+/* Pantallas bajas (iPhone SE/8): que quepan todas las opciones y se pueda desplazar */
+@media (max-height: 700px) {
+    .sheet-container { max-height: 85vh; max-height: 85dvh; }
 }
 
 @keyframes sheetSlideUp {
@@ -313,8 +369,13 @@ body {
 }
 
 .sheet-header {
-    padding: 8px 20px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 4px 96px 8px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .sheet-title {
@@ -323,15 +384,36 @@ body {
     text-align: center;
 }
 
+/* "Cancelar" (A6): 44 px, a la derecha del título */
+.sheet-close {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    min-height: 44px;
+    padding: 0 12px;
+    border: none;
+    background: transparent;
+    color: var(--accent-text);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 10px;
+}
+.sheet-close:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
 .sheet-body {
     padding: 16px;
-    max-height: calc(70vh - 80px);
+    padding-bottom: calc(16px + var(--safe-bottom));
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
 /* Period Options */
 .period-option {
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -341,7 +423,7 @@ body {
     margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s;
-    border: 2px solid transparent;
+    border: 2px solid var(--border-color); /* visible también en claro (A3) */
 }
 
 .period-option:active {
@@ -351,6 +433,11 @@ body {
 .period-option.selected {
     border-color: var(--accent);
     background: rgba(255, 107, 53, 0.1);
+}
+
+.period-option:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .period-option-info {
@@ -370,10 +457,13 @@ body {
 }
 
 .period-option-check {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
     border-radius: 50%;
-    background: var(--bg-secondary);
+    border: 1.5px solid var(--text-secondary); /* radio visible sin seleccionar (M8) */
+    background: transparent;
+    opacity: 0.6;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -381,6 +471,8 @@ body {
 
 .period-option.selected .period-option-check {
     background: var(--accent);
+    border-color: var(--accent);
+    opacity: 1;
 }
 
 .period-option-check svg {
@@ -402,17 +494,28 @@ body {
 }
 
 /* Period Activo Badge */
+.period-option.disabled { opacity: .4; pointer-events: none; }
+.period-futuro-badge {
+    display: inline-block;
+    background: var(--text-secondary, #8a8a8a);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+}
 .period-activo-badge {
     display: inline-block;
     background: var(--accent);
     color: white;
-    font-size: 0.65rem;
+    font-size: 0.72rem;
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 4px;
     margin-left: 6px;
     vertical-align: middle;
-    text-transform: uppercase;
+    text-transform: none; /* "En curso", igual que en la barra de periodo */
 }
 
 /* ========== MAIN TOGGLE ========== */
@@ -430,6 +533,7 @@ body {
 
 .toggle-btn {
     flex: 1;
+    min-height: 44px;
     padding: 12px 16px;
     background: transparent;
     border: none;
@@ -501,9 +605,13 @@ body {
 }
 
 .tab-label {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 500;
     letter-spacing: 0.2px;
+}
+
+.bottom-tab.active .tab-label {
+    color: var(--accent-text);
 }
 
 /* Legacy tab-btn styles for JS compatibility */
@@ -593,6 +701,37 @@ body {
     border-radius: 6px;
 }
 
+/* ===== Header de 4 métricas (parte 2, 2026-09-08) ===== */
+.kpi-card.main { text-align: left; }
+.kpi-card .kpi-value.mid { font-size: 1.9rem; }
+.kpi-sub { display: block; font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3; }
+.kpi-de { font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
+.pill { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-left: 6px; vertical-align: middle; letter-spacing: 0.02em; text-transform: none; }
+.pill-curso { background: rgba(255, 107, 53, 0.18); color: var(--accent-text); }
+.pill-muted { background: rgba(142, 142, 147, 0.2); color: var(--text-secondary); }
+.pill-up { background: rgba(48, 209, 88, 0.16); color: var(--excellent); }
+.pill-down { background: rgba(255, 69, 58, 0.16); color: var(--critical); }
+.pill-delta { position: absolute; right: 10px; top: 10px; margin: 0; }
+.kpi-card.year-prev { border: 1px dashed var(--border-color); background: transparent; }
+.kpi-card.year-prev .kpi-value { color: var(--text-secondary); }
+.kpi-trend .trend-vs { color: var(--text-secondary); font-weight: 400; }
+.q-chips { display: flex; gap: 6px; margin-top: 12px; }
+.q-chip { flex: 1; min-width: 0; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 6px 2px; text-align: center; cursor: pointer; min-height: 44px; }
+.q-chip b { display: block; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.q-chip span { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; letter-spacing: 0.01em; }
+/* "en curso" NO se marca con acento: solo el periodo SELECCIONADO lleva el acento (M3) */
+.q-chip.on { border-color: var(--border-color); }
+.q-chip.sel { background: rgba(255, 107, 53, 0.14); box-shadow: inset 0 0 0 2px var(--accent); font-weight: 700; }
+/* futuro: atenuado por color, no por opacidad (contraste) */
+.q-chip.off { cursor: default; }
+.q-chip.off b, .q-chip.off span { color: var(--text-secondary); }
+.q-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Tarjeta "Año N" seleccionada (modo año): mismo resaltado que el chip seleccionado */
+.kpi-card.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.kpi-card.clickable { cursor: pointer; }
+.kpi-card.clickable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.data-cut { font-size: 0.8125rem; color: var(--text-secondary); text-align: center; margin: 10px 0 0; line-height: 1.4; }
+
 /* Color classes for values */
 .excellent { color: var(--excellent); }
 .good { color: var(--good); }
@@ -647,10 +786,10 @@ body {
     transition: width 0.5s ease;
 }
 
-.dist-fill.excellent { background: var(--excellent); }
-.dist-fill.good { background: var(--good); }
-.dist-fill.regular { background: var(--regular); }
-.dist-fill.critical { background: var(--critical); }
+.dist-fill.excellent { background: var(--excellent-bar); }
+.dist-fill.good { background: var(--good-bar); }
+.dist-fill.regular { background: var(--regular-bar); }
+.dist-fill.critical { background: var(--critical-bar); }
 
 /* ========== SECONDARY TOGGLES ========== */
 .secondary-toggles {
@@ -667,6 +806,7 @@ body {
 
 .sub-toggle {
     flex: 1;
+    min-height: 44px;
     padding: 10px 16px;
     background: var(--bg-card);
     border: none;
@@ -689,7 +829,8 @@ body {
 }
 
 .territorio-btn {
-    padding: 8px 12px;
+    min-height: 44px;
+    padding: 8px 14px;
     background: var(--bg-card);
     border: none;
     border-radius: 20px;
@@ -717,6 +858,7 @@ body {
 }
 
 .ranking-item {
+    min-height: 44px;
     background: var(--bg-card);
     border-radius: var(--radius);
     padding: 14px 16px;
@@ -754,21 +896,25 @@ body {
     font-weight: 600;
     color: var(--text-secondary);
     flex-shrink: 0;
+    border: 1px solid var(--border-color); /* visible en claro (A3) */
 }
 
 .ranking-pos.pos-1 {
     background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
     color: #000;
+    border-color: transparent;
 }
 
 .ranking-pos.pos-2 {
     background: linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%);
     color: #000;
+    border-color: transparent;
 }
 
 .ranking-pos.pos-3 {
     background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%);
     color: #fff;
+    border-color: transparent;
 }
 
 .ranking-info {
@@ -779,14 +925,18 @@ body {
 .ranking-name {
     font-size: 0.9375rem;
     font-weight: 500;
-    display: block;
-    white-space: nowrap;
+    /* Nombres largos: 2 líneas y luego elipsis (M5); el nombre completo va en title */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .ranking-meta {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--text-secondary);
     margin-top: 2px;
     display: block;
@@ -798,7 +948,21 @@ body {
     padding: 6px 12px;
     border-radius: 8px;
     background: rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
 }
+
+/* Semáforo con marca NO cromática además del color (M10) */
+.ranking-score.excellent::before, .trend-chip.excellent .trend-score::before, .heatmap-cell.excellent::before { content: "●"; }
+.ranking-score.good::before, .trend-chip.good .trend-score::before, .heatmap-cell.good::before { content: "◐"; }
+.ranking-score.regular::before, .trend-chip.regular .trend-score::before, .heatmap-cell.regular::before { content: "◔"; }
+.ranking-score.critical::before, .trend-chip.critical .trend-score::before, .heatmap-cell.critical::before { content: "▲"; }
+.ranking-score::before, .trend-chip .trend-score::before, .heatmap-cell::before {
+    font-size: 0.7em;
+    margin-right: 4px;
+    vertical-align: 1px;
+}
+.heatmap-cell::before { font-size: 0.65em; margin-right: 3px; }
 
 /* ========== AGRUPACIONES (iOS DisclosureGroup Style) ========== */
 .agrupacion-item {
@@ -958,10 +1122,11 @@ body {
     border-radius: 50%;
 }
 
-.dot.excellent { background: var(--excellent); }
-.dot.good { background: var(--good); }
-.dot.regular { background: var(--regular); }
-.dot.critical { background: var(--critical); }
+.dot.excellent { background: var(--excellent-bar); }
+.dot.good { background: var(--good-bar); }
+.dot.regular { background: var(--regular-bar); }
+.dot.gray { background: #6b7280; }
+.dot.critical { background: var(--critical-bar); }
 
 /* Leaflet popup styling */
 .leaflet-popup-content-wrapper {
@@ -997,26 +1162,33 @@ body {
     flex: 0;
 }
 
+/* A2/M6: la tabla cabe en 390 px (entidad de ancho FIJO + columnas iguales), sin scroll
+   horizontal, para que el encabezado y la fila PROMEDIO puedan quedar fijos al bajar. */
 .heatmap-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
 }
 
 .heatmap-table {
-    min-width: 100%;
+    width: 100%;
 }
 
 .heatmap-header {
     display: flex;
+    width: 100%;
     position: sticky;
-    top: 0;
+    top: var(--header-h, 74px);
     background: var(--bg-primary);
     z-index: 10;
 }
 
 .heatmap-corner {
-    min-width: 120px;
-    padding: 12px 8px;
+    flex: 0 0 132px;
+    width: 132px;
+    max-width: 132px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
@@ -1026,13 +1198,19 @@ body {
 }
 
 .heatmap-period {
-    min-width: 80px;
-    padding: 12px 8px;
-    font-size: 0.6875rem;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--text-secondary);
     text-align: center;
     background: var(--bg-secondary);
+    white-space: nowrap;
 }
 
 .heatmap-period:last-child {
@@ -1046,6 +1224,7 @@ body {
 
 .heatmap-row {
     display: flex;
+    width: 100%;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -1053,24 +1232,146 @@ body {
     border-bottom: none;
 }
 
-.heatmap-entity {
-    min-width: 120px;
-    padding: 10px 8px;
+/* Fila resaltada "PROMEDIO" (siempre primero, fija bajo el encabezado) */
+.heatmap-row.heatmap-total {
+    border-bottom: 2px solid var(--accent, #0a84ff);
+    position: sticky;
+    top: calc(var(--header-h, 74px) + 40px);
+    z-index: 2;
+    background: var(--bg-primary); /* opaca: las filas no se transparentan al pasar debajo */
+}
+.heatmap-row.heatmap-total .heatmap-entity {
+    font-weight: 800;
+    color: var(--accent-text, #0a84ff);
+    text-transform: uppercase;
     font-size: 0.75rem;
+    letter-spacing: 0.3px;
+}
+.heatmap-row.heatmap-total .heatmap-cell {
+    font-weight: 800;
+}
+
+/* ===== Tendencia por trimestre (modal de grupo) ===== */
+.trend-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; flex-wrap: wrap; margin-top: 14px;
+}
+.trend-anio {
+    font-size: 0.72rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 12px; background: var(--bg-card);
+}
+.trend-chips { display: flex; gap: 8px; margin: 8px 0 4px; }
+.trend-chip {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; padding: 10px 6px; border-radius: 12px;
+    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s ease;
+}
+.trend-chip .trend-q { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.5px; }
+.trend-chip .trend-score { font-size: 1rem; font-weight: 800; }
+.trend-chip .trend-arrow { font-size: 0.7rem; line-height: 1; }
+.trend-arrow.up { color: var(--excellent); }
+.trend-arrow.down { color: var(--critical); }
+.trend-arrow.flat { color: var(--text-secondary); }
+/* "prendido" segun semaforo */
+.trend-chip.excellent { background: rgba(48,209,88,0.18); border-color: rgba(48,209,88,0.35); }
+.trend-chip.excellent .trend-score { color: var(--excellent); }
+.trend-chip.good { background: rgba(90,200,250,0.18); border-color: rgba(90,200,250,0.35); }
+.trend-chip.good .trend-score { color: var(--good); }
+.trend-chip.regular { background: rgba(255,214,10,0.18); border-color: rgba(255,214,10,0.35); }
+.trend-chip.regular .trend-score { color: var(--regular); }
+.trend-chip.critical { background: rgba(255,69,58,0.18); border-color: rgba(255,69,58,0.35); }
+.trend-chip.critical .trend-score { color: var(--critical); }
+/* apagado (sin dato / trimestre futuro) */
+.trend-chip.off { opacity: 0.6; border-color: var(--border-color); }
+.trend-chip.off .trend-score { color: var(--text-secondary); }
+
+/* M4 Tendencia en la tarjeta principal del header */
+.kpi-trend {
+    display: inline-block; margin-top: 2px;
+    font-size: 0.78rem; font-weight: 700;
+}
+.kpi-trend.up { color: var(--excellent); }
+.kpi-trend.down { color: var(--critical); }
+.kpi-trend.flat { color: var(--text-secondary); }
+.kpi-trend .prelim-tag {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-secondary);
+    background: rgba(255,255,255,0.08); padding: 1px 6px;
+    border-radius: 8px; margin-left: 4px; vertical-align: middle;
+}
+
+/* Botón ⓘ informativo */
+.info-i {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; margin-left: 6px; padding: 0;
+    border: none; border-radius: 50%; cursor: pointer;
+    background: var(--text-secondary); color: var(--bg-card);
+    font-size: 0.62rem; font-weight: 800; font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif; line-height: 1;
+    vertical-align: middle;
+}
+.info-i:active { transform: scale(0.9); }
+
+/* Popup informativo (encima de los modales) */
+.info-popup-overlay {
+    position: fixed; inset: 0; z-index: 4000;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.info-popup {
+    background: var(--bg-card); border-radius: 16px; max-width: 340px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45); overflow: hidden;
+    animation: infoPopIn 0.18s ease;
+}
+@keyframes infoPopIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.info-popup-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; font-weight: 700; font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.info-popup-close {
+    border: none; background: none; color: var(--text-secondary);
+    font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0;
+    /* zona táctil de 44 px sin agrandar la cabecera (M18) */
+    width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
+    margin: -11px -11px -11px 0; flex-shrink: 0;
+}
+.info-popup-close:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: 50%; }
+.info-popup-body {
+    padding: 16px; font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);
+}
+
+.heatmap-entity {
+    flex: 0 0 132px;
+    width: 132px;
+    max-width: 132px;
+    padding: 8px 8px;
+    font-size: 0.8125rem;
     font-weight: 500;
     background: var(--bg-card);
-    white-space: nowrap;
+    /* nombre en 2 líneas (nunca corre las celdas): el nombre completo va en title */
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .heatmap-cell {
-    min-width: 80px;
-    padding: 10px 8px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 4px;
     font-size: 0.8125rem;
     font-weight: 600;
     text-align: center;
     background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .heatmap-cell.excellent { background: rgba(48, 209, 88, 0.2); color: var(--excellent); }
@@ -1136,6 +1437,7 @@ body {
 }
 
 .alerta-item {
+    min-height: 44px;
     background: var(--bg-card);
     border-radius: var(--radius);
     padding: 14px 16px;
@@ -1270,11 +1572,11 @@ body.modal-open {
 }
 
 .modal-close, .modal-back {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
     background: var(--bg-secondary);
-    border: none;
+    border: 1px solid var(--border-color); /* visible en claro (A3) */
     border-radius: 50%;
     color: var(--text-secondary);
     font-size: 1.25rem;
@@ -1309,7 +1611,9 @@ body.modal-open {
 .modal-kpi {
     text-align: center;
     padding: 24px;
+    min-height: 96px;
     background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     margin-bottom: 20px;
 }
@@ -1319,6 +1623,9 @@ body.modal-open {
     font-weight: 700;
     display: block;
 }
+
+/* Sin dato: el guion no ocupa 150 px de alto (M4) */
+.modal-kpi-value.gray { font-size: 2.25rem; line-height: 1.2; }
 
 .modal-kpi-label {
     font-size: 0.875rem;
@@ -1336,6 +1643,7 @@ body.modal-open {
 
 .modal-stat {
     background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius);
     padding: 16px;
     text-align: center;
@@ -1460,9 +1768,11 @@ body.modal-open {
 
 .trend-bar {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end; /* barra pegada abajo: todas las fechas quedan a la misma altura (A8) */
     height: 100%;
 }
 
@@ -1476,22 +1786,27 @@ body.modal-open {
     transition: height 0.3s ease;
 }
 
-.trend-fill.excellent { background: rgba(48, 209, 88, 0.8); }
-.trend-fill.good { background: rgba(90, 200, 250, 0.8); }
-.trend-fill.regular { background: rgba(255, 214, 10, 0.8); }
-.trend-fill.critical { background: rgba(255, 69, 58, 0.8); }
+.trend-fill.excellent { background: var(--excellent-bar); }
+.trend-fill.good { background: var(--good-bar); }
+.trend-fill.regular { background: var(--regular-bar); }
+.trend-fill.critical { background: var(--critical-bar); }
 
 .trend-value {
-    font-size: 0.6875rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
     color: white;
+    font-variant-numeric: tabular-nums;
 }
+/* Sobre amarillo el blanco no se lee: texto oscuro (A4) */
+.trend-fill.regular .trend-value { color: #5a3e00; }
 
 .trend-label {
     font-size: 0.75rem;
     color: var(--text-secondary);
     margin-top: 8px;
     text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .tendencia-section {
@@ -1522,10 +1837,11 @@ body.modal-open {
     transform: scale(0.98);
 }
 
-/* Barra seleccionada */
+/* Barra seleccionada: contorno (no cambia el tamaño) y tinte suave sin rojo (A8) */
 .trend-bar.selected {
-    background: rgba(255, 107, 53, 0.15);
-    border: 2px solid var(--accent);
+    background: rgba(255, 107, 53, 0.10);
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
     border-radius: 8px;
 }
 
@@ -1818,3 +2134,214 @@ body.modal-open {
         align-items: center;
     }
 }
+
+
+/* ========== PARTE 3: navegación, estado, histórico, alertas, accesibilidad ========== */
+
+/* Loading / error con reintento */
+.loading::after { content: ''; }
+.retry-btn {
+    display: inline-block;
+    min-height: 44px;
+    padding: 10px 18px;
+    margin-top: 10px;
+    border: 1px solid var(--accent);
+    border-radius: 22px;
+    background: transparent;
+    color: var(--accent);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.retry-btn:active { background: var(--accent); color: #fff; }
+.retry-btn.retry-inline { min-height: 32px; padding: 4px 12px; margin: 4px 0 0; font-size: 0.8rem; }
+
+/* Score parcial (evaluadas < activas): no engaña con un 100 de 1/4 */
+.ranking-score.partial, .modal-kpi-value.partial { opacity: 0.72; }
+.partial-tag {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-align: right;
+    line-height: 1.1;
+}
+.ranking-score { text-align: right; }
+
+/* Distribución: rangos y leyenda con texto */
+.dist-range { font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); margin-left: 4px; }
+.dist-legend {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    line-height: 1.4;
+}
+
+/* Modal: título de áreas con botón ⓘ; hit area de 44px para .info-i */
+.areas-title { display: flex; align-items: center; gap: 6px; }
+/* Sucursal sin supervisión en el periodo: se muestran las áreas de la última disponible (A7) */
+.areas-note { font-size: 0.8125rem; color: var(--text-secondary); margin: -6px 0 10px; line-height: 1.4; }
+.info-i { position: relative; }
+.info-i::before {
+    content: '';
+    position: absolute;
+    inset: -14px; /* 16 + 28 = 44 px de zona táctil (M18) */
+    border-radius: 50%;
+}
+
+/* Mapa: estado (cargando / error / resumen) */
+.map-status {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    text-align: center;
+}
+.map-status.error { color: var(--critical); }
+.map-status .retry-btn { margin-top: 6px; min-height: 36px; padding: 6px 14px; }
+
+/* Histórico: cabecera con año + control segmentado */
+.historico-header { align-items: flex-start; }
+.section-subtitle { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+.seg-control {
+    display: inline-flex;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.seg-btn {
+    min-height: 44px;
+    min-width: 64px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.seg-btn.active { background: var(--accent); color: #fff; }
+.hist-note {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border-left: 3px solid var(--warning);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+}
+.hist-subtitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 14px 0 8px;
+}
+.hist-subtitle:first-of-type { margin-top: 0; }
+.heatmap-container .heatmap-table + .hist-subtitle { margin-top: 18px; }
+
+/* Alertas: 3 tarjetas, pendientes agrupadas, alcance */
+.alertas-scope { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px; }
+.alertas-summary { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.alert-summary-card { padding: 16px 8px; }
+.alert-summary-card.pending {
+    border: 1px solid rgba(142, 142, 147, 0.35);
+    background: rgba(142, 142, 147, 0.12);
+}
+.alert-summary-card.pending .alert-count { color: var(--text-primary); }
+.pending-title { color: var(--text-secondary); }
+.alerta-item.grupo { border-left-width: 6px; }
+.alerta-item.pending { border-left: 3px solid var(--text-secondary); opacity: 0.9; }
+.alerta-score.gray { color: var(--text-secondary); }
+.pending-group { margin-bottom: 12px; }
+.pending-group-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-secondary);
+    margin: 6px 0 6px 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.pending-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+}
+/* Vacíos de Alertas: sin 100 px de aire (M11) */
+.alertas-list .empty-state { padding: 16px; }
+.pending-group .alerta-item { margin-bottom: 8px; }
+
+/* Foco visible con teclado (role=button) */
+.ranking-item:focus-visible, .alerta-item:focus-visible, .agrupacion-header:focus-visible,
+.modal-list-item:focus-visible, .q-chip:focus-visible, .trend-bar:focus-visible, .seg-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Movimiento reducido: sin transiciones ni animaciones */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .ranking-item:hover, .alerta-item:hover, .period-option:active,
+    .modal-close:active, .modal-back:active, .info-i:active { transform: none !important; }
+}
+
+/* Modal de grupo: sucursales pendientes al final, atenuadas (A1) */
+.modal-list-item.pendiente { opacity: 0.7; }
+
+/* Alertas (A5): tarjetas = sucursales por nivel; grupos en su propia sección con pill de nivel */
+.grupos-title { color: var(--text-secondary); }
+.alerta-item.regular { border-left: 3px solid var(--regular-bar); }
+.alerta-item.regular .alerta-score { color: var(--regular); }
+.alert-summary-card.regular {
+    border: 1px solid rgba(255, 159, 10, 0.3);
+    background: rgba(255, 159, 10, 0.1);
+}
+.alert-summary-card.regular .alert-count { color: var(--regular); }
+.alert-summary-card .alert-count.zero { color: var(--text-secondary); }
+.alerta-name { font-weight: 600; }
+.alerta-pill {
+    display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
+    text-transform: uppercase; padding: 1px 7px; border-radius: 999px;
+    background: rgba(142, 142, 147, 0.2); color: var(--text-secondary);
+}
+.alerta-pill.critical { background: rgba(255, 69, 58, 0.16); color: var(--critical); }
+.alerta-pill.regular { background: rgba(255, 159, 10, 0.16); color: var(--regular); }
+.alerta-score { font-variant-numeric: tabular-nums; flex-shrink: 0; margin-left: 10px; }
+.alert-sub { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+/* Nombres largos en alertas: 2 líneas + elipsis; el nombre completo va en title (M5) */
+.alerta-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+.alerta-name .alerta-pill { margin-right: 6px; vertical-align: 1px; }
+.modal-container:focus { outline: none; }
+/* Título de la alerta en color de texto (el nivel lo dan la sección, el borde y la cifra) */
+.alerta-item .alerta-name { color: var(--text-primary); }
+.alert-summary-card { padding: 16px 6px; }
+.alert-sub { white-space: nowrap; }
