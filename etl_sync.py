@@ -17,10 +17,9 @@ from datetime import datetime
 # CONFIGURACIÓN (Variables de entorno en Railway)
 # ============================================================
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 
-    'postgresql://postgres:TszPoSlPeZmXodYvEqoPwQKaUUxBbSOE@caboose.proxy.rlwy.net:10380/railway')
-
-ZENPUT_TOKEN = os.environ.get('ZENPUT_TOKEN', 'cb908e0d4e0f5501c635325c611db314')
+# Sin defaults: correr sin variables NO debe pegarle a producción por accidente.
+DATABASE_URL = os.environ.get('DATABASE_URL')
+ZENPUT_TOKEN = os.environ.get('ZENPUT_TOKEN')
 ZENPUT_BASE = 'https://www.zenput.com/api/v3'
 
 FORMS = {
@@ -81,46 +80,90 @@ KPI_MAP = {
 # FUNCIONES AUXILIARES
 # ============================================================
 
-def resolver_periodo(cur):
+_TIENE_ACTIVA_DESDE = None
+
+def _tiene_activa_desde(cur):
+    """¿Existe sucursales.activa_desde_periodo_id? (se agregó 2026-10-06)"""
+    global _TIENE_ACTIVA_DESDE
+    if _TIENE_ACTIVA_DESDE is None:
+        cur.execute("""
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'sucursales' AND column_name = 'activa_desde_periodo_id'
+        """)
+        _TIENE_ACTIVA_DESDE = cur.fetchone() is not None
+    return _TIENE_ACTIVA_DESDE
+
+def resolver_periodo(cur, sucursal_id, tabla, fecha):
     """
     Determina a qué periodo asignar una supervisión nueva.
-    Regla de negocio: el periodo activo no cierra hasta 86/86 supervisadas.
 
-    Prioridad:
-    1. Periodo activo con < 86/86 → asignar ahí
-    2. Periodo activo con 86/86 → asignar al siguiente
-    3. Sin periodo activo → fallback por fecha actual
-    4. Sin match → último periodo existente
+    Regla de negocio (Roberto, 2026-10-06): el trimestre NO es calendario; es
+    una RONDA — cada sucursal recibe una visita por periodo y el periodo activo
+    cierra cuando todas las sucursales activas fueron supervisadas (los cortes
+    se recorren). Por eso la asignación depende de la sucursal, no de la fecha:
+
+    0. Seguridad: va al mismo periodo que la operativa de la misma visita
+       (misma sucursal, ±1 día). Así una visita nunca queda partida.
+    1. Sucursal que empieza a contar en un periodo futuro
+       (activa_desde_periodo_id) → ese periodo.
+    2. Sucursal SIN visita en el periodo activo → periodo activo
+       (p. ej. la visita pendiente que cierra la ronda).
+    3. Sucursal que YA tiene visita en el periodo activo → siguiente periodo
+       en el que aún no tenga visita (ya es la ronda que sigue).
+    4. Sin periodo activo → fallback por fecha actual / último periodo.
     """
-    # 1. Buscar periodo activo y su progreso
+    # 0. Seguridad pegada a su operativa
+    if tabla == 'supervisiones_seguridad' and fecha:
+        cur.execute("""
+            SELECT periodo_id FROM supervisiones_operativas
+            WHERE sucursal_id = %s
+              AND ABS(EXTRACT(EPOCH FROM fecha_supervision - %s::timestamp)) <= 86400
+            ORDER BY ABS(EXTRACT(EPOCH FROM fecha_supervision - %s::timestamp))
+            LIMIT 1
+        """, (sucursal_id, fecha, fecha))
+        par = cur.fetchone()
+        if par and par['periodo_id']:
+            return par['periodo_id']
+
     cur.execute("""
-        SELECT p.id, p.codigo,
-               COUNT(DISTINCT so.sucursal_id) as supervisadas,
-               (SELECT COUNT(*) FROM sucursales WHERE activo = true) as total
-        FROM periodos_cas p
-        LEFT JOIN supervisiones_operativas so ON so.periodo_id = p.id
-        WHERE p.activo = true
-        GROUP BY p.id, p.codigo
+        SELECT id, fecha_inicio FROM periodos_cas
+        WHERE activo = true ORDER BY fecha_inicio DESC LIMIT 1
     """)
     activo = cur.fetchone()
 
     if activo:
-        supervisadas = activo['supervisadas'] or 0
-        total = activo['total'] or 86
+        # 1. Sucursal nueva que empieza a contar después del periodo activo
+        if _tiene_activa_desde(cur):
+            cur.execute("""
+                SELECT p.id FROM sucursales s
+                JOIN periodos_cas p ON p.id = s.activa_desde_periodo_id
+                WHERE s.id = %s AND p.fecha_inicio > %s
+            """, (sucursal_id, activo['fecha_inicio']))
+            futura = cur.fetchone()
+            if futura:
+                return futura['id']
 
-        if supervisadas < total:
-            return activo['id']
+        # 2/3. ¿Esta sucursal ya tiene visita en el periodo activo?
+        cur.execute(f"""
+            SELECT p.id
+            FROM periodos_cas p
+            WHERE p.fecha_inicio >= %s
+              AND NOT EXISTS (SELECT 1 FROM {tabla} t
+                              WHERE t.periodo_id = p.id AND t.sucursal_id = %s)
+            ORDER BY p.fecha_inicio ASC
+            LIMIT 1
+        """, (activo['fecha_inicio'], sucursal_id))
+        libre = cur.fetchone()
+        if libre:
+            return libre['id']
+        # Ya tiene visita en todos los periodos definidos → último periodo (queda repetida)
+        cur.execute("SELECT id, codigo FROM periodos_cas ORDER BY fecha_inicio DESC LIMIT 1")
+        ultimo = cur.fetchone()
+        log(f"  Sucursal {sucursal_id} ya tiene visita en {ultimo['codigo']} y no hay periodo "
+            f"siguiente dado de alta en periodos_cas → queda repetida; crear el periodo que sigue", 'WARN')
+        return ultimo['id']
 
-        # Activo completo (86/86) → siguiente periodo
-        cur.execute("""
-            SELECT id FROM periodos_cas
-            WHERE fecha_inicio > (SELECT fecha_inicio FROM periodos_cas WHERE id = %s)
-            ORDER BY fecha_inicio ASC LIMIT 1
-        """, (activo['id'],))
-        siguiente = cur.fetchone()
-        return siguiente['id'] if siguiente else activo['id']
-
-    # 2. Sin periodo activo → fallback por fecha
+    # 4. Sin periodo activo → fallback por fecha
     cur.execute("""
         SELECT id FROM periodos_cas
         WHERE CURRENT_DATE BETWEEN fecha_inicio AND fecha_fin
@@ -130,7 +173,6 @@ def resolver_periodo(cur):
     if por_fecha:
         return por_fecha['id']
 
-    # 3. Fallback absoluto: último periodo
     cur.execute("SELECT id FROM periodos_cas ORDER BY fecha_inicio DESC LIMIT 1")
     ultimo = cur.fetchone()
     return ultimo['id'] if ultimo else None
@@ -139,6 +181,8 @@ def log(msg, level='INFO'):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{level}] {msg}")
 
 def get_db():
+    if not DATABASE_URL:
+        raise SystemExit('Falta la variable de entorno DATABASE_URL')
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def fetch_zenput(form_id, after_date=None):
@@ -287,8 +331,8 @@ def sync_operativas(conn, submissions):
             continue
         sucursal_id = sucursal_row['id']
 
-        # Asignar periodo por completitud del periodo activo
-        periodo_id = resolver_periodo(cur)
+        # Asignar periodo por ronda (ver resolver_periodo)
+        periodo_id = resolver_periodo(cur, sucursal_id, 'supervisiones_operativas', fecha)
 
         try:
             cur.execute("""
@@ -367,8 +411,8 @@ def sync_seguridad(conn, submissions):
             continue
         sucursal_id = sucursal_row['id']
 
-        # Asignar periodo por completitud del periodo activo
-        periodo_id = resolver_periodo(cur)
+        # Asignar periodo por ronda: pegada a la operativa de la misma visita
+        periodo_id = resolver_periodo(cur, sucursal_id, 'supervisiones_seguridad', fecha)
 
         try:
             cur.execute("""
@@ -578,6 +622,7 @@ def verificar_transicion_periodo(conn):
                (SELECT COUNT(*) FROM sucursales WHERE activo = true) as total
         FROM periodos_cas p
         LEFT JOIN supervisiones_operativas so ON so.periodo_id = p.id
+             AND so.sucursal_id IN (SELECT id FROM sucursales WHERE activo = true)
         WHERE p.activo = true
         GROUP BY p.id, p.codigo, p.nombre
     ''')
@@ -616,6 +661,15 @@ def verificar_transicion_periodo(conn):
     # 4. Ejecutar la transición
     cur.execute("UPDATE periodos_cas SET activo = false WHERE id = %s", (activo['id'],))
     cur.execute("UPDATE periodos_cas SET activo = true WHERE id = %s", (siguiente['id'],))
+    # Sucursales nuevas que empiezan a contar en este periodo (p. ej. Linares en Q4-2026)
+    if _tiene_activa_desde(cur):
+        cur.execute("""
+            UPDATE sucursales SET activo = true
+            WHERE activa_desde_periodo_id = %s AND activo = false
+            RETURNING nombre
+        """, (siguiente['id'],))
+        for r in cur.fetchall():
+            log(f"   Sucursal activada para {siguiente['codigo'] or siguiente['nombre']}: {r['nombre']}")
     conn.commit()
 
     log("=" * 60)
